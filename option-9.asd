@@ -26,9 +26,9 @@
 
   :depends-on (#:cl-opengl #:lispbuilder-sdl)
   :components ((:file "package")
-	       (:file "game"
-		      :depends-on ("package"))
-	       (:file "entity"
-		      :depends-on ("game"))
+               (:file "game"
+                      :depends-on ("package"))
+               (:file "entity"
+                      :depends-on ("game"))
                (:file "option-9"
                       :depends-on ("package" "entity" "game"))))
