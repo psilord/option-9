@@ -1,0 +1,39 @@
+;; -*- mode: emacs-lisp; coding: emacs-mule; -*-
+;; --------------------------------------------------------------------------
+;; Desktop File for Emacs
+;; --------------------------------------------------------------------------
+;; Created Tue Dec 28 21:26:00 2010
+;; Desktop file format version 206
+;; Emacs version 22.2.1
+
+;; Global section:
+(setq desktop-missing-file-warning nil)
+(setq tags-file-name nil)
+(setq tags-table-list nil)
+(setq search-ring nil)
+(setq regexp-search-ring nil)
+(setq register-alist nil)
+
+;; Buffer section -- buffers listed in same order as in buffer list:
+(desktop-create-buffer 206
+  "/home/psilord/content/code/lisp/option-9/entity.lisp"
+  "entity.lisp"
+  'lisp-mode
+  '(slime-mode eldoc-mode)
+  18061
+  '(1 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "/usr/share/doc/hyperspec/Data/Map_Sym.txt"
+  "Map_Sym.txt"
+  'text-mode
+  nil
+  32371
+  '(nil nil)
+  t
+  nil
+  '((buffer-file-coding-system . undecided-unix)))
+

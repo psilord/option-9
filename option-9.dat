@@ -1,0 +1,403 @@
+(:entities
+
+ ((:kind :player-simple-shot)
+  (:class simple-shot)
+  (:initargs
+   :radius .04
+
+   :primitives ((:line-loop ((0 1) (1 1 1))
+                            ((1 0) (1 1 1))
+                            ((0 -1) (1 1 1))
+                            ((-1 0) (1 1 1))))))
+
+ ((:kind :player-hardnose-shot)
+  (:class hardnose-shot)
+  (:initargs
+   :radius .04
+   :primitives ((:line-loop ((0 1) (1 0 0))
+                            ((1 0) (1 0 0))
+                            ((0 -1) (1 0 0))
+                            ((-1 0) (1 0 0))))))
+
+
+ ((:kind :powerup-hardnose)
+  (:class powerup)
+  (:initargs
+   :ttl-max 240
+   :radius .04
+   :main-gun :player-hardnose-shot
+   :primitives ((:line-loop ((0 2) (1 1 1))
+                            ((1 1) (1 1 1))
+                            ((1 -1) (1 1 1))
+                            ((0 -2) (1 1 1))
+                            ((-1 -1) (1 1 1))
+                            ((-1 1) (1 1 1)))
+                (:lines ((.5 1) (1 1 1))
+                        ((.5 -1) (1 1 1))
+                        ((-.5 1) (1 1 1))
+                        ((-.5 -1) (1 1 1))
+                        ((-.5 0) (1 1 1))
+                        ((.5 0) (1 1 1))))))
+
+ ((:kind :player-super-shot)
+  (:class super-shot)
+  (:initargs
+   :radius .04
+
+   :primitives ((:line-loop ((0 1) (0 1 0))
+                            ((1 0) (0 1 0))
+                            ((0 -1) (0 1 0))
+                            ((-1 0) (0 1 0))))))
+
+ ((:kind :powerup-super-shot)
+  (:class powerup)
+  (:initargs
+   :ttl-max 240
+   :radius .04
+   :main-gun :player-super-shot
+   :primitives ((:line-loop ((0 2) (1 1 1))
+			    ((2 0) (1 1 1))
+			    ((0 -2) (1 1 1))
+			    ((-2 0) (1 1 1)))
+		(:line-strip ((.5 .5) (1 1 1))
+			     ((0 1) (1 1 1))
+			     ((-.5 .5) (1 1 1))
+			     ((.5 -.5) (1 1 1))
+			     ((0 -1) (1 1 1))
+			     ((-.5 -.5) (1 1 1))))))
+   
+
+ ((:kind :enemy-1-simple-shot)
+  (:class simple-shot)
+  (:initargs
+   :radius .04
+   :points 10
+   :primitives ((:line-loop ((.5 1.5) (1 1 1))
+                            ((-.5 .5) (1 1 1))
+                            ((.5 -.5) (1 1 1))
+                            ((-.5 -1.5) (1 1 1))
+                            ((.5 -.5) (1 1 1))
+                            ((-.5 .5) (1 1 1))))))
+
+ ((:kind :enemy-2-simple-shot)
+  (:class simple-shot)
+  (:initargs
+   :radius .04
+   :points 10
+   :primitives ((:line-loop ((0 1) (1 1 1))
+                            ((1 0) (1 1 1))
+                            ((0 -2) (1 1 1))
+                            ((-1 0) (1 1 1))))))
+
+ ((:kind :enemy-3-simple-shot)
+  (:class simple-shot)
+  (:initargs
+   :radius .04
+   :points 10
+   :primitives ((:line-loop ((0 1) (1 1 1))
+                            ((1 2) (1 1 1))
+                            ((1 1) (1 1 1))
+                            ((0 -1) (1 1 1))
+                            ((-1 1) (1 1 1))
+                            ((-1 2) (1 1 1))))))
+
+ ((:kind :player)
+  (:class player)
+  (:initargs
+   :radius .04
+   :main-gun :player-simple-shot
+   :primitives ((:line-loop ((0 4) (1 1 1))
+                            ((1 1) (1 1 1))
+                            ((2 1) (1 1 1))
+                            ((3 3) (1 1 1))
+                            ((3 -1) (1 1 1))
+                            ((1 -1) (1 1 1))
+                            ((0 -2) (1 1 1))
+                            ((-1 -1) (1 1 1))
+                            ((-3 -1) (1 1 1))
+                            ((-3 3) (1 1 1))
+                            ((-2 1) (1 1 1))
+                            ((-1 1) (1 1 1))))))
+
+ ((:kind :ship-shot-shield)
+  (:class shot-shield)
+  (:initargs
+   :shots-absorbed 5
+   :primitives ((:line-loop ((0 5) (1 1 1))
+			    ((1 4) (1 1 1))
+			    ((2 5) (1 1 1))
+			    ((5 2) (1 1 1))
+			    ((4 1) (1 1 1))
+			    ((5 0) (1 1 1))
+			    ((2 -3) (1 1 1))
+			    ((1 -2) (1 1 1))
+			    ((0 -3) (1 1 1))
+			    ((-1 -2) (1 1 1))
+			    ((-2 -3) (1 1 1))
+			    ((-5 0) (1 1 1))
+			    ((-4 1) (1 1 1))
+			    ((-5 2) (1 1 1))
+			    ((-2 5) (1 1 1))
+			    ((-1 4) (1 1 1))))))
+
+ ((:kind :powerup-shot-shield)
+  (:class powerup)
+  (:initargs
+   :ttl-max 240
+   :radius .04
+   :main-shield :ship-shot-shield
+   :primitives ((:line-loop ((.5 .5) (1 1 1))
+			    ((.5 -.5) (1 1 1))
+			    ((-.5 -.5) (1 1 1))
+			    ((-.5 .5) (1 1 1)))
+		(:line-loop ((1 1) (1 1 1))
+			    ((1 -1) (1 1 1))
+			    ((-1 -1) (1 1 1))
+			    ((-1 1) (1 1 1)))
+		(:line-loop ((1.5 1.5) (1 1 1))
+			    ((1.5 -1.5) (1 1 1))
+			    ((-1.5 -1.5) (1 1 1))
+			    ((-1.5 1.5) (1 1 1))))))
+
+ ((:kind :ship-ship-shield)
+  (:class ship-shield)
+  (:initargs
+   :shots-absorbed 5
+   :primitives ((:line-loop ((1 5) (1 1 1))
+			    ((1 3) (1 1 1))
+			    ((2 3) (1 1 1))
+			    ((2 4) (1 1 1))
+			    ((4 4) (1 1 1))
+			    ((4 -2) (1 1 1))
+			    ((1 -2) (1 1 1))
+			    ((0 -3) (1 1 1))
+			    ((-1 -2) (1 1 1))
+			    ((-4 -2) (1 1 1))
+			    ((-4 4) (1 1 1))
+			    ((-2 4) (1 1 1))
+			    ((-2 3) (1 1 1))
+			    ((-1 3) (1 1 1))
+			    ((-1 5) (1 1 1))))))
+
+ ((:kind :powerup-ship-shield)
+  (:class powerup)
+  (:initargs
+   :ttl-max 240
+   :radius .04
+   :main-shield :ship-ship-shield
+   :primitives ((:line-loop ((0 1) (1 1 1))
+			    ((1 -1) (1 1 1))
+			    ((-1 -1) (1 1 1))))))
+
+ ((:kind :enemy-3-shot-shield)
+  (:class shot-shield)
+  (:initargs
+   :shots-absorbed 2
+   :primitives ((:line-loop ((1 5) (1 1 1))
+			    ((3 3) (1 1 1))
+			    ((3 0) (1 1 1))
+			    ((0 -5) (1 1 1))
+			    ((-3 0) (1 1 1))
+			    ((-3 3) (1 1 1))
+			    ((-1 5) (1 1 1))))))
+			    
+ ((:kind :enemy-1)
+  (:class enemy-1)
+  (:initargs
+   :points 100
+   :radius .04
+   :main-gun :enemy-1-simple-shot
+   :primitives ((:line-loop ((0 4) (1 1 1))
+                            ((3 2) (1 1 1))
+                            ((3 -1) (1 1 1))
+                            ((2 -2) (1 1 1))
+                            ((1 -1) (1 1 1))
+                            ((0 -2) (1 1 1))
+                            ((-1 -1) (1 1 1))
+                            ((-2 -2) (1 1 1))
+                            ((-3 -1) (1 1 1))
+                            ((-3 2) (1 1 1))))))
+
+ ((:kind :enemy-2)
+  (:class enemy-2)
+  (:initargs
+   :radius .04
+   :points 100
+   :main-gun :enemy-2-simple-shot
+   :primitives ((:line-loop ((0 4) (1 1 1))
+                            ((1 3) (1 1 1))
+                            ((1 4) (1 1 1))
+                            ((2 3) (1 1 1))
+                            ((2 2) (1 1 1))
+                            ((3 2) (1 1 1))
+                            ((4 1) (1 1 1))
+                            ((4 0) (1 1 1))
+                            ((3 -1) (1 1 1))
+                            ((2 -1) (1 1 1))
+                            ((2 -2) (1 1 1))
+                            ((1 -3) (1 1 1))
+                            ((1 -2) (1 1 1))
+                            ((0 -3) (1 1 1))
+                            ((-1 -2) (1 1 1))
+                            ((-1 -3) (1 1 1))
+                            ((-2 -2) (1 1 1))
+                            ((-2 -1) (1 1 1))
+                            ((-3 -1) (1 1 1))
+                            ((-4 0) (1 1 1))
+                            ((-4 1) (1 1 1))
+                            ((-3 2) (1 1 1))
+                            ((-2 2) (1 1 1))
+                            ((-2 3) (1 1 1))
+                            ((-1 4) (1 1 1))
+                            ((-1 3) (1 1 1))))))
+
+ ((:kind :enemy-3)
+  (:class enemy-3)
+  (:initargs
+   :radius .04
+   :points 100
+   :main-gun :enemy-3-simple-shot
+   :main-shield :enemy-3-shot-shield
+   :primitives ((:line-loop ((0 2) (1 1 1))
+                            ((1 4) (1 1 1))
+                            ((2 2) (1 1 1))
+                            ((1 1) (1 1 1))
+                            ((2 0) (1 1 1))
+                            ((0 -4) (1 1 1))
+                            ((-2 0) (1 1 1))
+                            ((-1 1) (1 1 1))
+                            ((-2 2) (1 1 1))
+                            ((-1 4) (1 1 1))))))
+
+ ((:kind :digit-0)
+  (:class digit)
+  (:initargs
+   :primitives ((:line-loop ((-1 1) (1 1 1))
+                            ((0 1) (1 1 1))
+                            ((0 -1) (1 1 1))
+                            ((-1 -1) (1 1 1))))))
+
+ ((:kind :digit-1)
+  (:class digit)
+  (:initargs
+   :primitives ((:line-loop ((0 1) (1 1 1))
+                            ((0 -1) (1 1 1))))))
+
+ ((:kind :digit-2)
+  (:class digit)
+  (:initargs
+   :primitives ((:line-loop ((-1 1) (1 1 1))
+                            ((0 1) (1 1 1))
+                            ((0 0) (1 1 1))
+                            ((-1 0) (1 1 1))
+                            ((-1 -1) (1 1 1))
+                            ((0 -1) (1 1 1))
+                            ((-1 -1) (1 1 1))
+                            ((-1 0) (1 1 1))
+                            ((0 0) (1 1 1))
+                            ((0 1) (1 1 1))))))
+
+ ((:kind :digit-3)
+  (:class digit)
+  (:initargs
+   :primitives ((:line-loop ((-1 1) (1 1 1))
+                            ((0 1) (1 1 1))
+                            ((0 0) (1 1 1))
+                            ((-1 0) (1 1 1))
+                            ((0 0) (1 1 1))
+                            ((0 -1) (1 1 1))
+                            ((-1 -1) (1 1 1))
+                            ((0 -1) (1 1 1))
+                            ((0 1) (1 1 1))))))
+
+ ((:kind :digit-4)
+  (:class digit)
+  (:initargs
+   :primitives ((:line-loop ((-1 1) (1 1 1))
+                            ((-1 0) (1 1 1))
+                            ((0 0) (1 1 1))
+                            ((0 1) (1 1 1))
+                            ((0 -1) (1 1 1))
+                            ((0 0) (1 1 1))
+                            ((-1 0) (1 1 1))))))
+
+ ((:kind :digit-5)
+  (:class digit)
+  (:initargs
+   :primitives ((:line-loop ((0 1) (1 1 1))
+                            ((-1 1) (1 1 1))
+                            ((-1 0) (1 1 1))
+                            ((0 0) (1 1 1))
+                            ((0 -1) (1 1 1))
+                            ((-1 -1) (1 1 1))
+                            ((0 -1) (1 1 1))
+                            ((0 0) (1 1 1))
+                            ((-1 0) (1 1 1))
+                            ((-1 1) (1 1 1))))))
+
+ ((:kind :digit-6)
+  (:class digit)
+  (:initargs
+   :primitives ((:line-loop ((0 1) (1 1 1))
+                            ((-1 1) (1 1 1))
+                            ((-1 -1) (1 1 1))
+                            ((0 -1) (1 1 1))
+                            ((0 0) (1 1 1))
+                            ((-1 0) (1 1 1))
+                            ((-1 1) (1 1 1))))))
+
+ ((:kind :digit-7)
+  (:class digit)
+  (:initargs
+   :primitives ((:line-loop ((-1 1) (1 1 1))
+                            ((0 1) (1 1 1))
+                            ((0 -1) (1 1 1))
+                            ((0 1) (1 1 1))))))
+
+ ((:kind :digit-8)
+  (:class digit)
+  (:initargs
+   :primitives ((:line-loop ((-1 1) (1 1 1))
+                            ((0 1) (1 1 1))
+                            ((0 -1) (1 1 1))
+                            ((-1 -1) (1 1 1))
+                            ((-1 1) (1 1 1))
+                            ((0 1) (1 1 1))
+                            ((0 0) (1 1 1))
+                            ((-1 0) (1 1 1))))))
+
+ ((:kind :digit-9)
+  (:class digit)
+  (:initargs
+   :primitives ((:line-loop ((-1 1) (1 1 1))
+                            ((0 1) (1 1 1))
+                            ((0 -1) (1 1 1))
+                            ((0 0) (1 1 1))
+                            ((-1 0) (1 1 1))))))
+
+ ((:kind :spark-1)
+  (:class spark)
+  (:initargs
+   :ttl-max 30
+   :primitives ((:line-loop ((-.5 0) (1 1 1))
+                            ((0 .5) (1 1 1))
+                            ((.5 0) (1 1 1))))))
+
+ ((:kind :spark-2)
+  (:class spark)
+  (:initargs
+   :ttl-max 30
+   :primitives ((:line-loop ((-.5 0) (1 1 1))
+                            ((0 -.5) (1 1 1))
+                            ((0 0) (1 1 1))
+                            ((.5 0) (1 1 1))
+                            ((0 .5) (1 1 1))))))
+
+ ((:kind :spark-3)
+  (:class spark)
+  (:initargs
+   :ttl-max 30
+   :primitives ((:line-loop ((0 .5) (1 1 1))
+                            ((-.5 0) (1 1 1))
+                            ((.5 0) (1 1 1))
+                            ((0 -.5) (1 1 1)))))))
