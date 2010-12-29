@@ -492,9 +492,9 @@ collided with something."))
         (entities
          (with-open-file (strm filename :direction :input
                                :if-does-not-exist nil)
-	   ;; Read the symbols from the point of view of this package
-	   ;; so later when we make-instance it'll work even if the
-	   ;; user only "used" our package.
+           ;; Read the symbols from the point of view of this package
+           ;; so later when we make-instance it'll work even if the
+           ;; user only "used" our package.
            (let ((*package* (find-package 'option-9)))
              (read strm)))))
 
