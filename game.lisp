@@ -187,7 +187,6 @@
 
   (realize-score-boards game))
 
-;; XXX todo
 (defun step-game (game)
   (with-accessors ((players game-players)
                    (player-shots game-player-shots)
