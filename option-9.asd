@@ -19,7 +19,7 @@
 
 (defsystem #:option-9
   :description "A simple game"
-  :version "0.0"
+  :version "0.1"
   :author "Peter Keller <psilord@cs.wisc.edu>"
   :license "Apache License, Version 2.0"
 
