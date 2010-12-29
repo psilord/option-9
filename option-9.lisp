@@ -1,3 +1,17 @@
+;; Copyright 2010 Peter K. Keller (psilord@cs.wisc.edu)
+;;
+;; Licensed under the Apache License, Version 2.0 (the "License"); you
+;; may not use this file except in compliance with the License. You may
+;; obtain a copy of the License at
+;;
+;; http://www.apache.org/licenses/LICENSE-2.0
+;;
+;; Unless required by applicable law or agreed to in writing, software
+;; distributed under the License is distributed on an "AS IS" BASIS,
+;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+;; or implied. See the License for the specific language governing
+;; permissions and limitations under the License.
+
 (in-package #:option-9)
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
@@ -20,6 +34,10 @@
   (render-game *game* `(.01 .01)))
 
 (defun option-9 ()
+  (format t "Welcome to Option 9, Version 0.1!~%")
+  (format t "A space shoot'em up game written in CLOS.~%")
+  (format t "Written by Peter Keller <psilord@cs.wisc.edu>~%")
+  
   (with-game-init ("option-9.dat")
     (reset-score-to-zero *game*)
     (spawn-player *game*)
