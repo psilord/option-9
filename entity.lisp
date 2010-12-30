@@ -18,9 +18,6 @@
   ((game-context :initarg :game-context
                  :initform nil
                  :accessor entity-game-context)
-   (kind :initarg :kind
-         :initform :unknown
-         :accessor entity-kind)
    (points :initarg :points
            :initform 0
            :accessor entity-points)
@@ -190,18 +187,21 @@ work to finish its construction."))
 (defmethod make-entity-finish (nothing-to-do)
   nothing-to-do)
 
-;; A spark's ttl is a random amount up to ttl-max
-(defmethod make-entity-finish ((s spark))
+;; If any random entity sets a ttl-max and nothing more specific changes this
+;; method, then assign a random ttl based upon the ttl-max.
+(defmethod make-entity-finish ((s entity))
   (when (entity-auto-finish-construction s)
     (with-accessors ((ttl frame-ttl) (ttl-max frame-ttl-max)) s
-      (setf ttl (random ttl-max))))
+      (when (not (null ttl-max))
+        (setf ttl (random ttl-max)))))
   s)
 
-;; A powerup's ttl is a random amount up to ttl-max PLUS a constant second
-(defmethod make-entity-finish ((p powerup))
+;; A powerup's ttl is the random amount up to ttl-max PLUS a constant second
+(defmethod make-entity-finish :after ((p powerup))
   (when (entity-auto-finish-construction p)
     (with-accessors ((ttl frame-ttl) (ttl-max frame-ttl-max)) p
-      (setf ttl (+ (random ttl-max) 60))))
+      (when ttl
+        (incf ttl 60))))
   p)
 
 ;; Ships that specify a main-shield via keyword need to have them converted
@@ -214,14 +214,14 @@ work to finish its construction."))
   ent)
 
 ;; For enemy-3 there is only a 25 percent chance that it actually has
-;; the shield specified in the option-9.dat file.
-(defmethod make-entity-finish ((ent enemy-3))
+;; the shield specified in the option-9.dat file. If we decide it
+;; shouldn't have a shield, the we set the main-shield to null which
+;; makes the above generic method a noop.
+(defmethod make-entity-finish :before ((ent enemy-3))
   (when (entity-auto-finish-construction ent)
     (with-accessors ((main-shield ship-main-shield)) ent
-      (if (<= (random 1.0) .75)
-          (setf main-shield nil)
-          (when main-shield
-            (setf main-shield (make-entity main-shield))))))
+      (when (<= (random 1.0) .75)
+        (setf main-shield nil))))
   ent)
 
 ;; A factory constructor to make me any object of any kind read into
@@ -232,10 +232,10 @@ work to finish its construction."))
 (defun make-entity (kind &rest override-initargs)
   (multiple-value-bind (info present) (gethash kind *all-entities*)
     (assert present)
-    (let ((kind (cadr (assoc :kind info)))
+    (let ((found-kind (cadr (assoc :kind info)))
           (cls (cadr (assoc :class info)))
           (initargs (cdr (assoc :initargs info))))
-      (assert kind)
+      (assert (eq found-kind kind))
       (assert cls)
       (make-entity-finish
        (apply #'make-instance cls :game-context *game*
@@ -299,15 +299,9 @@ collided with something."))
       (think-entity ent)
       (setf until-next-action (+ 15 (random 105))))))
 
-;; When the ttl for a spark reaches zero, it goes stale.
-(defmethod step-entity :after ((ent spark))
-  (with-accessors ((ttl frame-ttl) (status entity-status)) ent
-    (unless (null ttl)
-      (when (zerop ttl)
-        (setf status :stale)))))
-
-;; When the ttl for a powerup reaches zero, it goes stale
-(defmethod step-entity :after ((ent powerup))
+;; When the ttl for any drawable hits zero, it goes stale and is
+;; removed from the game world.
+(defmethod step-entity :after ((ent drawable))
   (with-accessors ((ttl frame-ttl) (status entity-status)) ent
     (unless (null ttl)
       (when (zerop ttl)
@@ -329,16 +323,16 @@ collided with something."))
                         (cdr primitive))))
             (shape-primitives ent)))))
 
-;; if a ship has a shield, render it and then the ship.
-(defmethod render-entity :around ((s ship) scale)
+;; if a ship has a shield, render the ship and then the shield (which is
+;; at the same place in the world as the ship).
+(defmethod render-entity :after ((s ship) scale)
   (with-accessors ((main-shield ship-main-shield)
                    (ox frame-x) (oy frame-y)) s
     (when main-shield
       (with-accessors ((x frame-x) (y frame-y)) main-shield
         (setf x ox
               y oy)
-        (render-entity main-shield scale))))
-  (call-next-method))
+        (render-entity main-shield scale)))))
 
 ;; See if two collidables actually collide.
 (defmethod collide-entity ((fist collidable) (face collidable))
@@ -395,7 +389,7 @@ collided with something."))
     (values t (zerop shots-absorbed))))
 
 ;; Here we handle the processing of a something hitting a ship which might
-;; or might not have a shield
+;; or might not have a shield.
 (defmethod perform-collide-entity :around ((collider collidable)
                                            (collidee ship))
   (with-accessors ((lstatus entity-status)
