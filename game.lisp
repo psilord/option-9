@@ -106,10 +106,14 @@
          (loop for e in i do
               (render-entity e scale)))))
 
-;; Create an explosion centered about the entity
-(defun make-explosion (game ent initial-amount additional-amount)
-  (with-accessors ((sparks game-sparks)) game
-    (with-accessors ((x frame-x) (y frame-y)) ent
+;; Create an explosion centered about the entity using the spark amount
+;; in the entity itself.
+(defun make-explosion (ent)
+  (with-accessors ((x frame-x) (y frame-y)
+                   (initial-amount entity-initial-sparks)
+                   (additional-amount entity-additional-sparks)
+                   (game-context entity-game-context)) ent
+    (with-accessors ((sparks game-sparks)) game-context
       (let ((db (vector :spark-1 :spark-2 :spark-3)))
         (dotimes (p (+ initial-amount (random additional-amount)))
           (push (make-entity
@@ -120,9 +124,10 @@
                 sparks))))))
 
 ;; Pick a random powerup to place in place of the enemy
-(defun make-powerup (game ent)
-  (with-accessors ((pups game-power-ups)) game
-    (with-accessors ((x frame-x) (y frame-y)) ent
+(defun make-powerup (ent)
+  (with-accessors ((x frame-x) (y frame-y)
+                   (game-context entity-game-context)) ent
+    (with-accessors ((pups game-power-ups)) game-context
       (let ((db (vector :powerup-hardnose :powerup-super-shot
                         :powerup-shot-shield :powerup-ship-shield)))
         (push (make-entity (svref db (random (length db)))

@@ -244,9 +244,10 @@ work to finish its construction."))
 (defgeneric step-entity (frame)
   (:documentation
    "Performs one step in the simulation of this entity. By default it
-will move the x y location of the entity by dx dy in the frame. It in
-intended that before or after methods are used in more specific objects
-to take advantage of the simulation step."))
+will move the x y location of the entity by dx dy in the frame and
+will decrease the ttl towards zero if present. It is intended that
+before or after methods are used in more specific objects to take
+advantage of the simulation step."))
 
 (defgeneric render-entity (drawable scale)
   (:documentation
@@ -254,8 +255,8 @@ to take advantage of the simulation step."))
 
 (defgeneric collide-entity (left-collidable right-collidable)
   (:documentation
-   "If the left and right entities collide, then invoke their do-collide-entity
-generic functions."))
+   "If the left and right entities collide, then invoke their
+perform-collide-entity methods."))
 
 (defgeneric perform-collide-entity (collider collidee)
   (:documentation
@@ -270,6 +271,11 @@ collided with something."))
   (:documentation
    "Should return true if the shield absorbs a specific collider"))
 
+(defgeneric think-entity (brain)
+  (:documentation
+   "If anything needs to think about a future or current action to take, this
+is where it is done."))
+
 ;; Perform one physical and temporal step in the simulation
 (defmethod step-entity ((ent frame))
   (with-accessors ((x frame-x) (y frame-y) (dx frame-dx) (dy frame-dy)
@@ -280,7 +286,7 @@ collided with something."))
       (when (> ttl 0)
         (decf ttl)))))
 
-;; The player objects gets clipped to the edges of the screen
+;; The player objects gets bound to the edges of the screen
 (defmethod step-entity :after ((ent player))
   (with-accessors ((x frame-x) (y frame-y)) ent
     (when (< y .05) (setf y .05))
@@ -351,16 +357,12 @@ collided with something."))
 
 ;; Primary method is both entities die and explode.
 (defmethod perform-collide-entity ((collider collidable) (collidee collidable))
-  (with-accessors ((lstatus entity-status)
-                   (linit entity-initial-sparks)
-                   (ladd entity-additional-sparks)) collider
-    (with-accessors ((rstatus entity-status)
-                     (rinit entity-initial-sparks)
-                     (radd entity-additional-sparks)) collidee
+  (with-accessors ((lstatus entity-status)) collider
+    (with-accessors ((rstatus entity-status)) collidee
       (setf lstatus :dead
             rstatus :dead)
-      (make-explosion (entity-game-context collider) collider linit ladd)
-      (make-explosion (entity-game-context collidee) collidee rinit radd))))
+      (make-explosion collider)
+      (make-explosion collidee))))
 
 ;; By default, the collider will not be absorbed by the shield and the shield
 ;; will be considered used up.
@@ -392,9 +394,7 @@ collided with something."))
 ;; or might not have a shield.
 (defmethod perform-collide-entity :around ((collider collidable)
                                            (collidee ship))
-  (with-accessors ((lstatus entity-status)
-                   (linit entity-initial-sparks)
-                   (ladd entity-additional-sparks)) collider
+  (with-accessors ((lstatus entity-status)) collider
     (with-accessors ((main-shield ship-main-shield)) collidee
       (if main-shield
           (multiple-value-bind (absorbedp shield-is-used-up)
@@ -402,8 +402,7 @@ collided with something."))
             (if absorbedp
                 (progn
                   (setf lstatus :dead)
-                  (make-explosion (entity-game-context collider)
-                                  collider linit ladd)
+                  (make-explosion collider)
                   (when shield-is-used-up
                     (setf main-shield nil)))
                 (call-next-method)))
@@ -416,14 +415,14 @@ collided with something."))
                                           (collidee enemy))
   (declare (ignorable collider))
   (when (< (random 1.0) .25)
-    (make-powerup (entity-game-context collidee) collidee)))
+    (make-powerup collidee)))
 
 ;; The player gets the new weapon as denoted by the powerup, and the
 ;; powerup goes immediately stale. NOTE: If I change the collider type
 ;; to ship here, then ANY ship can get the powerup and its effects (as
 ;; long as I collide the enemies to the powerups in the main loop of
 ;; the game. However, I haven't coded the right geometries for the
-;; ship shields of a good means to choose between them. So for now,
+;; ship shields or a good means to choose between them. So for now,
 ;; only the player can get powerups.
 (defmethod perform-collide-entity ((collider player) (collidee powerup))
   (with-accessors ((main-gun-of-player ship-main-gun)
@@ -444,19 +443,17 @@ collided with something."))
 (defmethod perform-collide-entity ((collider hardnose-shot)
                                    (collidee simple-shot))
   (declare (ignorable collider))
-  (with-accessors ((status entity-status) (init entity-initial-sparks)
-                   (add entity-additional-sparks)) collidee
+  (with-accessors ((status entity-status)) collidee
     (setf status :dead)
-    (make-explosion (entity-game-context collidee) collidee init add)))
+    (make-explosion collidee)))
 
 ;; Super shots destroy everything and keep going!
 (defmethod perform-collide-entity ((collider super-shot)
                                    (collidee collidable))
   (declare (ignorable collider))
-  (with-accessors ((status entity-status) (init entity-initial-sparks)
-                   (add entity-additional-sparks)) collidee
+  (with-accessors ((status entity-status)) collidee
     (setf status :dead)
-    (make-explosion (entity-game-context collidee) collidee init add)))
+    (make-explosion collidee)))
 
 ;; The method for when the player ship fires
 (defmethod fires-ship ((ship player))

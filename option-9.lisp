@@ -16,18 +16,20 @@
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
+;; Eval any typed in expressions in the option-9 package.
 (defun text-console ()
   (format t "Welcome to Text Console~%")
-  (let ((run-repl t))
-    (loop while run-repl
-       do
-       (format t "> ")
-       (finish-output)
-       (let ((result (eval (read))))
-         (format t "~%~S~%" result)
-         (when (eq result :q)
-           (setf run-repl nil))))
-    (format t "Resuming game.~%")))
+  (let ((*package* (find-package 'option-9)))
+    (let ((run-repl t))
+      (loop while run-repl
+         do
+         (format t "Option 9 > ")
+         (finish-output)
+         (let ((result (eval (read))))
+           (format t "~%~S~%" result)
+           (when (eq result :q)
+             (setf run-repl nil))))
+      (format t "Resuming game.~%"))))
 
 (defun display ()
   (gl:clear :color-buffer-bit)
@@ -42,11 +44,10 @@
   (with-game-init ("option-9.dat")
     (reset-score-to-zero *game*)
     (spawn-player *game*)
-    (spawn-enemy *game*)
     (sdl:with-init ()
       (sdl:window 640 640
-                  :title-caption "Game 2"
-                  :icon-caption "Game 2"
+                  :title-caption "Option 9 Version 0.1"
+                  :icon-caption "Option 9"
                   :opengl t
                   :opengl-attributes '((:SDL-GL-DOUBLEBUFFER 1))
                   :fps (make-instance 'sdl:fps-fixed :target-frame-rate 60))
