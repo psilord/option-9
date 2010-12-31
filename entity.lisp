@@ -158,7 +158,7 @@
   ()
   (:documentation "The Ship Shield Class"))
 
-(defgeneric make-entity-finish (object)
+(defgeneric make-instance-finish (object)
   (:documentation
    "Sometimes a class constructor needs a little extra class specific
 work to finish its construction."))
@@ -184,19 +184,19 @@ work to finish its construction."))
        appending `(,k ,v))))
 
 ;; In general, we don't do anything special to any object that we create.
-(defmethod make-entity-finish (nothing-to-do)
+(defmethod make-instance-finish (nothing-to-do)
   nothing-to-do)
 
 ;; If any random entity sets a ttl-max and nothing more specific changes this
 ;; method, then assign a random ttl based upon the ttl-max.
-(defmethod make-entity-finish ((s entity))
+(defmethod make-instance-finish ((s entity))
   (when (auto-finish-construction s)
     (when (not (null (ttl-max s)))
       (setf (ttl s) (random (ttl-max s)))))
   s)
 
 ;; A powerup's ttl is the random amount up to ttl-max PLUS a constant second
-(defmethod make-entity-finish :after ((p powerup))
+(defmethod make-instance-finish :after ((p powerup))
   (when (auto-finish-construction p)
     (when (ttl p)
       (incf (ttl p) 60)))
@@ -204,7 +204,7 @@ work to finish its construction."))
 
 ;; Ships that specify a main-shield via keyword need to have them converted
 ;; to realized shield objects.
-(defmethod make-entity-finish ((ent ship))
+(defmethod make-instance-finish ((ent ship))
   (when (auto-finish-construction ent)
     (when (ship-main-shield ent)
       (setf (ship-main-shield ent) (make-entity (ship-main-shield ent)))))
@@ -214,7 +214,7 @@ work to finish its construction."))
 ;; the shield specified in the option-9.dat file. If we decide it
 ;; shouldn't have a shield, the we set the main-shield to null which
 ;; makes the above generic method a noop.
-(defmethod make-entity-finish :before ((ent enemy-3))
+(defmethod make-instance-finish :before ((ent enemy-3))
   (when (auto-finish-construction ent)
     (with-accessors ((main-shield ship-main-shield)) ent
       (when (<= (random 1.0) .75)
@@ -234,7 +234,7 @@ work to finish its construction."))
           (initargs (cdr (assoc :initargs info))))
       (assert (eq found-kind kind))
       (assert cls)
-      (make-entity-finish
+      (make-instance-finish
        (apply #'make-instance cls :game-context *game*
               (override-args initargs override-initargs))))))
 
