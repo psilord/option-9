@@ -17,53 +17,53 @@
 (defclass entity ()
   ((game-context :initarg :game-context
                  :initform nil
-                 :accessor entity-game-context)
+                 :accessor game-context)
    (points :initarg :points
            :initform 0
-           :accessor entity-points)
+           :accessor points)
    (status :initarg :status
            :initform :alive
-           :accessor entity-status)
+           :accessor status)
    (initial-sparks :initarg :initial-sparks
                    :initform 10
-                   :accessor entity-initial-sparks)
+                   :accessor initial-sparks)
    (additional-sparks :initarg :additional-sparks
                       :initform 50
-                      :accessor entity-additional-sparks)
+                      :accessor additional-sparks)
    ;; Unless we specify otherwise, we always try to run wahatever
    ;; finishing constructor work we need to on a class by class basis.
    (auto-finish-construction :initargs :auto-finish-construction
                              :initform t
-                             :accessor entity-auto-finish-construction))
+                             :accessor auto-finish-construction))
   (:documentation "The Entity Class"))
 
 (defclass frame ()
   ( ;; temporal simulation variables
    (ttl :initarg :ttl
         :initform nil
-        :accessor frame-ttl)
+        :accessor ttl)
    (ttl-max :initarg :ttl-max
             :initform nil
-            :accessor frame-ttl-max)
+            :accessor ttl-max)
    ;; physical simulation variables
    (x :initarg :x
       :initform 0
-      :accessor frame-x)
+      :accessor x)
    (y :initarg :y
       :initform 0
-      :accessor frame-y)
+      :accessor y)
    (dx :initarg :dx
        :initform 0
-       :accessor frame-dx)
+       :accessor dx)
    (dy :initarg :dy
        :initform 0
-       :accessor frame-dy))
+       :accessor dy))
   (:documentation "The Frame Class"))
 
 (defclass shape ()
   ((primitives :initarg :primitives
                :initform nil
-               :accessor shape-primitives))
+               :accessor primitives))
   (:documentation "The Shape Class"))
 
 (defclass drawable (entity frame shape)
@@ -73,7 +73,7 @@
 (defclass collidable (drawable)
   ((radius :initarg :radius
            :initform 0
-           :accessor collidable-radius))
+           :accessor radius))
   (:documentation "The Collidable Class"))
 
 (defclass digit (drawable)
@@ -87,7 +87,7 @@
 (defclass brain (collidable)
   ((until-next-action :initarg :until-next-action
                       :initform 0
-                      :accessor brain-until-next-action))
+                      :accessor until-next-action))
   (:documentation "The Brain Class"))
 
 (defclass powerup (brain)
@@ -147,7 +147,7 @@
 (defclass shield (brain)
   ((shots-absorbed :initarg :shots-absorbed
                    :initform 5
-                   :accessor shield-shots-absorbed))
+                   :accessor shots-absorbed))
   (:documentation "The Shield Base Class"))
 
 (defclass shot-shield (shield)
@@ -190,27 +190,24 @@ work to finish its construction."))
 ;; If any random entity sets a ttl-max and nothing more specific changes this
 ;; method, then assign a random ttl based upon the ttl-max.
 (defmethod make-entity-finish ((s entity))
-  (when (entity-auto-finish-construction s)
-    (with-accessors ((ttl frame-ttl) (ttl-max frame-ttl-max)) s
-      (when (not (null ttl-max))
-        (setf ttl (random ttl-max)))))
+  (when (auto-finish-construction s)
+    (when (not (null (ttl-max s)))
+      (setf (ttl s) (random (ttl-max s)))))
   s)
 
 ;; A powerup's ttl is the random amount up to ttl-max PLUS a constant second
 (defmethod make-entity-finish :after ((p powerup))
-  (when (entity-auto-finish-construction p)
-    (with-accessors ((ttl frame-ttl) (ttl-max frame-ttl-max)) p
-      (when ttl
-        (incf ttl 60))))
+  (when (auto-finish-construction p)
+    (when (ttl p)
+      (incf (ttl p) 60)))
   p)
 
 ;; Ships that specify a main-shield via keyword need to have them converted
 ;; to realized shield objects.
 (defmethod make-entity-finish ((ent ship))
-  (when (entity-auto-finish-construction ent)
-    (with-accessors ((main-shield ship-main-shield)) ent
-      (when main-shield
-        (setf main-shield (make-entity main-shield)))))
+  (when (auto-finish-construction ent)
+    (when (ship-main-shield ent)
+      (setf (ship-main-shield ent) (make-entity (ship-main-shield ent)))))
   ent)
 
 ;; For enemy-3 there is only a 25 percent chance that it actually has
@@ -218,7 +215,7 @@ work to finish its construction."))
 ;; shouldn't have a shield, the we set the main-shield to null which
 ;; makes the above generic method a noop.
 (defmethod make-entity-finish :before ((ent enemy-3))
-  (when (entity-auto-finish-construction ent)
+  (when (auto-finish-construction ent)
     (with-accessors ((main-shield ship-main-shield)) ent
       (when (<= (random 1.0) .75)
         (setf main-shield nil))))
@@ -278,43 +275,38 @@ is where it is done."))
 
 ;; Perform one physical and temporal step in the simulation
 (defmethod step-entity ((ent frame))
-  (with-accessors ((x frame-x) (y frame-y) (dx frame-dx) (dy frame-dy)
-                   (ttl frame-ttl)) ent
-    (incf x dx)
-    (incf y dy)
-    (unless (null ttl)
-      (when (> ttl 0)
-        (decf ttl)))))
+  (incf (x ent) (dx ent))
+  (incf (y ent) (dy ent))
+  (unless (null (ttl ent))
+    (when (> (ttl ent) 0)
+      (decf (ttl ent)))))
 
 ;; The player objects gets bound to the edges of the screen
 (defmethod step-entity :after ((ent player))
-  (with-accessors ((x frame-x) (y frame-y)) ent
+  (with-accessors ((x x) (y y)) ent
     (when (< y .05) (setf y .05))
     (when (> y .95) (setf y .95))
     (when (< x .03) (setf x .03))
     (when (> x .97) (setf x .97))))
 
 (defmethod step-entity :before ((ent enemy))
-  (with-accessors ((until-next-action brain-until-next-action)) ent
-    (when (> until-next-action 0)
-      (decf until-next-action))))
+  (when (> (until-next-action ent) 0)
+    (decf (until-next-action ent))))
 
 (defmethod step-entity :after ((ent enemy))
-  (with-accessors ((until-next-action brain-until-next-action)) ent
-    (when (zerop until-next-action)
-      (think-entity ent)
-      (setf until-next-action (+ 15 (random 105))))))
+  (when (zerop (until-next-action ent))
+    (think-entity ent)
+    (setf (until-next-action ent) (+ 15 (random 105)))))
 
 ;; When the ttl for any drawable hits zero, it goes stale and is
 ;; removed from the game world.
 (defmethod step-entity :after ((ent drawable))
-  (with-accessors ((ttl frame-ttl) (status entity-status)) ent
-    (unless (null ttl)
-      (when (zerop ttl)
-        (setf status :stale)))))
+  (unless (null (ttl ent))
+    (when (zerop (ttl ent))
+      (setf (status ent) :stale))))
 
 (defmethod render-entity ((ent drawable) scale)
-  (with-accessors ((x frame-x) (y frame-y) (dx frame-dx) (dy frame-dy)) ent
+  (with-accessors ((x x) (y y) (dx dx) (dy dy)) ent
     (destructuring-bind (sx sy) scale
       ;; render a list of possibly differing primitives associated with this
       ;; shape
@@ -327,42 +319,32 @@ is where it is done."))
                               (gl:color cx cy cz)
                               (gl:vertex (+ x (* vx sx)) (+ y (* vy sy)) 0.0)))
                         (cdr primitive))))
-            (shape-primitives ent)))))
+            (primitives ent)))))
 
 ;; if a ship has a shield, render the ship and then the shield (which is
 ;; at the same place in the world as the ship).
 (defmethod render-entity :after ((s ship) scale)
-  (with-accessors ((main-shield ship-main-shield)
-                   (ox frame-x) (oy frame-y)) s
-    (when main-shield
-      (with-accessors ((x frame-x) (y frame-y)) main-shield
-        (setf x ox
-              y oy)
-        (render-entity main-shield scale)))))
+  (when (ship-main-shield s)
+    (setf (x (ship-main-shield s)) (x s)
+          (y (ship-main-shield s)) (y s))
+    (render-entity (ship-main-shield s) scale)))
 
 ;; See if two collidables actually collide.
 (defmethod collide-entity ((fist collidable) (face collidable))
-  (with-accessors ((lx frame-x) (ly frame-y)
-                   (lradius collidable-radius)
-                   (lstatus entity-status)) fist
-    (with-accessors ((rx frame-x) (ry frame-y)
-                     (rradius collidable-radius)
-                     (rstatus entity-status)) face
-      (when (and (eq lstatus :alive) (eq rstatus :alive))
-        (let ((dist (sqrt (+ (expt (- lx rx) 2) (expt (- ly ry) 2)))))
-          (when (< dist (max lradius rradius))
-            ;; tell both objects what they collided with. In practice this
-            ;; means that by default, both will explode.
-            (perform-collide-entity fist face)))))))
+  (when (and (eq (status fist) :alive) (eq (status face) :alive))
+    (let ((dist (sqrt (+ (expt (- (x fist) (x face)) 2)
+                         (expt (- (y fist) (y face)) 2)))))
+      (when (< dist (max (radius fist) (radius face)))
+        ;; tell both objects what they collided with. In practice this
+        ;; means that by default, both will explode.
+        (perform-collide-entity fist face)))))
 
 ;; Primary method is both entities die and explode.
 (defmethod perform-collide-entity ((collider collidable) (collidee collidable))
-  (with-accessors ((lstatus entity-status)) collider
-    (with-accessors ((rstatus entity-status)) collidee
-      (setf lstatus :dead
-            rstatus :dead)
-      (make-explosion collider)
-      (make-explosion collidee))))
+  (setf (status collider) :dead
+        (status collidee) :dead)
+  (make-explosion collider)
+  (make-explosion collidee))
 
 ;; By default, the collider will not be absorbed by the shield and the shield
 ;; will be considered used up.
@@ -371,43 +353,38 @@ is where it is done."))
 
 ;; A shot shield will only absorb shots
 (defmethod shield-absorbs ((collider shot) (collidee shot-shield))
-  (with-accessors ((shots-absorbed shield-shots-absorbed)) collidee
-    (when (> shots-absorbed 0)
-      (decf shots-absorbed))
-    (values t (zerop shots-absorbed))))
+  (when (> (shots-absorbed collidee) 0)
+    (decf (shots-absorbed collidee)))
+  (values t (zerop (shots-absorbed collidee))))
 
 ;; A ship shield will absorb shots
 (defmethod shield-absorbs ((collider shot) (collidee ship-shield))
-  (with-accessors ((shots-absorbed shield-shots-absorbed)) collidee
-    (when (> shots-absorbed 0)
-      (decf shots-absorbed))
-    (values t (zerop shots-absorbed))))
+  (when (> (shots-absorbed collidee) 0)
+    (decf (shots-absorbed collidee)))
+  (values t (zerop (shots-absorbed collidee))))
 
 ;; A ship shield will also absorb other ships
 (defmethod shield-absorbs ((collider ship) (collidee ship-shield))
-  (with-accessors ((shots-absorbed shield-shots-absorbed)) collidee
-    (when (> shots-absorbed 0)
-      (decf shots-absorbed))
-    (values t (zerop shots-absorbed))))
+  (when (> (shots-absorbed collidee) 0)
+    (decf (shots-absorbed collidee)))
+  (values t (zerop (shots-absorbed collidee))))
 
 ;; Here we handle the processing of a something hitting a ship which might
 ;; or might not have a shield.
 (defmethod perform-collide-entity :around ((collider collidable)
                                            (collidee ship))
-  (with-accessors ((lstatus entity-status)) collider
-    (with-accessors ((main-shield ship-main-shield)) collidee
-      (if main-shield
-          (multiple-value-bind (absorbedp shield-is-used-up)
-              (shield-absorbs collider main-shield)
-            (if absorbedp
-                (progn
-                  (setf lstatus :dead)
-                  (make-explosion collider)
-                  (when shield-is-used-up
-                    (setf main-shield nil)))
-                (call-next-method)))
+  (if (ship-main-shield collidee)
+      (multiple-value-bind (absorbedp shield-is-used-up)
+          (shield-absorbs collider (ship-main-shield collidee))
+        (if absorbedp
+            (progn
+              (setf (status collider) :dead)
+              (make-explosion collider)
+              (when shield-is-used-up
+                (setf (ship-main-shield collidee) nil)))
+            (call-next-method)))
 
-          (call-next-method)))))
+      (call-next-method)))
 
 ;; When colliding with an enemy, there is a small chance a power up gets
 ;; created in the place of an enemy.
@@ -425,54 +402,44 @@ is where it is done."))
 ;; ship shields or a good means to choose between them. So for now,
 ;; only the player can get powerups.
 (defmethod perform-collide-entity ((collider player) (collidee powerup))
-  (with-accessors ((main-gun-of-player ship-main-gun)
-                   (main-shield-of-player ship-main-shield)) collider
-    (with-accessors ((main-gun-of-powerup powerup-main-gun)
-                     (main-shield-of-powerup powerup-main-shield)
-                     (x frame-x) (y frame-y) (status entity-status)) collidee
-      ;; A powerup can only be used ONCE
-      (when (not (eq status :stale))
-        (setf status :stale)
-        (when main-gun-of-powerup
-          (setf main-gun-of-player main-gun-of-powerup))
-        (when main-shield-of-powerup
-          (setf main-shield-of-player
-                (make-entity main-shield-of-powerup)))))))
+  ;; A powerup can only be used ONCE
+  (when (not (eq (status collidee) :stale))
+    (setf (status collidee) :stale)
+    (when (powerup-main-gun collidee)
+      (setf (ship-main-gun collider) (powerup-main-gun collidee)))
+    (when (powerup-main-shield collidee)
+      (setf (ship-main-shield collider)
+            (make-entity (powerup-main-shield collidee))))))
 
 ;; Hardnose shots destroy simple shots and keep going!
 (defmethod perform-collide-entity ((collider hardnose-shot)
                                    (collidee simple-shot))
   (declare (ignorable collider))
-  (with-accessors ((status entity-status)) collidee
-    (setf status :dead)
-    (make-explosion collidee)))
+  (setf (status collidee) :dead)
+  (make-explosion collidee))
 
 ;; Super shots destroy everything and keep going!
 (defmethod perform-collide-entity ((collider super-shot)
                                    (collidee collidable))
   (declare (ignorable collider))
-  (with-accessors ((status entity-status)) collidee
-    (setf status :dead)
-    (make-explosion collidee)))
+  (setf (status collidee) :dead)
+  (make-explosion collidee))
 
 ;; The method for when the player ship fires
 (defmethod fires-ship ((ship player))
-  (with-accessors ((player-shots game-player-shots)) (entity-game-context ship)
-    (with-accessors ((x frame-x) (y frame-y) (main-gun ship-main-gun)) ship
-      (let ((shot (make-entity main-gun
-                               :x x :y (+ y .03) :dx 0 :dy .022)))
-        (push shot player-shots))))
-  (modify-score (entity-game-context ship) -1))
+  (let ((shot (make-entity (ship-main-gun ship)
+                           :x (x ship) :y (+ (y ship) .03)
+                           :dx 0 :dy .022)))
+    (push shot (player-shots (game-context ship))))
+  (modify-score (game-context ship) -1))
 
 ;; The method for when the enemy ship fires.
 (defmethod fires-ship ((ship enemy))
-  (with-accessors ((enemy-shots game-enemy-shots)) (entity-game-context ship)
-    (with-accessors ((x frame-x) (y frame-y) (main-gun ship-main-gun)
-                     (dy frame-dy)) ship
-      (let ((shot (make-entity main-gun
-                               :x x :y (- y .03)
-                               :dx 0 :dy (+ (- (+ .005 (random .005))) dy))))
-        (push shot enemy-shots)))))
+  (let ((shot (make-entity (ship-main-gun ship)
+                           :x (x ship) :y (- (y ship) .03)
+                           :dx 0
+                           :dy (+ (- (+ .005 (random .005))) (dy ship)))))
+    (push shot (enemy-shots (game-context ship)))))-
 
 (defmethod think-entity ((ent enemy))
   ;; Instead of doing anything cool like inspect the world, we'll just fire

@@ -19,37 +19,37 @@
 (defclass game ()
   ((players :initarg :players
             :initform nil
-            :accessor game-players)
+            :accessor players)
    (player-shots :initarg :player-shots
                  :initform nil
-                 :accessor game-player-shots)
+                 :accessor player-shots)
    (enemies :initarg :enemies
             :initform nil
-            :accessor game-enemies)
+            :accessor enemies)
    (enemy-shots :initarg :enemy-shots
                 :initform nil
-                :accessor game-enemy-shots)
+                :accessor enemy-shots)
    (sparks :initarg :sparks
            :initform nil
-           :accessor game-sparks)
+           :accessor sparks)
    (power-ups :initargs :power-ups
               :initform nil
-              :accessor game-power-ups)
+              :accessor power-ups)
    (score :initarg :score
           :initform 0
-          :accessor game-score)
+          :accessor score)
    (score-board :initarg :score-board
                 :initform nil
-                :accessor game-score-board)
+                :accessor score-board)
    (highscore :initarg :highscore
               :initform 0
-              :accessor game-highscore)
+              :accessor highscore)
    (highscore-board :initarg :highscore-board
                     :initform nil
-                    :accessor game-highscore-board)
+                    :accessor highscore-board)
    (enemy-spawn-timer :initarg :enemy-spawn-timer
                       :initform 60
-                      :accessor game-enemy-spawn-timer))
+                      :accessor enemy-spawn-timer))
   (:documentation "The Game Class"))
 
 (defun make-game ()
@@ -61,25 +61,24 @@
      ,@body))
 
 (defun spawn-player (game)
-  (setf (game-players game) (list (make-entity :player :x .5 :y .05))))
+  (setf (players game) (list (make-entity :player :x .5 :y .05))))
 
 (defun move-player (game state dir)
   ;; XXX this is for player one and it only assumes one player!
-  (let ((p (car (game-players game))))
-    (with-accessors ((dx frame-dx) (dy frame-dy)) p
-      (ecase state
-        (:begin
-         (ecase dir
-           (:up (setf dy .015))
-           (:down (setf dy -.015))
-           (:left (setf dx -.015))
-           (:right (setf dx .015))))
-        (:end
-         (ecase dir
-           (:up (when (> dy 0) (setf dy 0)))
-           (:down (when (< dy 0) (setf dy 0)))
-           (:left (when (< dx 0) (setf dx 0)))
-           (:right (when (> dx 0) (setf dx 0)))))))))
+  (let ((p (car (players game))))
+    (ecase state
+      (:begin
+       (ecase dir
+         (:up (setf (dy p) .015))
+         (:down (setf (dy p) -.015))
+         (:left (setf (dx p) -.015))
+         (:right (setf (dx p) .015))))
+      (:end
+       (ecase dir
+         (:up (when (> (dy p) 0) (setf (dy p) 0)))
+         (:down (when (< (dy p) 0) (setf (dy p) 0)))
+         (:left (when (< (dx p) 0) (setf (dx p) 0)))
+         (:right (when (> (dx p) 0) (setf (dx p) 0))))))))
 
 (defun spawn-enemy (game)
   (let ((bad-guys (vector :enemy-1 :enemy-2 :enemy-3))
@@ -88,17 +87,17 @@
                        :x xloc :y .95
                        :dx (* (random .001) (if (> xloc .5) -1 1))
                        :dy (- (random .01)))
-          (game-enemies game))))
+          (enemies game))))
 
 (defun render-game (game scale)
-  (with-accessors ((players game-players)
-                   (player-shots game-player-shots)
-                   (enemies game-enemies)
-                   (enemy-shots game-enemy-shots)
-                   (sparks game-sparks)
-                   (power-ups game-power-ups)
-                   (score-board game-score-board)
-                   (highscore-board game-highscore-board))
+  (with-accessors ((players players)
+                   (player-shots player-shots)
+                   (enemies enemies)
+                   (enemy-shots enemy-shots)
+                   (sparks sparks)
+                   (power-ups power-ups)
+                   (score-board score-board)
+                   (highscore-board highscore-board))
       game
 
     (loop for i in (list score-board highscore-board players player-shots
@@ -109,99 +108,83 @@
 ;; Create an explosion centered about the entity using the spark amount
 ;; in the entity itself.
 (defun make-explosion (ent)
-  (with-accessors ((x frame-x) (y frame-y)
-                   (initial-amount entity-initial-sparks)
-                   (additional-amount entity-additional-sparks)
-                   (game-context entity-game-context)) ent
-    (with-accessors ((sparks game-sparks)) game-context
-      (let ((db (vector :spark-1 :spark-2 :spark-3)))
-        (dotimes (p (+ initial-amount (random additional-amount)))
-          (push (make-entity
-                 (svref db (random (length db)))
-                 :x x :y y
-                 :dx (* (random .02) (if (zerop (random 2)) 1 -1))
-                 :dy (* (random .02) (if (zerop (random 2)) 1 -1)))
-                sparks))))))
+  (let ((db (vector :spark-1 :spark-2 :spark-3)))
+    (dotimes (p (+ (initial-sparks ent) (random (additional-sparks ent))))
+      (push (make-entity
+             (svref db (random (length db)))
+             :x (x ent) :y (y ent)
+             :dx (* (random .02) (if (zerop (random 2)) 1 -1))
+             :dy (* (random .02) (if (zerop (random 2)) 1 -1)))
+            (sparks (game-context ent))))))
 
 ;; Pick a random powerup to place in place of the enemy
 (defun make-powerup (ent)
-  (with-accessors ((x frame-x) (y frame-y)
-                   (game-context entity-game-context)) ent
-    (with-accessors ((pups game-power-ups)) game-context
-      (let ((db (vector :powerup-hardnose :powerup-super-shot
-                        :powerup-shot-shield :powerup-ship-shield)))
-        (push (make-entity (svref db (random (length db)))
-                           :x x :y y)
-              pups)))))
+  (let ((db (vector :powerup-hardnose :powerup-super-shot
+                    :powerup-shot-shield :powerup-ship-shield)))
+    (push (make-entity (svref db (random (length db)))
+                       :x (x ent) :y (y ent))
+          (power-ups (game-context ent)))))
 
 (defun realize-score-boards (game)
-  (with-accessors ((score game-score) (highscore game-highscore)
-                   (score-board game-score-board)
-                   (highscore-board game-highscore-board)) game
-    (let ((db `((#\0 . :digit-0)
-                (#\1 . :digit-1)
-                (#\2 . :digit-2)
-                (#\3 . :digit-3)
-                (#\4 . :digit-4)
-                (#\5 . :digit-5)
-                (#\6 . :digit-6)
-                (#\7 . :digit-7)
-                (#\8 . :digit-8)
-                (#\9 . :digit-9)))
-          (score-chars (reverse (map 'list #'identity
-                                     (format nil "~D" score))))
-          (highscore-chars (reverse (map 'list #'identity
-                                         (format nil "~D" highscore)))))
+  (let ((db `((#\0 . :digit-0)
+              (#\1 . :digit-1)
+              (#\2 . :digit-2)
+              (#\3 . :digit-3)
+              (#\4 . :digit-4)
+              (#\5 . :digit-5)
+              (#\6 . :digit-6)
+              (#\7 . :digit-7)
+              (#\8 . :digit-8)
+              (#\9 . :digit-9)))
+        (score-chars (reverse (map 'list #'identity
+                                   (format nil "~D" (score game)))))
+        (highscore-chars (reverse (map 'list #'identity
+                                       (format nil "~D" (highscore game))))))
 
-      ;; realize the score board
-      (setf score-board nil)
-      (let ((xstart .85)
-            (xstep -.02)
-            (ci 0))
-        (dolist (c score-chars)
-          (push (make-entity (cdr (assoc c db))
-                             :x (+ xstart (* xstep ci)) :y .98)
-                score-board)
-          (incf ci)))
+    ;; realize the score board
+    (setf (score-board game) nil)
+    (let ((xstart .85)
+          (xstep -.02)
+          (ci 0))
+      (dolist (c score-chars)
+        (push (make-entity (cdr (assoc c db))
+                           :x (+ xstart (* xstep ci)) :y .98)
+              (score-board game))
+        (incf ci)))
 
-      ;; realize the highscore board
-      (setf highscore-board nil)
-      (let ((xstart .15)
-            (xstep -.02)
-            (ci 0))
-        (dolist (c highscore-chars)
-          (push (make-entity (cdr (assoc c db))
-                             :x (+ xstart (* xstep ci)) :y .98)
-                highscore-board)
-          (incf ci))))))
+    ;; realize the highscore board
+    (setf (highscore-board game) nil)
+    (let ((xstart .15)
+          (xstep -.02)
+          (ci 0))
+      (dolist (c highscore-chars)
+        (push (make-entity (cdr (assoc c db))
+                           :x (+ xstart (* xstep ci)) :y .98)
+              (highscore-board game))
+        (incf ci)))))
 
 (defun reset-score-to-zero (game)
-  (setf (game-score game) 0)
+  (setf (score game) 0)
   (realize-score-boards game))
 
 (defun modify-score (game points)
-  (with-accessors ((score game-score)
-                   (highscore game-highscore)
-                   (score-board game-score-board)
-                   (highscore-board game-highscore-board)) game
-    (incf score points)
-    (when (< score 0)
-      (setf score 0))
-    (when (> score highscore)
-      (incf highscore (- score highscore))))
-
+  (incf (score game) points)
+  (when (< (score game) 0)
+    (setf (score game) 0))
+  (when (> (score game) (highscore game))
+    (incf (highscore game) (- (score game) (highscore game))))
   (realize-score-boards game))
 
 (defun step-game (game)
-  (with-accessors ((players game-players)
-                   (player-shots game-player-shots)
-                   (enemies game-enemies)
-                   (enemy-shots game-enemy-shots)
-                   (sparks game-sparks)
-                   (power-ups game-power-ups)
-                   (score game-score)
-                   (highscore game-highscore)
-                   (enemy-spawn-timer game-enemy-spawn-timer))
+  (with-accessors ((players players)
+                   (player-shots player-shots)
+                   (enemies enemies)
+                   (enemy-shots enemy-shots)
+                   (sparks sparks)
+                   (power-ups power-ups)
+                   (score score)
+                   (highscore highscore)
+                   (enemy-spawn-timer enemy-spawn-timer))
       game
 
     ;; 1. Simulate one step for each entity. Specific methods may do
@@ -226,14 +209,13 @@
 
     ;; 3. Remove any dead or stale entities, assigning points if necessary
     (flet ((remove-y/n (e)
-             (with-accessors ((x frame-x) (y frame-y)
-                              (status entity-status) (points entity-points)) e
-               (when (eq status :dead)
-                 (modify-score game points))
+             (when (eq (status e) :dead)
+               (modify-score game (points e)))
 
-               (or (eq status :dead) (eq status :stale)
-                   ;; remove if out of the displayed game world...
-                   (< x -.05) (> x 1.05) (< y -.05) (> y 1.05)))))
+             (or (eq (status e) :dead) (eq (status e) :stale)
+                 ;; remove if out of the displayed game world...
+                 (< (x e) -.05) (> (x e) 1.05)
+                 (< (y e) -.05) (> (y e) 1.05))))
 
       (setf player-shots (remove-if #'remove-y/n player-shots)
             enemies (remove-if #'remove-y/n enemies)
