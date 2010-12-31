@@ -103,7 +103,7 @@
     (loop for i in (list score-board highscore-board players player-shots
                          enemies enemy-shots sparks power-ups) do
          (loop for e in i do
-              (render-entity e scale)))))
+              (render e scale)))))
 
 ;; Create an explosion centered about the entity using the spark amount
 ;; in the entity itself.

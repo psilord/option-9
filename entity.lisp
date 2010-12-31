@@ -246,7 +246,7 @@ will decrease the ttl towards zero if present. It is intended that
 before or after methods are used in more specific objects to take
 advantage of the simulation step."))
 
-(defgeneric render-entity (drawable scale)
+(defgeneric render (drawable scale)
   (:documentation
    "Renders the entity shape with respect to the frame at the scale desired."))
 
@@ -305,7 +305,7 @@ is where it is done."))
     (when (zerop (ttl ent))
       (setf (status ent) :stale))))
 
-(defmethod render-entity ((ent drawable) scale)
+(defmethod render ((ent drawable) scale)
   (with-accessors ((x x) (y y) (dx dx) (dy dy)) ent
     (destructuring-bind (sx sy) scale
       ;; render a list of possibly differing primitives associated with this
@@ -323,11 +323,11 @@ is where it is done."))
 
 ;; if a ship has a shield, render the ship and then the shield (which is
 ;; at the same place in the world as the ship).
-(defmethod render-entity :after ((s ship) scale)
+(defmethod render :after ((s ship) scale)
   (when (ship-main-shield s)
     (setf (x (ship-main-shield s)) (x s)
           (y (ship-main-shield s)) (y s))
-    (render-entity (ship-main-shield s) scale)))
+    (render (ship-main-shield s) scale)))
 
 ;; See if two collidables actually collide.
 (defmethod collide-entity ((fist collidable) (face collidable))
