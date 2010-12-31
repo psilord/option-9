@@ -238,7 +238,7 @@ work to finish its construction."))
        (apply #'make-instance cls :game-context *game*
               (override-args initargs override-initargs))))))
 
-(defgeneric step-entity (frame)
+(defgeneric step-once (frame)
   (:documentation
    "Performs one step in the simulation of this entity. By default it
 will move the x y location of the entity by dx dy in the frame and
@@ -250,12 +250,12 @@ advantage of the simulation step."))
   (:documentation
    "Renders the entity shape with respect to the frame at the scale desired."))
 
-(defgeneric collide-entity (left-collidable right-collidable)
+(defgeneric collide (left-collidable right-collidable)
   (:documentation
    "If the left and right entities collide, then invoke their
-perform-collide-entity methods."))
+perform-collide methods."))
 
-(defgeneric perform-collide-entity (collider collidee)
+(defgeneric perform-collide (collider collidee)
   (:documentation
    "Perform whatever effects need to happen now that it is known this entity
 collided with something."))
@@ -274,7 +274,7 @@ collided with something."))
 is where it is done."))
 
 ;; Perform one physical and temporal step in the simulation
-(defmethod step-entity ((ent frame))
+(defmethod step-once ((ent frame))
   (incf (x ent) (dx ent))
   (incf (y ent) (dy ent))
   (unless (null (ttl ent))
@@ -282,25 +282,25 @@ is where it is done."))
       (decf (ttl ent)))))
 
 ;; The player objects gets bound to the edges of the screen
-(defmethod step-entity :after ((ent player))
+(defmethod step-once :after ((ent player))
   (with-accessors ((x x) (y y)) ent
     (when (< y .05) (setf y .05))
     (when (> y .95) (setf y .95))
     (when (< x .03) (setf x .03))
     (when (> x .97) (setf x .97))))
 
-(defmethod step-entity :before ((ent enemy))
+(defmethod step-once :before ((ent enemy))
   (when (> (until-next-action ent) 0)
     (decf (until-next-action ent))))
 
-(defmethod step-entity :after ((ent enemy))
+(defmethod step-once :after ((ent enemy))
   (when (zerop (until-next-action ent))
     (think-entity ent)
     (setf (until-next-action ent) (+ 15 (random 105)))))
 
 ;; When the ttl for any drawable hits zero, it goes stale and is
 ;; removed from the game world.
-(defmethod step-entity :after ((ent drawable))
+(defmethod step-once :after ((ent drawable))
   (unless (null (ttl ent))
     (when (zerop (ttl ent))
       (setf (status ent) :stale))))
@@ -330,17 +330,17 @@ is where it is done."))
     (render (ship-main-shield s) scale)))
 
 ;; See if two collidables actually collide.
-(defmethod collide-entity ((fist collidable) (face collidable))
+(defmethod collide ((fist collidable) (face collidable))
   (when (and (eq (status fist) :alive) (eq (status face) :alive))
     (let ((dist (sqrt (+ (expt (- (x fist) (x face)) 2)
                          (expt (- (y fist) (y face)) 2)))))
       (when (< dist (max (radius fist) (radius face)))
         ;; tell both objects what they collided with. In practice this
         ;; means that by default, both will explode.
-        (perform-collide-entity fist face)))))
+        (perform-collide fist face)))))
 
 ;; Primary method is both entities die and explode.
-(defmethod perform-collide-entity ((collider collidable) (collidee collidable))
+(defmethod perform-collide ((collider collidable) (collidee collidable))
   (setf (status collider) :dead
         (status collidee) :dead)
   (make-explosion collider)
@@ -371,7 +371,7 @@ is where it is done."))
 
 ;; Here we handle the processing of a something hitting a ship which might
 ;; or might not have a shield.
-(defmethod perform-collide-entity :around ((collider collidable)
+(defmethod perform-collide :around ((collider collidable)
                                            (collidee ship))
   (if (ship-main-shield collidee)
       (multiple-value-bind (absorbedp shield-is-used-up)
@@ -388,7 +388,7 @@ is where it is done."))
 
 ;; When colliding with an enemy, there is a small chance a power up gets
 ;; created in the place of an enemy.
-(defmethod perform-collide-entity :after ((collider collidable)
+(defmethod perform-collide :after ((collider collidable)
                                           (collidee enemy))
   (declare (ignorable collider))
   (when (< (random 1.0) .25)
@@ -401,7 +401,7 @@ is where it is done."))
 ;; the game. However, I haven't coded the right geometries for the
 ;; ship shields or a good means to choose between them. So for now,
 ;; only the player can get powerups.
-(defmethod perform-collide-entity ((collider player) (collidee powerup))
+(defmethod perform-collide ((collider player) (collidee powerup))
   ;; A powerup can only be used ONCE
   (when (not (eq (status collidee) :stale))
     (setf (status collidee) :stale)
@@ -412,14 +412,14 @@ is where it is done."))
             (make-entity (powerup-main-shield collidee))))))
 
 ;; Hardnose shots destroy simple shots and keep going!
-(defmethod perform-collide-entity ((collider hardnose-shot)
+(defmethod perform-collide ((collider hardnose-shot)
                                    (collidee simple-shot))
   (declare (ignorable collider))
   (setf (status collidee) :dead)
   (make-explosion collidee))
 
 ;; Super shots destroy everything and keep going!
-(defmethod perform-collide-entity ((collider super-shot)
+(defmethod perform-collide ((collider super-shot)
                                    (collidee collidable))
   (declare (ignorable collider))
   (setf (status collidee) :dead)

@@ -192,14 +192,14 @@
     (loop for i in (list players player-shots enemies enemy-shots sparks
                          power-ups ) do
          (loop for e in i do
-              (step-entity e)))
+              (step-once e)))
 
     ;; 2. Collide the various entity sets
     (flet ((collide-game-entity-sets (fist face)
              (dolist (left fist)
                (dolist (right face)
                  ;; generic function does anything it wants
-                 (collide-entity left right)))))
+                 (collide left right)))))
 
       (collide-game-entity-sets players power-ups)
       (collide-game-entity-sets player-shots enemy-shots)
