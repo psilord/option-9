@@ -260,9 +260,9 @@ perform-collide methods."))
    "Perform whatever effects need to happen now that it is known this entity
 collided with something."))
 
-(defgeneric ship-fires (ship)
+(defgeneric shoot (ship)
   (:documentation
-   "The ship, be it player or enemy or something else, fires its main gun."))
+   "The ship, be it player or enemy or something else, shoots its main gun."))
 
 (defgeneric shield-absorbs (collider shield)
   (:documentation
@@ -425,16 +425,16 @@ is where it is done."))
   (setf (status collidee) :dead)
   (make-explosion collidee))
 
-;; The method for when the player ship fires
-(defmethod fires-ship ((ship player))
+;; The method for when the player ship shoots
+(defmethod shoot ((ship player))
   (let ((shot (make-entity (ship-main-gun ship)
                            :x (x ship) :y (+ (y ship) .03)
                            :dx 0 :dy .022)))
     (push shot (player-shots (game-context ship))))
   (modify-score (game-context ship) -1))
 
-;; The method for when the enemy ship fires.
-(defmethod fires-ship ((ship enemy))
+;; The method for when the enemy ship shoots.
+(defmethod shoot ((ship enemy))
   (let ((shot (make-entity (ship-main-gun ship)
                            :x (x ship) :y (- (y ship) .03)
                            :dx 0
@@ -442,8 +442,8 @@ is where it is done."))
     (push shot (enemy-shots (game-context ship)))))-
 
 (defmethod think-entity ((ent enemy))
-  ;; Instead of doing anything cool like inspect the world, we'll just fire
-  (fires-ship ent))
+  ;; Instead of doing anything cool like inspect the world, we'll just shoot
+  (shoot ent))
 
 (defun load-all-entities (filename)
   (let ((entity-hash (make-hash-table :test #'eq))

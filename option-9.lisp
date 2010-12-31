@@ -65,7 +65,7 @@
                            (:sdl-key-e (text-console))
                            (:sdl-key-q (sdl:push-quit-event))
                            (:sdl-key-space
-                            (fires-ship (car (players *game*))))
+                            (shoot (car (players *game*))))
                            (:sdl-key-up (move-player *game* :begin :up))
                            (:sdl-key-down (move-player *game* :begin :down))
                            (:sdl-key-left (move-player *game* :begin :left))
