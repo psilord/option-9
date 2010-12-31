@@ -268,7 +268,7 @@ collided with something."))
   (:documentation
    "Should return true if the shield absorbs a specific collider"))
 
-(defgeneric think-entity (brain)
+(defgeneric think (brain)
   (:documentation
    "If anything needs to think about a future or current action to take, this
 is where it is done."))
@@ -295,7 +295,7 @@ is where it is done."))
 
 (defmethod step-once :after ((ent enemy))
   (when (zerop (until-next-action ent))
-    (think-entity ent)
+    (think ent)
     (setf (until-next-action ent) (+ 15 (random 105)))))
 
 ;; When the ttl for any drawable hits zero, it goes stale and is
@@ -441,7 +441,7 @@ is where it is done."))
                            :dy (+ (- (+ .005 (random .005))) (dy ship)))))
     (push shot (enemy-shots (game-context ship)))))-
 
-(defmethod think-entity ((ent enemy))
+(defmethod think ((ent enemy))
   ;; Instead of doing anything cool like inspect the world, we'll just shoot
   (shoot ent))
 
