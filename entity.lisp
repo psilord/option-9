@@ -163,26 +163,6 @@
    "Sometimes a class constructor needs a little extra class specific
 work to finish its construction."))
 
-;; Take the default arguments, and the arguments I supplied, and
-;; override any default arguments with supplied ones and return the
-;; list.
-(defun override-args (default overrides)
-  (let ((arghash (make-hash-table))
-        (default-key/value (group default 2))
-        (overrides-key/value (group overrides 2)))
-
-    ;; First, we put all default argument/values into a hash table.
-    (loop for (key value) in default-key/value
-       do (setf (gethash key arghash) value))
-
-    ;; Then we overlay the overrides
-    (loop for (key value) in overrides-key/value
-       do (setf (gethash key arghash) value))
-
-    ;; Then we collect everything into the correctly applicable initarg form.
-    (loop for k being the hash-keys in arghash using (hash-value v)
-       appending `(,k ,v))))
-
 ;; In general, we don't do anything special to any object that we create.
 (defmethod make-instance-finish (nothing-to-do)
   nothing-to-do)
@@ -236,7 +216,10 @@ work to finish its construction."))
       (assert cls)
       (make-instance-finish
        (apply #'make-instance cls :game-context *game*
-              (override-args initargs override-initargs))))))
+	      ;; The values of the override arguments are accepted
+	      ;; first when in a left to right ordering in the
+	      ;; argument list in concordance with the ANSI spec.
+              (append override-initargs initargs))))))
 
 (defgeneric step-once (frame)
   (:documentation
@@ -372,7 +355,7 @@ is where it is done."))
 ;; Here we handle the processing of a something hitting a ship which might
 ;; or might not have a shield.
 (defmethod perform-collide :around ((collider collidable)
-                                           (collidee ship))
+                                    (collidee ship))
   (if (ship-main-shield collidee)
       (multiple-value-bind (absorbedp shield-is-used-up)
           (absorbs collider (ship-main-shield collidee))
@@ -389,7 +372,7 @@ is where it is done."))
 ;; When colliding with an enemy, there is a small chance a power up gets
 ;; created in the place of an enemy.
 (defmethod perform-collide :after ((collider collidable)
-                                          (collidee enemy))
+                                   (collidee enemy))
   (declare (ignorable collider))
   (when (< (random 1.0) .25)
     (make-powerup collidee)))
@@ -413,14 +396,14 @@ is where it is done."))
 
 ;; Hardnose shots destroy simple shots and keep going!
 (defmethod perform-collide ((collider hardnose-shot)
-                                   (collidee simple-shot))
+                            (collidee simple-shot))
   (declare (ignorable collider))
   (setf (status collidee) :dead)
   (make-explosion collidee))
 
 ;; Super shots destroy everything and keep going!
 (defmethod perform-collide ((collider super-shot)
-                                   (collidee collidable))
+                            (collidee collidable))
   (declare (ignorable collider))
   (setf (status collidee) :dead)
   (make-explosion collidee))
