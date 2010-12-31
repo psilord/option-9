@@ -264,7 +264,7 @@ collided with something."))
   (:documentation
    "The ship, be it player or enemy or something else, shoots its main gun."))
 
-(defgeneric shield-absorbs (collider shield)
+(defgeneric absorbs (collider shield)
   (:documentation
    "Should return true if the shield absorbs a specific collider"))
 
@@ -348,23 +348,23 @@ is where it is done."))
 
 ;; By default, the collider will not be absorbed by the shield and the shield
 ;; will be considered used up.
-(defmethod shield-absorbs (collider (collidee shield))
+(defmethod absorbs (collider (collidee shield))
   (values nil t))
 
 ;; A shot shield will only absorb shots
-(defmethod shield-absorbs ((collider shot) (collidee shot-shield))
+(defmethod absorbs ((collider shot) (collidee shot-shield))
   (when (> (shots-absorbed collidee) 0)
     (decf (shots-absorbed collidee)))
   (values t (zerop (shots-absorbed collidee))))
 
 ;; A ship shield will absorb shots
-(defmethod shield-absorbs ((collider shot) (collidee ship-shield))
+(defmethod absorbs ((collider shot) (collidee ship-shield))
   (when (> (shots-absorbed collidee) 0)
     (decf (shots-absorbed collidee)))
   (values t (zerop (shots-absorbed collidee))))
 
 ;; A ship shield will also absorb other ships
-(defmethod shield-absorbs ((collider ship) (collidee ship-shield))
+(defmethod absorbs ((collider ship) (collidee ship-shield))
   (when (> (shots-absorbed collidee) 0)
     (decf (shots-absorbed collidee)))
   (values t (zerop (shots-absorbed collidee))))
@@ -375,7 +375,7 @@ is where it is done."))
                                            (collidee ship))
   (if (ship-main-shield collidee)
       (multiple-value-bind (absorbedp shield-is-used-up)
-          (shield-absorbs collider (ship-main-shield collidee))
+          (absorbs collider (ship-main-shield collidee))
         (if absorbedp
             (progn
               (setf (status collider) :dead)
