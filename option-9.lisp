@@ -16,19 +16,65 @@
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
+;; Written by pjb with minor modification for finishing the output
+;; from me.
+(defmacro handling-errors (&body body)
+  `(handler-case (progn ,@body)
+     (simple-condition
+         (err)
+       (format *error-output* "~&~A: ~%" (class-name (class-of err)))
+       (apply (function format) *error-output*
+              (simple-condition-format-control   err)
+              (simple-condition-format-arguments err))
+       (format *error-output* "~&")
+       (finish-output))
+     (condition
+         (err)
+       (format *error-output* "~&~A: ~%  ~S~%"
+               (class-name (class-of err)) err)
+       (finish-output))))
+
+;; Written by pjb with minor modification for finishing the output and
+;; starting from zero in the history.
+(defun repl ()
+  (do ((+eof+ (gensym))
+       (hist 0 (1+ hist)))
+      (nil)
+    (format t "~%~A[~D]> " (package-name *package*) hist)
+    (finish-output)
+    (handling-errors
+     (setf +++ ++
+           ++ +
+           + -
+           - (read *standard-input* nil +eof+))
+     (when (or (eq - +eof+)
+               (member - '((quit)(exit)(continue)) :test (function equal)))
+       (return-from repl))
+     (setf /// //
+           // /
+           / (multiple-value-list (eval -)))
+     (setf *** **
+           ** *
+           * (first /))
+     (format t "~& --> ~{~S~^ ;~%     ~}~%" /)
+     (finish-output))))
+
 ;; Eval any typed in expressions in the option-9 package.
 (defun text-console ()
   (format t "Welcome to Text Console~%")
   (let ((*package* (find-package 'option-9)))
-    (let ((run-repl t))
-      (loop while run-repl
-         do
-         (format t "Option 9 > ")
-         (finish-output)
-         (let ((result (eval (read))))
-           (format t "~%~S~%" result)
-           (when (eq result :q)
-             (setf run-repl nil))))
+    ;; If the mouse cursor isnot shown, show it when we enter the
+    ;; console.  Otherwise it freaks me out and I think my machine is
+    ;; hung.
+    (let* ((sdl-initp (sdl:initialized-subsystems-p))
+           (cursor-not-shown (not (sdl:query-cursor))))
+      (unwind-protect
+           (progn
+             (when (and sdl-initp cursor-not-shown)
+               (sdl:show-cursor t))
+             (repl))
+        (when (and sdl-initp cursor-not-shown)
+          (sdl:show-cursor nil)))
       (format t "Resuming game.~%"))))
 
 (defun display ()
@@ -36,17 +82,18 @@
   (render-game *game* `(.01 .01)))
 
 (defun option-9 ()
-  (format t "Welcome to Option 9, Version 0.1!~%")
+  (format t "Welcome to Option 9, Version 0.2!~%")
   (format t "A space shoot'em up game written in CLOS.~%")
   (format t "Written by Peter Keller <psilord@cs.wisc.edu>~%")
   (format t "Ship Designs by Stephanie Keller <aset_isis@hotmail.com>~%")
+  (format t "Contributions from: Zach Beane, Pascal J. Bourguignon~%")
 
   (with-game-init ("option-9.dat")
     (reset-score-to-zero *game*)
     (spawn-player *game*)
     (sdl:with-init ()
       (sdl:window 640 640
-                  :title-caption "Option 9 Version 0.1"
+                  :title-caption "Option 9 Version 0.2"
                   :icon-caption "Option 9"
                   :opengl t
                   :opengl-attributes '((:SDL-GL-DOUBLEBUFFER 1))
