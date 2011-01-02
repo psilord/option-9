@@ -30,7 +30,7 @@
    (%additional-sparks :initarg :additional-sparks
                        :initform 50
                        :accessor additional-sparks)
-   ;; Unless we specify otherwise, we always try to run wahatever
+   ;; Unless we specify otherwise, we always try to run whatever
    ;; finishing constructor work we need to on a class by class basis.
    (%auto-finish-construction :initargs :auto-finish-construction
                               :initform t
@@ -294,7 +294,7 @@ is where it is done."))
       ;; shape
       (mapc #'(lambda (primitive)
                 (gl:with-primitive (car primitive)
-                  ;; render each specific primitivve
+                  ;; render each specific primitive
                   (mapc #'(lambda (vertex/color)
                             (destructuring-bind ((vx vy) (cx cy cz))
                                 vertex/color
