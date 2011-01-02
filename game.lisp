@@ -17,37 +17,37 @@
 ;; Each thing in the world is kept is its particular list. This makes it
 ;; easy to perform collision detection only as necessary.
 (defclass game ()
-  ((players :initarg :players
+  ((%players :initarg :players
             :initform nil
             :accessor players)
-   (player-shots :initarg :player-shots
+   (%player-shots :initarg :player-shots
                  :initform nil
                  :accessor player-shots)
-   (enemies :initarg :enemies
+   (%enemies :initarg :enemies
             :initform nil
             :accessor enemies)
-   (enemy-shots :initarg :enemy-shots
+   (%enemy-shots :initarg :enemy-shots
                 :initform nil
                 :accessor enemy-shots)
-   (sparks :initarg :sparks
+   (%sparks :initarg :sparks
            :initform nil
            :accessor sparks)
-   (power-ups :initargs :power-ups
+   (%power-ups :initargs :power-ups
               :initform nil
               :accessor power-ups)
-   (score :initarg :score
+   (%score :initarg :score
           :initform 0
           :accessor score)
-   (score-board :initarg :score-board
+   (%score-board :initarg :score-board
                 :initform nil
                 :accessor score-board)
-   (highscore :initarg :highscore
+   (%highscore :initarg :highscore
               :initform 0
               :accessor highscore)
-   (highscore-board :initarg :highscore-board
+   (%highscore-board :initarg :highscore-board
                     :initform nil
                     :accessor highscore-board)
-   (enemy-spawn-timer :initarg :enemy-spawn-timer
+   (%enemy-spawn-timer :initarg :enemy-spawn-timer
                       :initform 60
                       :accessor enemy-spawn-timer))
   (:documentation "The Game Class"))

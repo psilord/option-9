@@ -15,55 +15,55 @@
 (in-package #:option-9)
 
 (defclass entity ()
-  ((game-context :initarg :game-context
-                 :initform nil
-                 :accessor game-context)
-   (points :initarg :points
-           :initform 0
-           :accessor points)
-   (status :initarg :status
-           :initform :alive
-           :accessor status)
-   (initial-sparks :initarg :initial-sparks
-                   :initform 10
-                   :accessor initial-sparks)
-   (additional-sparks :initarg :additional-sparks
-                      :initform 50
-                      :accessor additional-sparks)
+  ((%game-context :initarg :game-context
+                  :initform nil
+                  :accessor game-context)
+   (%points :initarg :points
+            :initform 0
+            :accessor points)
+   (%status :initarg :status
+            :initform :alive
+            :accessor status)
+   (%initial-sparks :initarg :initial-sparks
+                    :initform 10
+                    :accessor initial-sparks)
+   (%additional-sparks :initarg :additional-sparks
+                       :initform 50
+                       :accessor additional-sparks)
    ;; Unless we specify otherwise, we always try to run wahatever
    ;; finishing constructor work we need to on a class by class basis.
-   (auto-finish-construction :initargs :auto-finish-construction
-                             :initform t
-                             :accessor auto-finish-construction))
+   (%auto-finish-construction :initargs :auto-finish-construction
+                              :initform t
+                              :accessor auto-finish-construction))
   (:documentation "The Entity Class"))
 
 (defclass frame ()
   ( ;; temporal simulation variables
-   (ttl :initarg :ttl
-        :initform nil
-        :accessor ttl)
-   (ttl-max :initarg :ttl-max
-            :initform nil
-            :accessor ttl-max)
+   (%ttl :initarg :ttl
+         :initform nil
+         :accessor ttl)
+   (%ttl-max :initarg :ttl-max
+             :initform nil
+             :accessor ttl-max)
    ;; physical simulation variables
-   (x :initarg :x
-      :initform 0
-      :accessor x)
-   (y :initarg :y
-      :initform 0
-      :accessor y)
-   (dx :initarg :dx
+   (%x :initarg :x
        :initform 0
-       :accessor dx)
-   (dy :initarg :dy
+       :accessor x)
+   (%y :initarg :y
        :initform 0
-       :accessor dy))
+       :accessor y)
+   (%dx :initarg :dx
+        :initform 0
+        :accessor dx)
+   (%dy :initarg :dy
+        :initform 0
+        :accessor dy))
   (:documentation "The Frame Class"))
 
 (defclass shape ()
-  ((primitives :initarg :primitives
-               :initform nil
-               :accessor primitives))
+  ((%primitives :initarg :primitives
+                :initform nil
+                :accessor primitives))
   (:documentation "The Shape Class"))
 
 (defclass drawable (entity frame shape)
@@ -71,9 +71,9 @@
   (:documentation "The Drawable Class"))
 
 (defclass collidable (drawable)
-  ((radius :initarg :radius
-           :initform 0
-           :accessor radius))
+  ((%radius :initarg :radius
+            :initform 0
+            :accessor radius))
   (:documentation "The Collidable Class"))
 
 (defclass digit (drawable)
@@ -85,27 +85,27 @@
   (:documentation "The Spark Class"))
 
 (defclass brain (collidable)
-  ((until-next-action :initarg :until-next-action
-                      :initform 0
-                      :accessor until-next-action))
+  ((%until-next-action :initarg :until-next-action
+                       :initform 0
+                       :accessor until-next-action))
   (:documentation "The Brain Class"))
 
 (defclass powerup (brain)
-  ((main-gun :initarg :main-gun
-             :initform nil
-             :accessor powerup-main-gun)
-   (main-shield :initarg :main-shield
-                :initform nil
-                :accessor powerup-main-shield))
+  ((%main-gun :initarg :main-gun
+              :initform nil
+              :accessor powerup-main-gun)
+   (%main-shield :initarg :main-shield
+                 :initform nil
+                 :accessor powerup-main-shield))
   (:documentation "The Powerup class"))
 
 (defclass ship (brain)
-  ((main-gun :initarg :main-gun
-             :initform nil
-             :accessor ship-main-gun)
-   (main-shield :initarg :main-shield
-                :initform nil
-                :accessor ship-main-shield))
+  ((%main-gun :initarg :main-gun
+              :initform nil
+              :accessor ship-main-gun)
+   (%main-shield :initarg :main-shield
+                 :initform nil
+                 :accessor ship-main-shield))
   (:documentation "The Ship Class"))
 
 (defclass player (ship)
@@ -145,9 +145,9 @@
   (:documentation "Shots which aren't destroyed by ships!"))
 
 (defclass shield (brain)
-  ((shots-absorbed :initarg :shots-absorbed
-                   :initform 5
-                   :accessor shots-absorbed))
+  ((%shots-absorbed :initarg :shots-absorbed
+                    :initform 5
+                    :accessor shots-absorbed))
   (:documentation "The Shield Base Class"))
 
 (defclass shot-shield (shield)
@@ -196,9 +196,8 @@ work to finish its construction."))
 ;; makes the above generic method a noop.
 (defmethod make-instance-finish :before ((ent enemy-3))
   (when (auto-finish-construction ent)
-    (with-accessors ((main-shield ship-main-shield)) ent
-      (when (<= (random 1.0) .75)
-        (setf main-shield nil))))
+    (when (<= (random 1.0) .75)
+      (setf (ship-main-shield ent) nil)))
   ent)
 
 ;; A factory constructor to make me any object of any kind read into
@@ -216,9 +215,9 @@ work to finish its construction."))
       (assert cls)
       (make-instance-finish
        (apply #'make-instance cls :game-context *game*
-	      ;; The values of the override arguments are accepted
-	      ;; first when in a left to right ordering in the
-	      ;; argument list in concordance with the ANSI spec.
+              ;; The values of the override arguments are accepted
+              ;; first when in a left to right ordering in the
+              ;; argument list in concordance with the ANSI spec.
               (append override-initargs initargs))))))
 
 (defgeneric step-once (frame)

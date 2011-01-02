@@ -48,7 +48,7 @@
            + -
            - (read *standard-input* nil +eof+))
      (when (or (eq - +eof+)
-               (member - '((quit)(exit)(continue)) :test (function equal)))
+               (member - '((quit) (exit) (continue)) :test #'equal))
        (return-from repl))
      (setf /// //
            // /
@@ -86,7 +86,6 @@
   (format t "A space shoot'em up game written in CLOS.~%")
   (format t "Written by Peter Keller <psilord@cs.wisc.edu>~%")
   (format t "Ship Designs by Stephanie Keller <aset_isis@hotmail.com>~%")
-  (format t "Contributions from: Zach Beane, Pascal J. Bourguignon~%")
 
   (with-game-init ("option-9.dat")
     (reset-score-to-zero *game*)
