@@ -18,38 +18,38 @@
 ;; easy to perform collision detection only as necessary.
 (defclass game ()
   ((%players :initarg :players
-            :initform nil
-            :accessor players)
+             :initform nil
+             :accessor players)
    (%player-shots :initarg :player-shots
-                 :initform nil
-                 :accessor player-shots)
+                  :initform nil
+                  :accessor player-shots)
    (%enemies :initarg :enemies
-            :initform nil
-            :accessor enemies)
+             :initform nil
+             :accessor enemies)
    (%enemy-shots :initarg :enemy-shots
-                :initform nil
-                :accessor enemy-shots)
+                 :initform nil
+                 :accessor enemy-shots)
    (%sparks :initarg :sparks
-           :initform nil
-           :accessor sparks)
+            :initform nil
+            :accessor sparks)
    (%power-ups :initargs :power-ups
-              :initform nil
-              :accessor power-ups)
+               :initform nil
+               :accessor power-ups)
    (%score :initarg :score
-          :initform 0
-          :accessor score)
+           :initform 0
+           :accessor score)
    (%score-board :initarg :score-board
-                :initform nil
-                :accessor score-board)
+                 :initform nil
+                 :accessor score-board)
    (%highscore :initarg :highscore
-              :initform 0
-              :accessor highscore)
+               :initform 0
+               :accessor highscore)
    (%highscore-board :initarg :highscore-board
-                    :initform nil
-                    :accessor highscore-board)
+                     :initform nil
+                     :accessor highscore-board)
    (%enemy-spawn-timer :initarg :enemy-spawn-timer
-                      :initform 60
-                      :accessor enemy-spawn-timer))
+                       :initform 60
+                       :accessor enemy-spawn-timer))
   (:documentation "The Game Class"))
 
 (defun make-game ()
@@ -66,19 +66,20 @@
 (defun move-player (game state dir)
   ;; XXX this is for player one and it only assumes one player!
   (let ((p (car (players game))))
-    (ecase state
-      (:begin
-       (ecase dir
-         (:up (setf (dy p) .015))
-         (:down (setf (dy p) -.015))
-         (:left (setf (dx p) -.015))
-         (:right (setf (dx p) .015))))
-      (:end
-       (ecase dir
-         (:up (when (> (dy p) 0) (setf (dy p) 0)))
-         (:down (when (< (dy p) 0) (setf (dy p) 0)))
-         (:left (when (< (dx p) 0) (setf (dx p) 0)))
-         (:right (when (> (dx p) 0) (setf (dx p) 0))))))))
+    (with-accessors ((dx dx) (dy dy)) p
+      (ecase state
+        (:begin
+         (ecase dir
+           (:up (setf dy .015))
+           (:down (setf dy -.015))
+           (:left (setf dx -.015))
+           (:right (setf dx .015))))
+        (:end
+         (ecase dir
+           (:up (when (> dy 0) (setf dy 0)))
+           (:down (when (< dy 0) (setf dy 0)))
+           (:left (when (< dx 0) (setf dx 0)))
+           (:right (when (> dx 0) (setf dx 0)))))))))
 
 (defun spawn-enemy (game)
   (let ((bad-guys (vector :enemy-1 :enemy-2 :enemy-3))

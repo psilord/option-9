@@ -263,7 +263,7 @@ is where it is done."))
     (when (> (ttl ent) 0)
       (decf (ttl ent)))))
 
-;; The player objects gets bound to the edges of the screen
+;; The player objects get bound to the edges of the screen
 (defmethod step-once :after ((ent player))
   (with-accessors ((x x) (y y)) ent
     (when (< y .05) (setf y .05))
@@ -421,7 +421,7 @@ is where it is done."))
                            :x (x ship) :y (- (y ship) .03)
                            :dx 0
                            :dy (+ (- (+ .005 (random .005))) (dy ship)))))
-    (push shot (enemy-shots (game-context ship)))))-
+    (push shot (enemy-shots (game-context ship)))))
 
 (defmethod think ((ent enemy))
   ;; Instead of doing anything cool like inspect the world, we'll just shoot

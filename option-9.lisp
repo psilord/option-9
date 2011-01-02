@@ -63,7 +63,7 @@
 (defun text-console ()
   (format t "Welcome to Text Console~%")
   (let ((*package* (find-package 'option-9)))
-    ;; If the mouse cursor isnot shown, show it when we enter the
+    ;; If the mouse cursor is not shown, show it when we enter the
     ;; console.  Otherwise it freaks me out and I think my machine is
     ;; hung.
     (let* ((sdl-initp (sdl:initialized-subsystems-p))
