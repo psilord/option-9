@@ -220,6 +220,36 @@ work to finish its construction."))
               ;; argument list in concordance with the ANSI spec.
               (append override-initargs initargs))))))
 
+(defgeneric mark-dead (entity)
+  (:documentation
+   "This marks an object as dead."))
+
+(defgeneric deadp (entity)
+  (:documentation
+   "Returns T if the object is dead."))
+
+(defgeneric mark-stale (entity)
+  (:documentation
+   "This marks an object as stale (which means out of bounds or the time
+to live expired."))
+
+(defgeneric stalep (entity)
+  (:documentation
+   "Returns T if the object is stale"))
+
+(defgeneric mark-alive (entity)
+  (:documentation
+   "This marks an object as alive. Isn't called right now since object default
+to being alive when they are created."))
+
+(defgeneric alivep (entity)
+  (:documentation
+   "Returns T is the object is alive."))
+
+(defgeneric distance (left-frame right-frame)
+  (:documentation
+   "Computes the distance between the origins of two frames"))
+
 (defgeneric step-once (frame)
   (:documentation
    "Performs one step in the simulation of this entity. By default it
@@ -254,36 +284,6 @@ collided with something."))
   (:documentation
    "If anything needs to think about a future or current action to take, this
 is where it is done."))
-
-(defgeneric mark-dead (entity)
-  (:documentation
-   "This marks an object as dead."))
-
-(defgeneric deadp (entity)
-  (:documentation
-   "Returns T if the object is dead."))
-
-(defgeneric mark-stale (entity)
-  (:documentation
-   "This marks an object as stale (which means out of bounds or the time
-to live expired."))
-
-(defgeneric stalep (entity)
-  (:documentation
-   "Returns T if the object is stale"))
-
-(defgeneric mark-alive (entity)
-  (:documentation
-   "This marks an object as alive. Isn't called right now since object default
-to being alive when they are created."))
-
-(defgeneric alivep (entity)
-  (:documentation
-   "Returns T is the object is alive."))
-
-(defgeneric distance (left-frame right-frame)
-  (:documentation
-   "Computes the distance between the origins of two frames"))
 
 ;; Marking and checking various status about the entities.
 (defmethod mark-dead ((ent entity))

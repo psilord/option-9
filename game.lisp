@@ -210,10 +210,10 @@
 
     ;; 3. Remove any dead or stale entities, assigning points if necessary
     (flet ((remove-y/n (e)
-             (when (eq (status e) :dead)
+             (when (deadp e)
                (modify-score game (points e)))
 
-             (or (eq (status e) :dead) (eq (status e) :stale)
+             (or (not (alivep e))
                  ;; remove if out of the displayed game world...
                  (< (x e) -.05) (> (x e) 1.05)
                  (< (y e) -.05) (> (y e) 1.05))))
