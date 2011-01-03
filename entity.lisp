@@ -255,6 +255,59 @@ collided with something."))
    "If anything needs to think about a future or current action to take, this
 is where it is done."))
 
+(defgeneric mark-dead (entity)
+  (:documentation
+   "This marks an object as dead."))
+
+(defgeneric deadp (entity)
+  (:documentation
+   "Returns T if the object is dead."))
+
+(defgeneric mark-stale (entity)
+  (:documentation
+   "This marks an object as stale (which means out of bounds or the time
+to live expired."))
+
+(defgeneric stalep (entity)
+  (:documentation
+   "Returns T if the object is stale"))
+
+(defgeneric mark-alive (entity)
+  (:documentation
+   "This marks an object as alive. Isn't called right now since object default
+to being alive when they are created."))
+
+(defgeneric alivep (entity)
+  (:documentation
+   "Returns T is the object is alive."))
+
+(defgeneric distance (left-frame right-frame)
+  (:documentation
+   "Computes the distance between the origins of two frames"))
+
+;; Marking and checking various status about the entities.
+(defmethod mark-dead ((ent entity))
+  (setf (status ent) :dead))
+
+(defmethod deadp ((ent entity))
+  (eq (status ent) :dead))
+
+(defmethod mark-stale ((ent entity))
+  (setf (status ent) :stale))
+
+(defmethod stalep ((ent entity))
+  (eq (status ent) :stale))
+
+(defmethod mark-alive ((ent entity))
+  (setf (status ent) :alive))
+
+(defmethod alivep ((ent entity))
+  (eq (status ent) :alive))
+
+(defmethod distance ((a frame) (b frame))
+  (sqrt (+ (expt (- (x a) (x b)) 2)
+           (expt (- (y a) (y b)) 2))))
+
 ;; Perform one physical and temporal step in the simulation
 (defmethod step-once ((ent frame))
   (incf (x ent) (dx ent))
@@ -285,7 +338,7 @@ is where it is done."))
 (defmethod step-once :after ((ent drawable))
   (unless (null (ttl ent))
     (when (zerop (ttl ent))
-      (setf (status ent) :stale))))
+      (mark-stale ent))))
 
 (defmethod render ((ent drawable) scale)
   (with-accessors ((x x) (y y) (dx dx) (dy dy)) ent
@@ -313,43 +366,29 @@ is where it is done."))
 
 ;; See if two collidables actually collide.
 (defmethod collide ((fist collidable) (face collidable))
-  (when (and (eq (status fist) :alive) (eq (status face) :alive))
-    (let ((dist (sqrt (+ (expt (- (x fist) (x face)) 2)
-                         (expt (- (y fist) (y face)) 2)))))
-      (when (< dist (max (radius fist) (radius face)))
-        ;; tell both objects what they collided with. In practice this
-        ;; means that by default, both will explode.
-        (perform-collide fist face)))))
+  (when (and (alivep fist) (alivep face))
+    (when (< (distance fist face) (max (radius fist) (radius face)))
+      ;; tell both objects what they collided with. In practice this
+      ;; means that by default, both will explode.
+      (perform-collide fist face))))
 
 ;; Primary method is both entities die and explode.
 (defmethod perform-collide ((collider collidable) (collidee collidable))
-  (setf (status collider) :dead
-        (status collidee) :dead)
+  (mark-dead collider)
+  (mark-dead collidee)
   (make-explosion collider)
   (make-explosion collidee))
 
-;; By default, the collider will not be absorbed by the shield and the shield
-;; will be considered used up.
+;; By default, the shield will absorb the collider.
 (defmethod absorbs (collider (collidee shield))
+  (when (> (shots-absorbed collidee) 0)
+    (decf (shots-absorbed collidee)))
+  (values t (zerop (shots-absorbed collidee))))
+
+;; However, if a ship hits a shot-shield, the shield doesn't stop it
+;; and the shield is destroyed.
+(defmethod absorbs ((collider ship) (collidee shot-shield))
   (values nil t))
-
-;; A shot shield will only absorb shots
-(defmethod absorbs ((collider shot) (collidee shot-shield))
-  (when (> (shots-absorbed collidee) 0)
-    (decf (shots-absorbed collidee)))
-  (values t (zerop (shots-absorbed collidee))))
-
-;; A ship shield will absorb shots
-(defmethod absorbs ((collider shot) (collidee ship-shield))
-  (when (> (shots-absorbed collidee) 0)
-    (decf (shots-absorbed collidee)))
-  (values t (zerop (shots-absorbed collidee))))
-
-;; A ship shield will also absorb other ships
-(defmethod absorbs ((collider ship) (collidee ship-shield))
-  (when (> (shots-absorbed collidee) 0)
-    (decf (shots-absorbed collidee)))
-  (values t (zerop (shots-absorbed collidee))))
 
 ;; Here we handle the processing of a something hitting a ship which might
 ;; or might not have a shield.
@@ -360,7 +399,7 @@ is where it is done."))
           (absorbs collider (ship-main-shield collidee))
         (if absorbedp
             (progn
-              (setf (status collider) :dead)
+              (mark-dead collider)
               (make-explosion collider)
               (when shield-is-used-up
                 (setf (ship-main-shield collidee) nil)))
@@ -385,8 +424,8 @@ is where it is done."))
 ;; only the player can get powerups.
 (defmethod perform-collide ((collider player) (collidee powerup))
   ;; A powerup can only be used ONCE
-  (when (not (eq (status collidee) :stale))
-    (setf (status collidee) :stale)
+  (when (not (stalep collidee))
+    (mark-stale collidee)
     (when (powerup-main-gun collidee)
       (setf (ship-main-gun collider) (powerup-main-gun collidee)))
     (when (powerup-main-shield collidee)
@@ -397,14 +436,14 @@ is where it is done."))
 (defmethod perform-collide ((collider hardnose-shot)
                             (collidee simple-shot))
   (declare (ignorable collider))
-  (setf (status collidee) :dead)
+  (mark-dead collidee)
   (make-explosion collidee))
 
 ;; Super shots destroy everything and keep going!
 (defmethod perform-collide ((collider super-shot)
                             (collidee collidable))
   (declare (ignorable collider))
-  (setf (status collidee) :dead)
+  (mark-dead collidee)
   (make-explosion collidee))
 
 ;; The method for when the player ship shoots
