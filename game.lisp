@@ -56,9 +56,7 @@
   (make-instance 'game))
 
 (defmacro with-game-init ((filename) &body body)
-  `(let ((*all-entities*
-          (load-all-entities
-           (asdf:system-relative-pathname :option-9 ,filename)))
+  `(let ((*all-entities* (load-all-entities ,filename))
          (*game* (make-game)))
      ,@body))
 

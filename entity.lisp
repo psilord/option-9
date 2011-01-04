@@ -466,11 +466,15 @@ is where it is done."))
   ;; Instead of doing anything cool like inspect the world, we'll just shoot
   (shoot ent))
 
+;; This takes a relative filename based at the installation location
+;; of the package.
 (defun load-all-entities (filename)
   (let ((entity-hash (make-hash-table :test #'eq))
         (entities
-         (with-open-file (strm filename :direction :input
-                               :if-does-not-exist :error)
+         (with-open-file (strm
+                          (asdf:system-relative-pathname :option-9 filename)
+                          :direction :input
+                          :if-does-not-exist :error)
            ;; Read the symbols from the point of view of this package
            ;; so later when we make-instance it'll work even if the
            ;; user only "used" our package.
@@ -479,9 +483,8 @@ is where it is done."))
 
     (assert (eq (car entities) :entities))
 
-    (loop for i in (cdr entities)
-       do
-       (setf (gethash (cadr (assoc :kind i)) entity-hash) i))
+    (loop for i in (cdr entities) do
+         (setf (gethash (cadr (assoc :kind i)) entity-hash) i))
     entity-hash))
 
 
