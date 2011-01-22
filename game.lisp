@@ -14,6 +14,9 @@
 
 (in-package #:option-9)
 
+(declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
+;; (declaim (optimize (safety 0) (space 0) (speed 3) (debug 0)))
+
 ;; Each thing in the world is kept is its particular list. This makes it
 ;; easy to perform collision detection only as necessary.
 (defclass game ()
@@ -23,6 +26,9 @@
    (%player-shots :initarg :player-shots
                   :initform nil
                   :accessor player-shots)
+   (%enemy-mines :initarg :mines
+                 :initform nil
+                 :accessor enemy-mines)
    (%enemies :initarg :enemies
              :initform nil
              :accessor enemies)
@@ -49,14 +55,23 @@
                      :accessor highscore-board)
    (%enemy-spawn-timer :initarg :enemy-spawn-timer
                        :initform 60
-                       :accessor enemy-spawn-timer))
+                       :accessor enemy-spawn-timer)
+   (%paused :initarg :paused
+            :initform nil
+            :accessor paused))
   (:documentation "The Game Class"))
 
 (defun make-game ()
   (make-instance 'game))
 
+(defun toggle-paused (g)
+  (if (paused g)
+      (setf (paused g) nil)
+      (setf (paused g) t)))
+
 (defmacro with-game-init ((filename) &body body)
   `(let ((*all-entities* (load-all-entities ,filename))
+         (*id* 0)
          (*game* (make-game)))
      ,@body))
 
@@ -95,6 +110,7 @@
                    (player-shots player-shots)
                    (enemies enemies)
                    (enemy-shots enemy-shots)
+                   (enemy-mines enemy-mines)
                    (sparks sparks)
                    (power-ups power-ups)
                    (score-board score-board)
@@ -102,29 +118,54 @@
       game
 
     (loop for i in (list score-board highscore-board players player-shots
-                         enemies enemy-shots sparks power-ups) do
+                         enemies enemy-shots enemy-mines sparks power-ups) do
          (loop for e in i do
               (render e scale)))))
+
+(defun random-sign ()
+  (if (zerop (random 2)) 1 -1))
+
+(defun random-delta (&key (velocity .02))
+  (* (random velocity) (random-sign)))
+
+;; For now, this needs the global game state to know where to emit the
+;; sparks. This is because there may be times I want to emit sparks
+;; into the World without having a known entity location. An example
+;; is field path interactions with other entites.
+(defun emit-sparks (num-sparks x-loc y-loc &key
+                    (ttl-max 0 ttl-max-suppliedp)
+                    (velocity-factor 1))
+  (let ((db (vector :spark-1 :spark-2 :spark-3)))
+    (dotimes (p num-sparks)
+      (let ((spark (make-entity (svref db (random (length db)))
+                                :x x-loc :y y-loc
+                                :dx (* (random-delta) velocity-factor)
+                                :dy (* (random-delta) velocity-factor))))
+        (when ttl-max-suppliedp
+          (setf (ttl-max spark) ttl-max))
+
+        (push (make-instance-finish spark) (sparks *game*))))))
 
 ;; Create an explosion centered about the entity using the spark amount
 ;; in the entity itself.
 (defun make-explosion (ent)
-  (let ((db (vector :spark-1 :spark-2 :spark-3)))
-    (dotimes (p (+ (initial-sparks ent) (random (additional-sparks ent))))
-      (push (make-entity
-             (svref db (random (length db)))
-             :x (x ent) :y (y ent)
-             :dx (* (random .02) (if (zerop (random 2)) 1 -1))
-             :dy (* (random .02) (if (zerop (random 2)) 1 -1)))
-            (sparks (game-context ent))))))
+  (emit-sparks (+ (initial-sparks ent) (random (additional-sparks ent)))
+               (x ent) (y ent)))
 
 ;; Pick a random powerup to place in place of the enemy
 (defun make-powerup (ent)
   (let ((db (vector :powerup-hardnose :powerup-super-shot
-                    :powerup-shot-shield :powerup-ship-shield)))
+                    :powerup-shot-shield :powerup-ship-shield
+                    :powerup-tesla-gun :powerup-health)))
     (push (make-entity (svref db (random (length db)))
                        :x (x ent) :y (y ent))
           (power-ups (game-context ent)))))
+
+(defun make-mine (ent)
+  (let ((db (vector :proximity-mine :field-mine)))
+    (push (make-entity (svref db (random (length db)))
+                       :x (x ent) :y (y ent))
+          (enemy-mines (game-context ent)))))
 
 (defun realize-score-boards (game)
   (let ((db `((#\0 . :digit-0)
@@ -177,10 +218,12 @@
   (realize-score-boards game))
 
 (defun step-game (game)
-  (with-accessors ((players players)
+  (with-accessors ((paused paused)
+                   (players players)
                    (player-shots player-shots)
                    (enemies enemies)
                    (enemy-shots enemy-shots)
+                   (enemy-mines enemy-mines)
                    (sparks sparks)
                    (power-ups power-ups)
                    (score score)
@@ -188,56 +231,82 @@
                    (enemy-spawn-timer enemy-spawn-timer))
       game
 
-    ;; 1. Simulate one step for each entity. Specific methods may do
-    ;; pretty complex things during their simulation step....
-    (loop for i in (list players player-shots enemies enemy-shots sparks
-                         power-ups ) do
-         (loop for e in i do
-              (step-once e)))
+    (unless paused
 
-    ;; 2. Collide the various entity sets
-    (flet ((collide-game-entity-sets (fist face)
-             (dolist (left fist)
-               (dolist (right face)
-                 ;; generic function does anything it wants
-                 (collide left right)))))
+      (let ((all-entities (list players player-shots enemies enemy-shots
+                                enemy-mines sparks power-ups))
+            ;; a small optimization which removes sparks from thinking
+            ;; since there may be many of them and they aren't brains
+            (brain-entities (list players player-shots enemies enemy-shots
+                                  enemy-mines power-ups)))
 
-      (collide-game-entity-sets players power-ups)
-      (collide-game-entity-sets player-shots enemy-shots)
-      (collide-game-entity-sets player-shots enemies)
-      (collide-game-entity-sets enemy-shots players)
-      (collide-game-entity-sets enemies players))
+        ;; 1. Simulate one active step for each entity. Specific methods
+        ;; may do pretty complex things during their simulation step....
+        (loop for i in all-entities do
+             (loop for e in i do
+                  (active-step-once e)))
 
-    ;; 3. Remove any dead or stale entities, assigning points if necessary
-    (flet ((remove-y/n (e)
-             (when (deadp e)
-               (modify-score game (points e)))
+        ;; 2. Simulate one passive step for each entity. Specific methods
+        ;; may do pretty complex things during their simulation step....
+        ;; Since field calculations are passive and "always on", then this
+        ;; information should be available to the entity during the think phase.
+        (loop for i in all-entities do
+             (loop for e in i do
+                  (passive-step-once e)))
 
-             (or (not (alivep e))
-                 ;; remove if out of the displayed game world...
-                 (< (x e) -.05) (> (x e) 1.05)
-                 (< (y e) -.05) (> (y e) 1.05))))
+        ;; 3. Each brain-entity can now think about what it wants to
+        ;; do. It may shoot, change its direction vector, or do
+        ;; something else.
+        (loop for i in brain-entities do
+             (loop for e in i do
+                  (think e)))
 
-      (setf player-shots (remove-if #'remove-y/n player-shots)
-            enemies (remove-if #'remove-y/n enemies)
-            enemy-shots (remove-if #'remove-y/n enemy-shots)
-            players (remove-if #'remove-y/n players)
-            sparks (remove-if #'remove-y/n sparks)
-            power-ups (remove-if #'remove-y/n power-ups)))
+        ;; 4. Collide the various entity sets
+        (flet ((collide-game-entity-sets (fist face)
+                 (dolist (left fist)
+                   (dolist (right face)
+                     ;; generic function does anything it wants
+                     (collide left right)))))
 
-    ;; 4. If the player died, respawn a new one at the start location
-    ;; and set the score back to zero. Bummer.
-    (unless players
-      (reset-score-to-zero game)
-      (spawn-player game))
+          (collide-game-entity-sets players power-ups)
+	  (collide-game-entity-sets player-shots enemy-mines)
+          (collide-game-entity-sets player-shots enemy-shots)
+          (collide-game-entity-sets player-shots enemies)	  
+	  (collide-game-entity-sets enemy-mines players)
+          (collide-game-entity-sets enemy-shots players)
+          (collide-game-entity-sets enemies players))
 
-    ;; 5. If enough time as passed, spawn an enemy
-    (decf enemy-spawn-timer)
-    (when (zerop enemy-spawn-timer)
-      (setf enemy-spawn-timer (1+ (random 120)))
-      (spawn-enemy game))
+        ;; 5. Remove any dead or stale entities, assigning points if necessary
+        (flet ((remove-y/n (e)
+                 (when (deadp e)
+                   (modify-score game (points e)))
 
-    t))
+                 (or (not (alivep e))
+                     ;; remove if out of the displayed game world...
+                     (< (x e) -.05) (> (x e) 1.05)
+                     (< (y e) -.05) (> (y e) 1.05))))
+
+          (setf player-shots (remove-if #'remove-y/n player-shots)
+                enemies (remove-if #'remove-y/n enemies)
+                enemy-shots (remove-if #'remove-y/n enemy-shots)
+		enemy-mines (remove-if #'remove-y/n enemy-mines)
+                players (remove-if #'remove-y/n players)
+                sparks (remove-if #'remove-y/n sparks)
+                power-ups (remove-if #'remove-y/n power-ups)))
+
+        ;; 6. If the player died, respawn a new one at the start location
+        ;; and set the score back to zero. Bummer.
+        (unless players
+          (reset-score-to-zero game)
+          (spawn-player game))
+
+        ;; 7. If enough time as passed, spawn an enemy
+        (decf enemy-spawn-timer)
+        (when (zerop enemy-spawn-timer)
+          (setf enemy-spawn-timer (1+ (random 120)))
+          (spawn-enemy game))
+
+        t))))
 
 
 

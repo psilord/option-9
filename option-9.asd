@@ -30,5 +30,7 @@
                       :depends-on ("package"))
                (:file "entity"
                       :depends-on ("game"))
+	       (:file "field"
+		      :depends-on ("entity"))
                (:file "option-9"
-                      :depends-on ("package" "entity" "game"))))
+                      :depends-on ("package" "entity" "field" "game"))))

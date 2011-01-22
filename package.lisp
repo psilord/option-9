@@ -18,6 +18,13 @@
 
 (in-package #:option-9)
 
-(defparameter *game* nil)
-(defparameter *all-entities* nil)
+(defvar *game*)
+(defvar *all-entities*)
+(defvar *id*)
+
+(defun new-id ()
+  (let ((id *id*))
+    (incf *id*)
+    id))
+
 

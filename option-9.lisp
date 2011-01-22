@@ -82,7 +82,7 @@
   (render-game *game* `(.01 .01)))
 
 (defun option-9 ()
-  (format t "Welcome to Option 9, Version 0.5!~%")
+  (format t "Welcome to Option 9, Version 0.6!~%")
   (format t "A space shoot'em up game written in CLOS.~%")
   (format t "Written by Peter Keller <psilord@cs.wisc.edu>~%")
   (format t "Ship Designs by Stephanie Keller <aset_isis@hotmail.com>~%")
@@ -91,23 +91,26 @@
     (reset-score-to-zero *game*)
     (spawn-player *game*)
     (sdl:with-init ()
-      (sdl:window 640 640
-                  :title-caption "Option 9 Version 0.5"
+      (sdl:window 700 700
+                  :title-caption "Option 9 Version 0.6"
                   :icon-caption "Option 9"
                   :opengl t
                   :opengl-attributes '((:SDL-GL-DOUBLEBUFFER 1))
                   :fps (make-instance 'sdl:fps-fixed :target-frame-rate 60))
+      (setf cl-opengl-bindings:*gl-get-proc-address* #'sdl:sdl-gl-get-proc-address)
       (sdl:show-cursor nil)
       (gl:clear-color 0 0 0 0)
       ;; Initialize viewing values.
       (gl:matrix-mode :projection)
       (gl:load-identity)
       (gl:ortho 0 1 0 1 -1 1)
+
       (sdl:with-events ()
         (:quit-event () t)
         (:key-down-event (:key key)
                          ;;(format t "Key down: ~S~%" key)
                          (case key
+                           (:sdl-key-p (toggle-paused *game*))
                            (:sdl-key-e (text-console))
                            (:sdl-key-q (sdl:push-quit-event))
                            (:sdl-key-space
@@ -117,11 +120,6 @@
                            (:sdl-key-left (move-player *game* :begin :left))
                            (:sdl-key-right (move-player *game* :begin :right))))
         (:key-up-event (:key key)
-                       ;; be careful to only zero out the movement if
-                       ;; I got a key up event in the direction I'm
-                       ;; already moving. This algorithm makes it very
-                       ;; smooth in the play control when smashing
-                       ;; buttons down for movement.
                        (case key
                          (:sdl-key-up (move-player *game* :end :up))
                          (:sdl-key-down (move-player *game* :end :down))
@@ -134,3 +132,11 @@
                ;; Start processing buffered OpenGL routines.
                (gl:flush)
                (sdl:update-display))))))
+
+#|
+(defun profile-option-9 ()
+  (sb-sprof:with-profiling (:max-samples 10000
+                                         :report :flat
+                                         :loop nil)
+    (option-9)))
+|#

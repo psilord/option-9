@@ -18,7 +18,8 @@
   (:class simple-shot)
   (:initargs
    :radius .04
-
+   :charge 1
+   :damage-points 100
    :primitives ((:line-loop ((0 1) (1 1 1))
                             ((1 0) (1 1 1))
                             ((0 -1) (1 1 1))
@@ -28,6 +29,8 @@
   (:class hardnose-shot)
   (:initargs
    :radius .04
+   :charge 1
+   :damage-points 100
    :primitives ((:line-loop ((0 1) (1 0 0))
                             ((1 0) (1 0 0))
                             ((0 -1) (1 0 0))
@@ -57,7 +60,8 @@
   (:class super-shot)
   (:initargs
    :radius .04
-
+   :charge 1
+   :damage-points 100
    :primitives ((:line-loop ((0 1) (0 1 0))
                             ((1 0) (0 1 0))
                             ((0 -1) (0 1 0))
@@ -70,22 +74,23 @@
    :radius .04
    :main-gun :player-super-shot
    :primitives ((:line-loop ((0 2) (1 1 1))
-			    ((2 0) (1 1 1))
-			    ((0 -2) (1 1 1))
-			    ((-2 0) (1 1 1)))
-		(:line-strip ((.5 .5) (1 1 1))
-			     ((0 1) (1 1 1))
-			     ((-.5 .5) (1 1 1))
-			     ((.5 -.5) (1 1 1))
-			     ((0 -1) (1 1 1))
-			     ((-.5 -.5) (1 1 1))))))
-   
+                            ((2 0) (1 1 1))
+                            ((0 -2) (1 1 1))
+                            ((-2 0) (1 1 1)))
+                (:line-strip ((.5 .5) (1 1 1))
+                             ((0 1) (1 1 1))
+                             ((-.5 .5) (1 1 1))
+                             ((.5 -.5) (1 1 1))
+                             ((0 -1) (1 1 1))
+                             ((-.5 -.5) (1 1 1))))))
+
 
  ((:kind :enemy-1-simple-shot)
   (:class simple-shot)
   (:initargs
-   :radius .04
+   :radius .02
    :points 10
+   :damage-points 10
    :primitives ((:line-loop ((.5 1.5) (1 1 1))
                             ((-.5 .5) (1 1 1))
                             ((.5 -.5) (1 1 1))
@@ -96,8 +101,8 @@
  ((:kind :enemy-2-simple-shot)
   (:class simple-shot)
   (:initargs
-   :radius .04
-   :points 10
+   :radius .02
+   :damage-points 10
    :primitives ((:line-loop ((0 1) (1 1 1))
                             ((1 0) (1 1 1))
                             ((0 -2) (1 1 1))
@@ -106,8 +111,10 @@
  ((:kind :enemy-3-simple-shot)
   (:class simple-shot)
   (:initargs
-   :radius .04
+   :radius .02
    :points 10
+   :charge 1
+   :damage-points 10
    :primitives ((:line-loop ((0 1) (1 1 1))
                             ((1 2) (1 1 1))
                             ((1 1) (1 1 1))
@@ -115,11 +122,50 @@
                             ((-1 1) (1 1 1))
                             ((-1 2) (1 1 1))))))
 
+ ;; The tesla-gun's rendering is purely algorithmic and therefore there
+ ;; are no primitives
+ ((:kind :tesla-gun)
+  (:class tesla-field)
+  (:initargs
+   ;; Default tesla gun has all lines, and only gets larger.
+   :power-lines 4
+   :power-range 3))
+
+ ((:kind :powerup-tesla-gun)
+  (:class powerup)
+  (:initargs
+   :ttl-max 240
+   :radius .04
+   :passive-gun :tesla-gun
+   :primitives ((:lines ((-1 1) (1 1 1))
+                        ((1 -1) (1 1 1))
+                        ((-1 -1) (1 1 1))
+                        ((1 1) (1 1 1))
+                        ((-1 0) (1 1 1))
+                        ((1 0) (1 1 1))))))
+
+ ((:kind :powerup-health)
+  (:class powerup)
+  (:initargs
+   :ttl-max 240
+   :radius .04
+   :health-level 20
+   :primitives ((:line-loop ((-1 1) (1 1 1))
+                            ((1 1) (1 1 1))
+                            ((-1 -1) (1 1 1))
+                            ((1 -1) (1 1 1))))))
+
+
+
  ((:kind :player)
   (:class player)
   (:initargs
    :radius .04
+   :charge 1
    :main-gun :player-simple-shot
+   :passive-gun :tesla-gun
+   :max-hit-points 40
+   :damage-points 100
    :primitives ((:line-loop ((0 4) (1 1 1))
                             ((1 1) (1 1 1))
                             ((2 1) (1 1 1))
@@ -138,21 +184,21 @@
   (:initargs
    :shots-absorbed 5
    :primitives ((:line-loop ((0 5) (1 1 1))
-			    ((1 4) (1 1 1))
-			    ((2 5) (1 1 1))
-			    ((5 2) (1 1 1))
-			    ((4 1) (1 1 1))
-			    ((5 0) (1 1 1))
-			    ((2 -3) (1 1 1))
-			    ((1 -2) (1 1 1))
-			    ((0 -3) (1 1 1))
-			    ((-1 -2) (1 1 1))
-			    ((-2 -3) (1 1 1))
-			    ((-5 0) (1 1 1))
-			    ((-4 1) (1 1 1))
-			    ((-5 2) (1 1 1))
-			    ((-2 5) (1 1 1))
-			    ((-1 4) (1 1 1))))))
+                            ((1 4) (1 1 1))
+                            ((2 5) (1 1 1))
+                            ((5 2) (1 1 1))
+                            ((4 1) (1 1 1))
+                            ((5 0) (1 1 1))
+                            ((2 -3) (1 1 1))
+                            ((1 -2) (1 1 1))
+                            ((0 -3) (1 1 1))
+                            ((-1 -2) (1 1 1))
+                            ((-2 -3) (1 1 1))
+                            ((-5 0) (1 1 1))
+                            ((-4 1) (1 1 1))
+                            ((-5 2) (1 1 1))
+                            ((-2 5) (1 1 1))
+                            ((-1 4) (1 1 1))))))
 
  ((:kind :powerup-shot-shield)
   (:class powerup)
@@ -161,37 +207,37 @@
    :radius .04
    :main-shield :ship-shot-shield
    :primitives ((:line-loop ((.5 .5) (1 1 1))
-			    ((.5 -.5) (1 1 1))
-			    ((-.5 -.5) (1 1 1))
-			    ((-.5 .5) (1 1 1)))
-		(:line-loop ((1 1) (1 1 1))
-			    ((1 -1) (1 1 1))
-			    ((-1 -1) (1 1 1))
-			    ((-1 1) (1 1 1)))
-		(:line-loop ((1.5 1.5) (1 1 1))
-			    ((1.5 -1.5) (1 1 1))
-			    ((-1.5 -1.5) (1 1 1))
-			    ((-1.5 1.5) (1 1 1))))))
+                            ((.5 -.5) (1 1 1))
+                            ((-.5 -.5) (1 1 1))
+                            ((-.5 .5) (1 1 1)))
+                (:line-loop ((1 1) (1 1 1))
+                            ((1 -1) (1 1 1))
+                            ((-1 -1) (1 1 1))
+                            ((-1 1) (1 1 1)))
+                (:line-loop ((1.5 1.5) (1 1 1))
+                            ((1.5 -1.5) (1 1 1))
+                            ((-1.5 -1.5) (1 1 1))
+                            ((-1.5 1.5) (1 1 1))))))
 
  ((:kind :ship-ship-shield)
   (:class ship-shield)
   (:initargs
    :shots-absorbed 5
    :primitives ((:line-loop ((1 5) (1 1 1))
-			    ((1 3) (1 1 1))
-			    ((2 3) (1 1 1))
-			    ((2 4) (1 1 1))
-			    ((4 4) (1 1 1))
-			    ((4 -2) (1 1 1))
-			    ((1 -2) (1 1 1))
-			    ((0 -3) (1 1 1))
-			    ((-1 -2) (1 1 1))
-			    ((-4 -2) (1 1 1))
-			    ((-4 4) (1 1 1))
-			    ((-2 4) (1 1 1))
-			    ((-2 3) (1 1 1))
-			    ((-1 3) (1 1 1))
-			    ((-1 5) (1 1 1))))))
+                            ((1 3) (1 1 1))
+                            ((2 3) (1 1 1))
+                            ((2 4) (1 1 1))
+                            ((4 4) (1 1 1))
+                            ((4 -2) (1 1 1))
+                            ((1 -2) (1 1 1))
+                            ((0 -3) (1 1 1))
+                            ((-1 -2) (1 1 1))
+                            ((-4 -2) (1 1 1))
+                            ((-4 4) (1 1 1))
+                            ((-2 4) (1 1 1))
+                            ((-2 3) (1 1 1))
+                            ((-1 3) (1 1 1))
+                            ((-1 5) (1 1 1))))))
 
  ((:kind :powerup-ship-shield)
   (:class powerup)
@@ -200,26 +246,28 @@
    :radius .04
    :main-shield :ship-ship-shield
    :primitives ((:line-loop ((0 1) (1 1 1))
-			    ((1 -1) (1 1 1))
-			    ((-1 -1) (1 1 1))))))
+                            ((1 -1) (1 1 1))
+                            ((-1 -1) (1 1 1))))))
 
  ((:kind :enemy-3-shot-shield)
   (:class shot-shield)
   (:initargs
    :shots-absorbed 2
    :primitives ((:line-loop ((1 5) (1 1 1))
-			    ((3 3) (1 1 1))
-			    ((3 0) (1 1 1))
-			    ((0 -5) (1 1 1))
-			    ((-3 0) (1 1 1))
-			    ((-3 3) (1 1 1))
-			    ((-1 5) (1 1 1))))))
-			    
+                            ((3 3) (1 1 1))
+                            ((3 0) (1 1 1))
+                            ((0 -5) (1 1 1))
+                            ((-3 0) (1 1 1))
+                            ((-3 3) (1 1 1))
+                            ((-1 5) (1 1 1))))))
+
  ((:kind :enemy-1)
   (:class enemy-1)
   (:initargs
    :points 100
    :radius .04
+   :max-hit-points 100
+   :damage-points 100
    :main-gun :enemy-1-simple-shot
    :primitives ((:line-loop ((0 4) (1 1 1))
                             ((3 2) (1 1 1))
@@ -237,6 +285,8 @@
   (:initargs
    :radius .04
    :points 100
+   :max-hit-points 100
+   :damage-points 100
    :main-gun :enemy-2-simple-shot
    :primitives ((:line-loop ((0 4) (1 1 1))
                             ((1 3) (1 1 1))
@@ -270,6 +320,9 @@
   (:initargs
    :radius .04
    :points 100
+   :max-hit-points 300
+   :damage-points 300
+   :charge 1
    :main-gun :enemy-3-simple-shot
    :main-shield :enemy-3-shot-shield
    :primitives ((:line-loop ((0 2) (1 1 1))
@@ -282,6 +335,60 @@
                             ((-1 1) (1 1 1))
                             ((-2 2) (1 1 1))
                             ((-1 4) (1 1 1))))))
+
+ ((:kind :proximity-mine)
+  (:class proximity-mine)
+  (:initargs
+   :radius .10
+   :points 100
+   :max-hit-points 100
+   :damage-points 200
+   :charge -1
+   :initial-sparks 300
+   :additional-sparks 100
+   :primitives ((:line-loop ((1 3) (1 1 1))
+                            ((1 1) (1 1 1))
+                            ((3 1) (1 1 1))
+                            ((3 -1) (1 1 1))
+                            ((1 -1) (1 1 1))
+                            ((1 -3) (1 1 1))
+                            ((-1 -3) (1 1 1))
+                            ((-1 -1) (1 1 1))
+                            ((-3 -1) (1 1 1))
+                            ((-3 1) (1 1 1))
+                            ((-1 1) (1 1 1))
+                            ((-1 3) (1 1 1))))))
+
+ ((:kind :field-mine)
+  (:class field-mine)
+  (:initargs
+   :radius .055
+   :points 100
+   :max-hit-points 100
+   :damage-points 200
+   :charge -1
+   :initial-sparks 300
+   :additional-sparks 100
+   :primitives ((:line-loop ((-1 1) (1 1 1))
+                            ((1 1) (1 1 1))
+                            ((1 -1) (1 1 1))
+                            ((-1 -1) (1 1 1)))
+                (:lines ((1 1) (1 1 1))
+                        ((3 3) (1 1 1))
+                        ((1 0) (1 1 1))
+                        ((3 0) (1 1 1))
+                        ((1 -1) (1 1 1))
+                        ((3 -3) (1 1 1))
+                        ((0 -1) (1 1 1))
+                        ((0 -3) (1 1 1))
+                        ((-1 -1) (1 1 1))
+                        ((-3 -3) (1 1 1))
+                        ((-1 0) (1 1 1))
+                        ((-3 0) (1 1 1))
+                        ((-1 1) (1 1 1))
+                        ((-3 3) (1 1 1))
+                        ((0 1) (1 1 1))
+                        ((0 3) (1 1 1))))))
 
  ((:kind :digit-0)
   (:class digit)
