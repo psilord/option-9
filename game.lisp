@@ -17,50 +17,6 @@
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 ;; (declaim (optimize (safety 0) (space 0) (speed 3) (debug 0)))
 
-;; Each thing in the world is kept is its particular list. This makes it
-;; easy to perform collision detection only as necessary.
-(defclass game ()
-  ((%players :initarg :players
-             :initform nil
-             :accessor players)
-   (%player-shots :initarg :player-shots
-                  :initform nil
-                  :accessor player-shots)
-   (%enemy-mines :initarg :mines
-                 :initform nil
-                 :accessor enemy-mines)
-   (%enemies :initarg :enemies
-             :initform nil
-             :accessor enemies)
-   (%enemy-shots :initarg :enemy-shots
-                 :initform nil
-                 :accessor enemy-shots)
-   (%sparks :initarg :sparks
-            :initform nil
-            :accessor sparks)
-   (%power-ups :initargs :power-ups
-               :initform nil
-               :accessor power-ups)
-   (%score :initarg :score
-           :initform 0
-           :accessor score)
-   (%score-board :initarg :score-board
-                 :initform nil
-                 :accessor score-board)
-   (%highscore :initarg :highscore
-               :initform 0
-               :accessor highscore)
-   (%highscore-board :initarg :highscore-board
-                     :initform nil
-                     :accessor highscore-board)
-   (%enemy-spawn-timer :initarg :enemy-spawn-timer
-                       :initform 60
-                       :accessor enemy-spawn-timer)
-   (%paused :initarg :paused
-            :initform nil
-            :accessor paused))
-  (:documentation "The Game Class"))
-
 (defun make-game ()
   (make-instance 'game))
 
@@ -269,10 +225,10 @@
                      (collide left right)))))
 
           (collide-game-entity-sets players power-ups)
-	  (collide-game-entity-sets player-shots enemy-mines)
+          (collide-game-entity-sets player-shots enemy-mines)
           (collide-game-entity-sets player-shots enemy-shots)
-          (collide-game-entity-sets player-shots enemies)	  
-	  (collide-game-entity-sets enemy-mines players)
+          (collide-game-entity-sets player-shots enemies)
+          (collide-game-entity-sets enemy-mines players)
           (collide-game-entity-sets enemy-shots players)
           (collide-game-entity-sets enemies players))
 
@@ -289,7 +245,7 @@
           (setf player-shots (remove-if #'remove-y/n player-shots)
                 enemies (remove-if #'remove-y/n enemies)
                 enemy-shots (remove-if #'remove-y/n enemy-shots)
-		enemy-mines (remove-if #'remove-y/n enemy-mines)
+                enemy-mines (remove-if #'remove-y/n enemy-mines)
                 players (remove-if #'remove-y/n players)
                 sparks (remove-if #'remove-y/n sparks)
                 power-ups (remove-if #'remove-y/n power-ups)))

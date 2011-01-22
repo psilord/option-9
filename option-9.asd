@@ -26,11 +26,15 @@
 
   :depends-on (#:cl-opengl #:lispbuilder-sdl)
   :components ((:file "package")
-               (:file "game"
+               (:file "classes"
                       :depends-on ("package"))
-               (:file "entity"
-                      :depends-on ("game"))
-	       (:file "field"
-		      :depends-on ("entity"))
+               (:file "generic-functions"
+                      :depends-on ("classes"))
+               (:file "methods"
+                      :depends-on ("generic-functions"))
+               (:file "field"
+                      :depends-on ("methods"))
+               (:file "game"
+                      :depends-on ("methods"))
                (:file "option-9"
-                      :depends-on ("package" "entity" "field" "game"))))
+                      :depends-on ("package" "field" "game"))))

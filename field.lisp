@@ -45,19 +45,6 @@
 (defun e-field-direction (dx dy)
   (normalize-vector dx dy))
 
-(defclass fieldpath ()
-  ;; How many steps the path went before it either hit something or
-  ;; reached the end of its range. This is in world space.
-  ((%steps :initarg :steps
-           :initform 0
-           :accessor steps)
-   ;; The vector containing the location coordinates of each step with
-   ;; element 0 being the start of the path.
-   (%path :initarg :path
-          :initform nil
-          :accessor path))
-  (:documentation "The Field Path Class"))
-
 (defun gen-path (steps)
   (make-array (list steps)
               :initial-contents
@@ -70,45 +57,8 @@
 (defun make-fieldpath (max-steps)
   (make-instance 'fieldpath :path (gen-path max-steps)))
 
-(defclass pathcontact ()
-  ((%number-of-contacts :initarg :number-of-contacts
-                        :initform 0
-                        :accessor number-of-contacts)
-   (%path-ids :initarg :contacts
-              :initform nil
-              :accessor path-ids))
-  (:documentation "The Path Contact Class"))
-
 (defun make-pathcontact ()
   (make-instance 'pathcontact))
-
-(defclass field ()
-  ((%range :initarg :range
-           :initform 1
-           :accessor range)
-   (%num-paths :initarg :num-paths
-               :initform 1
-               :accessor num-paths)
-   ;; An array of fieldpath classes where each one is a trace of the field
-   ;; line in world space.
-   (%paths :initarg :traces
-           :initform nil
-           :accessor paths)
-   ;; A hash table of pathcontact classes keyed by the entity id the trace
-   ;; touches, or "no-id" if it doesn't touch.
-   (%entity-contacts :initarg :contacts
-                     :initform (make-hash-table :test #'equal)
-                     :accessor entity-contacts))
-  (:documentation "The Field Class"))
-
-(defclass tesla-field (field weapon)
-  ((%power-range :initarg :power-range
-                 :initform 1
-                 :reader power-range)
-   (%power-lines :initarg :power-lines
-                 :initform 1
-                 :reader power-lines))
-  (:documentation "The Tesla-Field Class"))
 
 (defun gen-paths (num-paths steps)
   (make-array (list num-paths)
