@@ -231,9 +231,13 @@ vector at that position"))
   (:documentation "The Path Contact Class. This is stored on a per entity basis and records the field path-ids that touch that particular entity."))
 
 (defclass field ()
+  ;; This range is described in the number of steps I should follow
+  ;; the field line trace.
   ((%range :initarg :range
            :initform 1
            :accessor range)
+   ;; Num paths are how many even distributed paths should be followed
+   ;; from around the field generating object.
    (%num-paths :initarg :num-paths
                :initform 1
                :accessor num-paths)
@@ -250,6 +254,7 @@ vector at that position"))
   (:documentation "The Field Class"))
 
 (defclass tesla-field (field weapon)
+  ;; This is a quantized range of power for the tesla-field
   ((%power-range :initarg :power-range
                  :initform 1
                  :reader power-range)

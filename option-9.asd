@@ -30,10 +30,10 @@
                       :depends-on ("package"))
                (:file "generic-functions"
                       :depends-on ("classes"))
-               (:file "methods"
-                      :depends-on ("generic-functions"))
                (:file "field"
-                      :depends-on ("methods"))
+                      :depends-on ("generic-functions"))
+               (:file "methods"
+                      :depends-on ("field"))
                (:file "game"
                       :depends-on ("methods"))
                (:file "option-9"

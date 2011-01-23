@@ -26,5 +26,3 @@
   (let ((id *id*))
     (incf *id*)
     id))
-
-

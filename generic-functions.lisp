@@ -103,3 +103,46 @@ and when it does, invoke it"))
    "If anything needs to be done about a future or current action to take, this
 is where it is done."))
 
+(defgeneric contacts (contacter contactee)
+  (:documentation
+   "Different than collide, this return a data structure explaining the manner
+of the contact between the concacter and the contactee."))
+
+(defgeneric generate (field source participants)
+  (:documentation
+   "Certain types of effects like fields need a generation phase which
+computes their solution in terms of a source of the effect and other entities
+(which may also include the source) on the board."))
+
+(defgeneric increase-density (tesla-field)
+  (:documentation
+   "Increases the number of lines traced from the source of the field or
+as appropriate for whatever class this gets applied to."))
+
+(defgeneric increase-power (item)
+  (:documentation
+   "Increases one of multiple aspects of the object that represents its
+power. It does so randomly but intelligently such that if one aspect is
+already at max, another is chosen."))
+
+(defgeneric increase-range (item)
+  (:documentation
+   "Increases the range of the item."))
+
+(defgeneric power-density-maxp (item)
+  (:documentation
+   "Returns true if the item is at the maximum density (of whatever quantity)"))
+(defgeneric power-range-maxp (item)
+  (:documentation
+   "Returns true if the item is at the maximum range (of whatever quantity)"))
+
+(defgeneric trace-field-line (field path-num tx ty q1 charges)
+  (:documentation
+   "Trace the field-line denoted by path-num starting at tx ty with q1 as the
+source charge and charges (which may contain q1) as the participants in the
+field. The positions of the traced field line is encoded into the field."))
+
+(defgeneric trace-field-lines (field q1 charges)
+  (:documentation
+   "Trace all field lines associated with the field starting from q1 with the
+participating charges. All information is stored into the field object."))
