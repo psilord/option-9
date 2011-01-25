@@ -15,7 +15,6 @@
 (in-package #:option-9)
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
-;; (declaim (optimize (safety 0) (space 0) (speed 3) (debug 0)))
 
 (defun make-game ()
   (make-instance 'game))
@@ -101,12 +100,6 @@
           (setf (ttl-max spark) ttl-max))
 
         (push (make-instance-finish spark) (sparks *game*))))))
-
-;; Create an explosion centered about the entity using the spark amount
-;; in the entity itself.
-(defun make-explosion (ent)
-  (emit-sparks (+ (initial-sparks ent) (random (additional-sparks ent)))
-               (x ent) (y ent)))
 
 ;; Pick a random powerup to place in place of the enemy
 (defun make-powerup (ent)

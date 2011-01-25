@@ -18,6 +18,8 @@
 
 (in-package #:option-9)
 
+(declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
+
 (defvar *game*)
 (defvar *all-entities*)
 (defvar *id*)
@@ -26,3 +28,4 @@
   (let ((id *id*))
     (incf *id*)
     id))
+

@@ -135,8 +135,9 @@
   (:class powerup)
   (:initargs
    :ttl-max 240
-   :radius .04
-   :passive-gun :tesla-gun
+   :radius .05
+   ;; Add this next one for testing purposes.
+   ;; :passive-gun :tesla-gun
    :primitives ((:lines ((-1 1) (1 1 1))
                         ((1 -1) (1 1 1))
                         ((-1 -1) (1 1 1))
@@ -362,7 +363,7 @@
  ((:kind :field-mine)
   (:class field-mine)
   (:initargs
-   :radius .055
+   :radius .04
    :points 100
    :max-hit-points 100
    :damage-points 200

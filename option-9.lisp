@@ -132,11 +132,3 @@
                ;; Start processing buffered OpenGL routines.
                (gl:flush)
                (sdl:update-display))))))
-
-#|
-(defun profile-option-9 ()
-  (sb-sprof:with-profiling (:max-samples 10000
-                                         :report :flat
-                                         :loop nil)
-    (option-9)))
-|#

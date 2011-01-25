@@ -14,6 +14,8 @@
 
 (in-package #:option-9)
 
+(declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
+
 ;; In general, we don't do anything special to any object that we create.
 (defmethod make-instance-finish (nothing-to-do)
   nothing-to-do)
@@ -132,10 +134,18 @@
               (* factor-2 factor-2)))))
     (values (sqrt non-normalized) non-normalized)))
 
+(defmethod sparks ((ent entity))
+  (+ (initial-sparks ent) (random (additional-sparks ent))))
+
+;; Create an explosion centered about the entity using the spark amount
+;; in the entity itself.
+(defmethod explode ((ent entity))
+  (emit-sparks (sparks ent) (x ent) (y ent)))
+
 ;; If something is told to be dead, we kill it and blow it up.
 (defmethod die ((ent entity))
   (mark-dead ent)
-  (make-explosion ent))
+  (explode ent))
 
 ;; When an enemy dies, there is a small chance a power up or a mine
 ;; gets created in the spot of death.
@@ -406,8 +416,8 @@
 (defmethod increase-power ((tf tesla-field))
   (if (zerop (random 2))
       (if (power-density-maxp tf)
-          (increase-density tf)
-          (increase-range tf))
+          (increase-range tf)
+          (increase-density tf))
       (if (power-range-maxp tf)
           (increase-density tf)
           (increase-range tf))))
@@ -666,7 +676,7 @@
         ;; This messes up the computation of this vector so I use the second
         ;; to the last step, which should be ok in accordance to the algorithm
         ;; which produced the path.
-        (when (> fp-steps 2)
+        (when (> fp-steps 1)
           (let ((loc (svref fp-path (1- (1- fp-steps)))))
             (incf mx (* (dx loc) -1))
             (incf my (* (dy loc) -1))))))
@@ -674,8 +684,8 @@
     ;; Normalize the vector, set some fraction of it to be the
     ;; direction and speed the mine should move towards the ship.
     (multiple-value-bind (nvx nvy) (normalize-vector mx my)
-      (setf (dx ent) (* nvx .004)
-            (dy ent) (* nvy .004)))))
+      (setf (dx ent) (* nvx .003)
+            (dy ent) (* nvy .003)))))
 
 
 ;; The method for when the player ship shoots
@@ -694,11 +704,11 @@
                            :dy (+ (- (+ .005 (random .005))) (dy ship)))))
     (push shot (enemy-shots (game-context ship)))))
 
-;; By default, nothing thinks
+;; By default, nothing thinks...
 (defmethod think (ent)
   nil)
 
-;; But enemies think!
+;; but enemies think...
 (defmethod think ((ent enemy))
   (when (until-next-action ent)
     (cond
