@@ -97,7 +97,6 @@
                   :opengl t
                   :opengl-attributes '((:SDL-GL-DOUBLEBUFFER 1))
                   :fps (make-instance 'sdl:fps-fixed :target-frame-rate 60))
-      (setf cl-opengl-bindings:*gl-get-proc-address* #'sdl:sdl-gl-get-proc-address)
       (sdl:show-cursor nil)
       (gl:clear-color 0 0 0 0)
       ;; Initialize viewing values.
