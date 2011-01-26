@@ -164,7 +164,6 @@
    :radius .04
    :charge 1
    :main-gun :player-simple-shot
-   :passive-gun :tesla-gun
    :max-hit-points 40
    :damage-points 100
    :primitives ((:line-loop ((0 4) (1 1 1))
