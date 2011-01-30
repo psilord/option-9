@@ -82,7 +82,7 @@
   (render-game *game* `(.01 .01)))
 
 (defun option-9 ()
-  (format t "Welcome to Option 9, Version 0.6!~%")
+  (format t "Welcome to Option 9, Version 0.7!~%")
   (format t "A space shoot'em up game written in CLOS.~%")
   (format t "Written by Peter Keller <psilord@cs.wisc.edu>~%")
   (format t "Ship Designs by Stephanie Keller <aset_isis@hotmail.com>~%")
@@ -92,7 +92,7 @@
     (spawn-player *game*)
     (sdl:with-init ()
       (sdl:window 700 700
-                  :title-caption "Option 9 Version 0.6"
+                  :title-caption "Option 9 Version 0.7"
                   :icon-caption "Option 9"
                   :opengl t
                   :opengl-attributes '((:SDL-GL-DOUBLEBUFFER 1))
