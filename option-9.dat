@@ -30,7 +30,7 @@
   (:initargs
    :radius .04
    :charge 1
-   :damage-points 100
+   :damage-points 200
    :primitives ((:line-loop ((0 1) (1 0 0))
                             ((1 0) (1 0 0))
                             ((0 -1) (1 0 0))
@@ -61,7 +61,7 @@
   (:initargs
    :radius .04
    :charge 1
-   :damage-points 100
+   :damage-points 400
    :primitives ((:line-loop ((0 1) (0 1 0))
                             ((1 0) (0 1 0))
                             ((0 -1) (0 1 0))
@@ -136,8 +136,7 @@
   (:initargs
    :ttl-max 240
    :radius .05
-   ;; Add this next one for testing purposes.
-   ;; :passive-gun :tesla-gun
+   :passive-gun :tesla-gun
    :primitives ((:lines ((-1 1) (1 1 1))
                         ((1 -1) (1 1 1))
                         ((-1 -1) (1 1 1))
