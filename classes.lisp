@@ -190,7 +190,7 @@ vector at that position"))
 
 (defclass proximity-mine (mine)
   ()
-  (:documentation "The Proximity Mine lass"))
+  (:documentation "The Proximity Mine Class"))
 
 (defclass field-mine (mine)
   ()
