@@ -49,7 +49,7 @@
                        :accessor additional-sparks)
    ;; Unless we specify otherwise, we always try to run whatever
    ;; finishing constructor work we need to on a class by class basis.
-   (%auto-finish-construction :initargs :auto-finish-construction
+   (%auto-finish-construction :initarg :auto-finish-construction
                               :initform t
                               :accessor auto-finish-construction))
   (:documentation "The Entity Class"))
@@ -286,7 +286,7 @@ vector at that position"))
    (%sparks :initarg :sparks
             :initform nil
             :accessor sparks)
-   (%power-ups :initargs :power-ups
+   (%power-ups :initarg :power-ups
                :initform nil
                :accessor power-ups)
    (%score :initarg :score
