@@ -92,7 +92,12 @@
   (let ((entity-hash (make-hash-table :test #'eq))
         (entities
          (with-open-file (strm
-                          (asdf:system-relative-pathname :option-9 filename)
+                          ;; We'll look for the data file either in
+                          ;; the current working directory, or at the
+                          ;; ASDF install location.
+                          (or (probe-file filename)
+                              (asdf:system-relative-pathname
+                               :option-9 filename))
                           :direction :input
                           :if-does-not-exist :error)
            ;; Read the symbols from the point of view of this package
