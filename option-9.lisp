@@ -43,21 +43,21 @@
     (format t "~%~A[~D]> " (package-name *package*) hist)
     (finish-output)
     (handling-errors
-     (setf +++ ++
-           ++ +
-           + -
-           - (read *standard-input* nil +eof+))
-     (when (or (eq - +eof+)
-               (member - '((quit) (exit) (continue)) :test #'equal))
-       (return-from repl))
-     (setf /// //
-           // /
-           / (multiple-value-list (eval -)))
-     (setf *** **
-           ** *
-           * (first /))
-     (format t "~& --> ~{~S~^ ;~%     ~}~%" /)
-     (finish-output))))
+      (setf +++ ++
+            ++ +
+            + -
+            - (read *standard-input* nil +eof+))
+      (when (or (eq - +eof+)
+                (member - '((quit) (exit) (continue)) :test #'equal))
+        (return-from repl))
+      (setf /// //
+            // /
+            / (multiple-value-list (eval -)))
+      (setf *** **
+            ** *
+            * (first /))
+      (format t "~& --> ~{~S~^ ;~%     ~}~%" /)
+      (finish-output))))
 
 ;; Eval any typed in expressions in the option-9 package.
 (defun text-console ()
@@ -77,22 +77,34 @@
           (sdl:show-cursor nil)))
       (format t "Resuming game.~%"))))
 
-(defun display ()
-  (gl:clear :color-buffer-bit)
-  (render-game *game* `(.01 .01)))
+
+#+ignore(defun option-9-profiled ()
+          (sb-sprof:profile-call-counts "OPTION-9")
+          (sb-sprof:with-profiling (:max-samples 1000000
+                                                 :report :flat
+                                                 :loop nil)
+            (option-9)))
+
+(defun initialize-joysticks ()
+  (let ((num-sticks (sdl:num-joysticks)))
+    (cond
+      ((zerop num-sticks)
+       (format t "No joysticks available. Keyboard control only.~%"))
+      (t
+       (format t "Using only joystick zero: ~A~%" (sdl:sdl-joystick-name 0))
+       (sdl-cffi::sdl-joystick-open 0)))))
+
 
 (defun option-9 ()
-  (format t "Welcome to Option 9, Version 0.7!~%")
+  (format t "Welcome to Option 9, Version 0.9!~%")
   (format t "A space shoot'em up game written in CLOS.~%")
   (format t "Written by Peter Keller <psilord@cs.wisc.edu>~%")
   (format t "Ship Designs by Stephanie Keller <aset_isis@hotmail.com>~%")
 
   (with-game-init ("option-9.dat")
-    (reset-score-to-zero *game*)
-    (spawn-player *game*)
-    (sdl:with-init ()
+    (sdl:with-init (sdl:sdl-init-everything)
       (sdl:window 700 700
-                  :title-caption "Option 9 Version 0.7"
+                  :title-caption "Option 9 Version 0.9"
                   :icon-caption "Option 9"
                   :opengl t
                   :opengl-attributes '((:SDL-GL-DOUBLEBUFFER 1))
@@ -104,29 +116,78 @@
       (gl:load-identity)
       (gl:ortho 0 1 0 1 -1 1)
 
+      (initialize-joysticks)
+
       (sdl:with-events ()
         (:quit-event () t)
         (:key-down-event (:key key)
-                         ;;(format t "Key down: ~S~%" key)
+                         ;; (format t "Key down: ~S~%" key)
                          (case key
                            (:sdl-key-p (toggle-paused *game*))
                            (:sdl-key-e (text-console))
                            (:sdl-key-q (sdl:push-quit-event))
                            (:sdl-key-space
-                            (shoot (car (players *game*))))
-                           (:sdl-key-up (move-player *game* :begin :up))
-                           (:sdl-key-down (move-player *game* :begin :down))
-                           (:sdl-key-left (move-player *game* :begin :left))
-                           (:sdl-key-right (move-player *game* :begin :right))))
+                            (let ((player (car (entities-with-role
+                                                (scene-man *game*) :player))))
+                              (when player
+                                (shoot player))))
+                           (:sdl-key-up
+                            (move-player-keyboard *game* :begin :up))
+                           (:sdl-key-down
+                            (move-player-keyboard *game* :begin :down))
+                           (:sdl-key-left
+                            (move-player-keyboard *game* :begin :left))
+                           (:sdl-key-right
+                            (move-player-keyboard *game* :begin :right))))
         (:key-up-event (:key key)
+                       ;; (format t "Key up: ~S~%" key)
                        (case key
-                         (:sdl-key-up (move-player *game* :end :up))
-                         (:sdl-key-down (move-player *game* :end :down))
-                         (:sdl-key-left (move-player *game* :end :left))
-                         (:sdl-key-right (move-player *game* :end :right))))
+                         (:sdl-key-up
+                          (move-player-keyboard *game* :end :up))
+                         (:sdl-key-down
+                          (move-player-keyboard *game* :end :down))
+                         (:sdl-key-left
+                          (move-player-keyboard *game* :end :left))
+                         (:sdl-key-right
+                          (move-player-keyboard *game* :end :right))))
+
+        (:joy-axis-motion-event (:which which :axis axis :value value)
+                                (assert (= which 0))
+                                ;; XXX crappy zeroing to get rid of jitter.
+                                ;; need a batter calibration algorithm.
+                                (when (and (or (= axis 0) (= axis 1)) t)
+                                  (let ((val (/ value 32768d0)))
+                                    (if (or (> val .07d0)
+                                            (< val -.07d0))
+                                        (move-player-joystick *game* axis val)
+                                        (move-player-joystick *game* axis 0d0)))))
+
+        (:joy-button-down-event (:which which :button button :state state)
+                                (format t "JOY BUTTON DN: ~A ~A ~A~%"
+                                        which button state)
+                                (cond
+                                  ((= button 0)
+                                   (let ((player (car (entities-with-role
+                                                       (scene-man *game*)
+                                                       :player))))
+                                     (when player
+                                       (shoot player))))
+                                  ((= button 6)
+                                   (sdl:push-quit-event))))
+
+        (:joy-button-up-event (:which which :button button :state state)
+                              (format t "JOY BUTTON UP: ~A ~A ~A~%"
+                                      which button state))
+
+        ;; :axis instead of :hat. Stupid wrong docs.
+        (:joy-hat-motion-event (:which which :axis axis :value value)
+                               (format t "JOY HAT: ~A ~A ~A~%"
+                                       which axis value))
+
+
         (:idle ()
                (step-game *game*)
-               (display)
+               (display *game*)
 
                ;; Start processing buffered OpenGL routines.
                (gl:flush)

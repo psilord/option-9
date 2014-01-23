@@ -55,9 +55,116 @@ to being alive when they are created."))
   (:documentation
    "Performs the necessary actions when an entity dies"))
 
-(defgeneric distance (left-frame right-frame)
+(defgeneric distance (left-frame right-frame &key &allow-other-keys)
   (:documentation
-   "Computes the distance between the origins of two frames"))
+   "Computes the distance between the origins of two frames. If the
+keyword :sqrt is T (the default) then return two values of the euclidean
+distance and the non-normalized distance. If :SQRT is NIL, then return two
+values where the first and second are both the non-normalized distance."))
+
+
+(defgeneric dfvx (frame)
+  (:documentation "The x component of the fly vector"))
+(defgeneric dfvy (frame)
+  (:documentation "The y component of the fly vector"))
+(defgeneric dfvz (frame)
+  (:documentation "The z component of the fly vector"))
+(defgeneric (setf dfvx) (new-val frame)
+  (:documentation "Set the x component of the fly vector"))
+(defgeneric (setf dfvy) (new-val frame)
+  (:documentation "Set the y component of the fly vector"))
+(defgeneric (setf dfvz) (new-val frame)
+  (:documentation "Set the z component of the fly vector"))
+
+(defgeneric drvx (frame)
+  (:documentation "The x component of the rotation vector"))
+(defgeneric drvy (frame)
+  (:documentation "The y component of the rotation vector"))
+(defgeneric drvz (frame)
+  (:documentation "The z component of the rotation vector"))
+(defgeneric (setf drvx) (new-val frame)
+  (:documentation "Set the x component in radians of the rotation vector"))
+(defgeneric (setf drvy) (new-val frame)
+  (:documentation "Set the y component in radians of the rotation vector"))
+(defgeneric (setf drvz) (new-val frame)
+  (:documentation "Set the z component in radians of the rotation vector"))
+
+(defgeneric dtvx (frame)
+  (:documentation "The x component of the incremental translation vector"))
+(defgeneric dtvy (frame)
+  (:documentation "The y component of the incremental translation vector"))
+(defgeneric dtvz (frame)
+  (:documentation "The z component of the incremental translation vector"))
+(defgeneric (setf dtvx) (new-val frame)
+  (:documentation "Set the x component of the incremental translation vector"))
+(defgeneric (setf dtvy) (new-val frame)
+  (:documentation "Set the y component of the incremental translation vector"))
+(defgeneric (setf dtvz) (new-val frame)
+  (:documentation "Set the z component of the incremental translation vector"))
+
+(defgeneric dvx (frame)
+  (:documentation "The x component of the one time displacement
+translation vector"))
+(defgeneric dvy (frame)
+  (:documentation "The y component of the one time displacement
+translation vector"))
+(defgeneric dvz (frame)
+  (:documentation "The z component of the one time displacement
+translation vector"))
+(defgeneric (setf dvx) (new-val frame)
+  (:documentation "Set the x component of the one time displacement
+translation vector"))
+(defgeneric (setf dvy) (new-val frame)
+  (:documentation "Set the y component of the one time displacement
+translation vector"))
+(defgeneric (setf dvz) (new-val frame)
+  (:documentation "Set the z component of the one time displacement
+translation vector"))
+
+;; TODO, this isn't cognizant of passing time. Probably wrong.
+(defgeneric dtv-decay (frame &key &allow-other-keys)
+  (:documentation
+   "Each time the frame's local axis is computed, set the dtv vector
+in the frame to whatever this function returns."))
+
+(defgeneric at-location (destination source)
+  (:documentation "Copy the local-basis and the world-basis from the SOURCE
+into the DESTINATION."))
+
+
+(defgeneric walk-frame-hierarchy (root func)
+  (:documentation
+   "Apply FUNC to each element of the scene tree rooted at ROOT, starting at
+the ROOT and working towards the leaves of the tree."))
+
+(defgeneric resolve-world-basis (frame)
+  (:documentation "Multiply the parent's world-basis against the
+FRAME's local-basis and assign it to be the world-basis of the
+frame. When coupled with WALK-FRAME-HIERARCHY, this performs the
+associative matrix multiply of (((RA)B)C) where R is the root, A the
+child, B the grandchild, C the great grandchild. Then the resultant
+matrix is made the world-basis for C."))
+
+(defgeneric update-local-basis (frame)
+  (:documentation "Apply any flying, rotating, or one time
+displacement translation mechanics to the local-basis."))
+
+(defgeneric add-child (frame child)
+  (:documentation "Add the child to the frame. Return the added child."))
+(defgeneric remove-child (frame child)
+  (:documentation "Recurse down the hierarchies, and when the
+specified child is found, remove it from the scene tree. Return the
+child if the child was found and removed, and NIL if never found."))
+
+(defgeneric entities-with-role (scene-man role)
+  (:documentation "Return a list of entities from the SCENE-MAN that
+have the specific ROLE specified. The ROLE is a single keyword."))
+
+(defgeneric all-entities-in-roles (scene-man &rest roles)
+  (:documentation "Return a list of all entities from the SCENE-MAN which
+are in the roles of one or more of the ROLES list."))
+
+
 
 (defgeneric active-step-once (frame)
   (:documentation
@@ -139,12 +246,21 @@ already at max, another is chosen."))
   (:documentation
    "Increases the range of the item."))
 
+(defgeneric (setf power-range) (range field)
+  (:documentation "Bookkeep internals of the FIELD object when the
+power range of the field increases"))
+
 (defgeneric power-density-maxp (item)
   (:documentation
    "Returns true if the item is at the maximum density (of whatever quantity)"))
 (defgeneric power-range-maxp (item)
   (:documentation
    "Returns true if the item is at the maximum range (of whatever quantity)"))
+
+(defgeneric (setf power-lines) (lines field)
+  (:documentation
+   "Bookkeep internals of the FIELD object when the number of paths the field
+shoots is changed."))
 
 (defgeneric trace-field-line (field path-num tx ty q1 charges)
   (:documentation

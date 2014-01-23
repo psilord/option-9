@@ -16,10 +16,42 @@
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
+;; There will be a single one of these objects
+(defclass assets ()
+  (;; The processed :entities form which is a hash table keyed by
+   ;; :instance and whose value is a pile of info about how to
+   ;; initialize that :instance into a real CLOS instance.
+   (%entities :initarg :entities
+              :initform nil
+              :accessor entities)
+   ;; What are the roles any entity can assume?
+   (%defined-roles :initarg :defined-roles
+                   :initform nil
+                   :accessor defined-roles)
+   ;; How do roles collide with each other and in what order?
+   (%collision-plan :initarg :collision-plan
+                    :initform nil
+                    :accessor collision-plan)
+   ;; The storage of all of the geometries for everything drawable in the game.
+   (%geometries :initarg :geometries
+                :initform nil
+                :accessor geometries)
+   ;; The processed :instance-equivalences form which is a hash table
+   ;; keyed by an instance equivalencey keyword and whose value is a vector
+   ;; of :instances that are all equivalent.
+   (%insts/equiv :initarg :insts/equiv
+                 :initform nil
+                 :accessor insts/equiv)))
+
 (defclass entity ()
   ((%id :initarg :id
         :initform (new-id)
         :accessor id)
+   ;; Entities are grouped into roles that facilitate collision
+   ;; detection among other uses.
+   (%roles :initarg :roles
+           :initform (list :general)
+           :accessor roles)
    (%game-context :initarg :game-context
                   :initform nil
                   :accessor game-context)
@@ -65,27 +97,82 @@
   (:documentation
    "The Ephemeral Class. Used for things which need a temporal time limit"))
 
+;; Used in the field class to trace vector streams
 (defclass location ()
-  ;; physical simulation variables
   ((%x :initarg :x
-       :initform 0
+       :initform 0d0
        :accessor x)
    (%y :initarg :y
-       :initform 0
+       :initform 0d0
        :accessor y)
+   (%z :initarg :z
+       :initform 0d0
+       :accessor z)
    (%dx :initarg :dx
-        :initform 0
+        :initform 0d0
         :accessor dx)
    (%dy :initarg :dy
-        :initform 0
-        :accessor dy))
+        :initform 0d0
+        :accessor dy)
+   (%dz :initarg :dz
+        :initform 0d0
+        :accessor dz))
   (:documentation
-   "The Location Class. Used to hold the current position and direction
+   "The Location Class. Used to hold a current position and direction
 vector at that position"))
 
-(defclass frame (ephemeral location)
-  ()
-  (:documentation "The Frame Class"))
+(defclass frame (ephemeral)
+  (
+   ;; Incremental fly vector, accumulated into the basis at each step
+   ;; (if flying).
+   (%dfv :initarg :dfv
+         :initform (pvec)
+         :accessor dfv)
+   ;; Incremental rotation vector, accumulated into the basis at each
+   ;; step (if rotating).
+   (%drv :initarg :drv
+         :initform (pvec)
+         :accessor drv)
+   ;; Incremental translation vector of this frames basis in relation to the
+   ;; parent basis.
+   (%dtv :initarg :dtv
+         :initform (pvec)
+         :accessor dtv)
+   ;; A one time applied displacement vector. Applied once to the
+   ;; local-basisthen zeroed.
+   (%dv :initarg :dv
+        :initform (pvec)
+        :accessor dv)
+   ;; Should I apply the incremental rotation into my basis?
+   (%rotatingp :initarg :rotatingp
+               :initform NIL
+               :accessor rotatingp)
+   ;; Should I apply the incremental flight vector into my basis?
+   (%flyingp :initarg :flyingp
+             :initform NIL
+             :accessor flyingp)
+   ;; Computed anew each time, persistently the flight and rotation.
+   ;; This represents the rigid-body motion (aka the relative motion)
+   ;; of the object.
+   (%local-basis :initarg :local-basis
+                 :initform (pm-eye)
+                 :accessor local-basis)
+   ;; The basis which will transform object geometry into world space.
+   ;; It is totally reinitialized every frame--prolly could be
+   ;; optimized later to only be updated if it needs to be, but that's
+   ;; for later if need be.
+   (%world-basis :initarg :world-basis
+                 :initform (pm-eye)
+                 :accessor world-basis)
+   ;; Parent frame of this frame. NIL means this is the root.
+   (%parent :initarg :parent
+            :initform nil
+            :accessor parent)
+   ;; A hashtable of those that inherit the spatial frame of this frame.
+   (%children :initarg :children
+              :initform nil
+              :accessor children))
+  (:documentation "A hierarchical reference frame system for all objects."))
 
 (defclass shape ()
   ((%primitives :initarg :primitives
@@ -265,42 +352,62 @@ vector at that position"))
                  :reader power-lines))
   (:documentation "The Tesla Field Class"))
 
+(defclass scene-manager ()
+  (;; Each drawable gets shoved into the scene manager
+   (%root :initarg :scene
+          ;; The universal coordinate frame.
+          :initform (make-instance 'drawable :id :universe)
+          :accessor root)
+
+   (%views :initarg :views
+           ;; These are dynamically created. Keyed by the keyword of
+           ;; the role name, and the value is a list of entities in
+           ;; that role.
+           :initform (make-hash-table :test #'eq)
+           :accessor views))
+  (:documentation "This is the scene manager class. It keeps the scene
+ tree of the relation of the frames to each other in a tree. It
+ additionally keeps objects separated by their role in the game so we
+ can speed up collision detection among other algorithms that we would
+ only like to do on slices of objects in the game."))
+
+
 ;; Each thing in the world is kept is its particular list. This makes it
 ;; easy to perform collision detection only as necessary.
 (defclass game ()
-  ((%players :initarg :players
-             :initform nil
-             :accessor players)
-   (%player-shots :initarg :player-shots
-                  :initform nil
-                  :accessor player-shots)
-   (%enemy-mines :initarg :mines
-                 :initform nil
-                 :accessor enemy-mines)
-   (%enemies :initarg :enemies
-             :initform nil
-             :accessor enemies)
-   (%enemy-shots :initarg :enemy-shots
-                 :initform nil
-                 :accessor enemy-shots)
-   (%sparks :initarg :sparks
-            :initform nil
-            :accessor sparks)
-   (%power-ups :initarg :power-ups
+  (;; Make the universe object which is the root of the scene tree.
+   (%scene-man :initarg :scene-man
                :initform nil
-               :accessor power-ups)
-   (%score :initarg :score
-           :initform 0
-           :accessor score)
+               :accessor scene-man)
+
+   ;; The spawnables that will likely be created at the start of the
+   ;; next frame.
+   (%spawnables :initarg :spawnables
+                :initform nil
+                :accessor spawnables)
+
+
    (%score-board :initarg :score-board
                  :initform nil
                  :accessor score-board)
-   (%highscore :initarg :highscore
-               :initform 0
-               :accessor highscore)
    (%highscore-board :initarg :highscore-board
                      :initform nil
                      :accessor highscore-board)
+   ;; Set to T when the score changes, in order to redraw the score boards.
+   ;; when NIL, don't redraw the score boards. This is because it happens
+   ;; to be expensive in the manner I implemented it.
+   (%modified-score-p :initarg :modified-score-p
+                      :initform t
+                      :accessor modified-score-p)
+
+
+   ;; These are thigns related to the game itself.
+   (%score :initarg :score
+           :initform 0
+           :accessor score)
+   (%highscore :initarg :highscore
+               :initform 0
+               :accessor highscore)
    (%enemy-spawn-timer :initarg :enemy-spawn-timer
                        :initform 60
                        :accessor enemy-spawn-timer)

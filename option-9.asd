@@ -17,24 +17,43 @@
 
 (in-package #:option-9-asd)
 
+;; (pushnew :option-9-optimize-pvec *features*)
+;; (pushnew :option-9-optimize-pmat *features*)
+
 (defsystem #:option-9
   :description "A simple game"
   :version "0.1"
   :author "Peter Keller <psilord@cs.wisc.edu>"
   :license "Apache License, Version 2.0"
 
-
-  :depends-on (#:cl-opengl #:lispbuilder-sdl)
+  :serial t
+  :depends-on (#:alexandria #:sb-cga #:cl-opengl #:lispbuilder-sdl)
   :components ((:file "package")
-               (:file "classes"
-                      :depends-on ("package"))
-               (:file "generic-functions"
-                      :depends-on ("classes"))
-               (:file "field"
-                      :depends-on ("generic-functions"))
-               (:file "methods"
-                      :depends-on ("field"))
-               (:file "game"
-                      :depends-on ("methods"))
-               (:file "option-9"
-                      :depends-on ("package" "field" "game"))))
+               (:file "classes")
+               (:file "generic-functions")
+               (:file "pvec")
+               (:file "pmat")
+               (:file "utils")
+               (:file "field")
+               (:file "methods")
+               (:file "status")
+               (:file "explode")
+               (:file "damage")
+               (:file "die")
+               (:file "sparks")
+               (:file "render")
+               (:file "spawn")
+               (:file "collide")
+               (:file "perform-collide")
+               (:file "absorbs")
+               (:file "shoot")
+               (:file "think")
+               (:file "idea")
+               (:file "game")
+               (:file "assets")
+               (:file "active-step-once")
+               (:file "passive-step-once")
+               (:file "generate")
+               (:file "events")
+               (:file "scene-man")
+               (:file "option-9")))

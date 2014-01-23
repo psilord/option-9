@@ -21,11 +21,33 @@
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
 (defvar *game*)
-(defvar *all-entities*)
+(defvar *assets*)
 (defvar *id*)
 
 (defun new-id ()
   (let ((id *id*))
     (incf *id*)
     id))
+
+
+;; lifted from Graham's ANSI Common Lisp book
+(defmacro with-type (type expr)
+  `(the ,type ,(if (atom expr)
+                   expr
+                   (expand-call type (binarize expr)))))
+
+(defun expand-call (type expr)
+  `(,(car expr) ,@(mapcar #'(lambda (a)
+                              `(with-type ,type ,a))
+                          (cdr expr))))
+
+(defun binarize (expr)
+  (if (and (nthcdr 3 expr) (member (car expr) '(+ - * /)))
+      (destructuring-bind (op a1 a2 . rest) expr
+        (binarize `(,op (,op ,a1 ,a2) ,@rest)))
+      expr))
+
+(defmacro as-double-float (expr)
+  `(with-type double-float ,expr))
+
 
