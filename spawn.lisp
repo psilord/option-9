@@ -35,6 +35,7 @@
 (defclass sp-enemy-shot (spawnable) ())
 (defclass sp-enemy-mine (spawnable) ())
 (defclass sp-sparks (spawnable) ())
+(defclass sp-shrapnel (spawnable) ())
 ;; How things like HUD and scoreboards are done might need to be rethought.
 ;; In this feature, each digit is an entity shoved into the game world.
 ;; Maybe that isn't what I want for strings of text and such. But for now
@@ -315,20 +316,6 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
                            :game game)
            game))))))
 
-#+ignore(defmethod realize-spawn ((spawnable sp-sparks))
-          (let ((the-spark
-                 (funcall (spawnable-mutator spawnable)
-                          (apply #'make-entity
-                                 (spawnable-initializer spawnable)))))
-
-            (insert-into-scene (scene-man (spawnable-game spawnable))
-                               the-spark
-                               (spawnable-parent spawnable))
-            (add-child (scene (spawnable-game spawnable)) the-spark)
-            (push the-spark (sparks (spawnable-game spawnable))))
-
-          (values T :spawned))
-
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spawning a Powerup
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -392,6 +379,38 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
          (initializer `(,(insts/equiv-choice ioi/e)
                          :roles ,roles
                          :dv ,(pv-copy loc))))
+    (add-spawnable
+     (make-spawnable spawn-class
+                     :ioi/e ioi/e
+                     :spawn-context spawn-context
+                     :initializer initializer
+                     :parent parent
+                     :mutator mutator
+                     :game game)
+     game)))
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Spawning some shrapnel that can hurt anyone and can damage shields
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmethod spawn ((spawn-class (eql 'sp-shrapnel)) ioi/e loc/ent game
+                  &key
+                  spawn-context
+                  (parent :universe)
+                  (mutator #'identity)
+                  (velocity-factor .5d0)
+                  &allow-other-keys)
+
+
+  (let* ((loc (resolve-spawn-location loc/ent))
+         (initializer `(,(insts/equiv-choice ioi/e)
+                         :roles (:shrapnel)
+                         :dv ,(pv-copy loc)
+                         :rotatingp t
+                         :drv ,(pvec 0d0 0d0 (/ pi (+ 64d0 (random 64d0))))
+                         :dtv ,(pvec (* (random-delta) velocity-factor)
+                                     (* (random-delta) velocity-factor)
+                                     0d0))))
+
     (add-spawnable
      (make-spawnable spawn-class
                      :ioi/e ioi/e

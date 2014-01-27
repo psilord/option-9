@@ -73,6 +73,16 @@
    (%charge :initarg :charge
             :initform -1
             :accessor charge)
+   ;; When some entities blow up, they blow up into shrapnel. These name
+   ;; instance names of thigns which do so.
+   (%shrapnel :initarg :shrapnel
+              :initform nil
+              :accessor shrapnel)
+   ;; And this is how often it'll blow up into shrapnel.
+   (%shrapnel-generation :initarg :shrapnel-generation
+                         :initform nil
+                         :accessor shrapnel-generation)
+
    (%initial-sparks :initarg :initial-sparks
                     :initform 10
                     :accessor initial-sparks)
@@ -88,12 +98,17 @@
 
 (defclass ephemeral ()
   ;; temporal simulation variables
-  ((%ttl :initarg :ttl
+  (;; Time To Live
+   (%ttl :initarg :ttl
          :initform nil
          :accessor ttl)
    (%ttl-max :initarg :ttl-max
              :initform nil
-             :accessor ttl-max))
+             :accessor ttl-max)
+   ;; invulnerability time to live, when > 0 is considered invulnerable
+   (%inttl :initarg :inttl
+           :initform 0
+           :accessor inttl))
   (:documentation
    "The Ephemeral Class. Used for things which need a temporal time limit"))
 
@@ -139,7 +154,7 @@ vector at that position"))
          :initform (pvec)
          :accessor dtv)
    ;; A one time applied displacement vector. Applied once to the
-   ;; local-basisthen zeroed.
+   ;; local-basis then zeroed.
    (%dv :initarg :dv
         :initform (pvec)
         :accessor dv)

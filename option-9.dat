@@ -30,6 +30,7 @@
      :enemy ; any kind of an enemy ship
      :score-board ; objects used in the scoreboard
      :high-score-board ; objects used in the highscore board
+     :shrapnel ; things that can affect both players and enemies.
      :scenery) ; anything else that doesn't participate in the collisions.
 
     :collision-plan
@@ -38,8 +39,9 @@
   ;; roles must be defined in :defined-roles and that is validated by
   ;; the dat file loader. They are processed in left to right order.
   (((:player) (:player-powerup))
-   ((:player-shot) (:enemy-mine :enemy-shot :enemy))
-   ((:enemy-mine :enemy-shot :enemy) (:player)))
+   ((:player-shot) (:shrapnel :enemy-mine :enemy-shot :enemy))
+   ((:shrapnel) (:enemy-mine :enemy-shot :enemy))
+   ((:shrapnel :enemy-mine :enemy-shot :enemy) (:player)))
 
   :instance-equivalence
   ;; equivalence-name, vector of :instances
@@ -119,12 +121,75 @@
      :damage-points 10
      :primitives :enemy-1-simple-shot))
 
+   ;; When enemy-1 dies, it blows up into shrapnel
+   ((:instance :enemy-1/shrapnel-1)
+    (:class simple-shot)
+    (:initargs
+     :radius .01
+     :points 1
+     :damage-points 1
+     :ttl 45
+     :inttl 10
+     :primitives :enemy-1/shrapnel-1))
+
+   ((:instance :enemy-1/shrapnel-2)
+    (:class simple-shot)
+    (:initargs
+     :radius .01
+     :points 1
+     :damage-points 1
+     :ttl 45
+     :inttl 10
+     :primitives :enemy-1/shrapnel-2))
+
+   ((:instance :enemy-1/shrapnel-3)
+    (:class simple-shot)
+    (:initargs
+     :radius .01
+     :points 1
+     :damage-points 1
+     :ttl 45
+     :inttl 10
+     :primitives :enemy-1/shrapnel-3))
+
+
    ((:instance :enemy-2-simple-shot)
     (:class simple-shot)
     (:initargs
      :radius .02
      :damage-points 10
      :primitives :enemy-1-simple-shot))
+
+   ;; When enemy-2 dies, it blows up into shrapnel
+   ((:instance :enemy-2/shrapnel-1)
+    (:class simple-shot)
+    (:initargs
+     :radius .01
+     :points 1
+     :damage-points 1
+     :ttl 45
+     :inttl 10
+     :primitives :enemy-2/shrapnel-1))
+
+   ((:instance :enemy-2/shrapnel-2)
+    (:class simple-shot)
+    (:initargs
+     :radius .01
+     :points 1
+     :damage-points 1
+     :ttl 45
+     :inttl 10
+     :primitives :enemy-2/shrapnel-2))
+
+   ((:instance :enemy-2/shrapnel-3)
+    (:class simple-shot)
+    (:initargs
+     :radius .01
+     :points 1
+     :damage-points 1
+     :ttl 45
+     :inttl 10
+     :primitives :enemy-2/shrapnel-3))
 
    ((:instance :enemy-3-simple-shot)
     (:class simple-shot)
@@ -134,6 +199,26 @@
      :charge 1
      :damage-points 10
      :primitives :enemy-3-simple-shot))
+
+   ((:instance :enemy-3/shrapnel-1)
+    (:class simple-shot)
+    (:initargs
+     :radius .01
+     :points 50
+     :damage-points 1
+     :ttl 60
+     :inttl 10
+     :primitives :enemy-3/shrapnel-1))
+
+   ((:instance :enemy-3/shrapnel-2)
+    (:class simple-shot)
+    (:initargs
+     :radius .01
+     :points 50
+     :damage-points 1
+     :ttl 60
+     :inttl 10
+     :primitives :enemy-3/shrapnel-2))
 
    ;; The tesla-gun's rendering is purely algorithmic and therefore there
    ;; are no primitives
@@ -213,6 +298,8 @@
      :max-hit-points 100
      :damage-points 100
      :main-gun :enemy-1-simple-shot
+     :shrapnel-generation .50
+     :shrapnel (:enemy-1/shrapnel-1 :enemy-1/shrapnel-2 :enemy-1/shrapnel-3)
      :primitives :enemy-1))
 
    ((:instance :enemy-2)
@@ -222,6 +309,8 @@
      :points 100
      :max-hit-points 100
      :damage-points 100
+     :shrapnel-generation .50
+     :shrapnel (:enemy-2/shrapnel-1 :enemy-2/shrapnel-2 :enemy-2/shrapnel-3)
      :main-gun :enemy-2-simple-shot
      :primitives :enemy-2))
 
@@ -235,6 +324,8 @@
      :charge 1
      :main-gun :enemy-3-simple-shot
      :main-shield :enemy-3-shot-shield
+     :shrapnel-generation .50
+     :shrapnel (:enemy-3/shrapnel-1 :enemy-3/shrapnel-2)
      :primitives :enemy-3))
 
    ((:instance :proximity-mine)
@@ -247,6 +338,7 @@
      :charge -1
      :initial-sparks 300
      :additional-sparks 100
+     :inttl 10
      :primitives :proximity-mine))
 
    ((:instance :field-mine)
@@ -259,6 +351,7 @@
      :charge -1
      :initial-sparks 300
      :additional-sparks 100
+     :inttl 10
      :primitives :field-mine))
 
    ((:instance :digit-0)

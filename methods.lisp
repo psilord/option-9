@@ -136,3 +136,7 @@
 (defmethod at-location ((destination frame) (source frame))
   (pm-copy-into (local-basis destination) (local-basis source))
   (pm-copy-into (world-basis destination) (world-basis source)))
+
+
+(defmethod vulnerable ((ent entity))
+  (or (null (inttl ent)) (zerop (inttl ent))))

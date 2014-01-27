@@ -63,7 +63,12 @@ the FUNC to each frame as one walks towards the leaves."
   ;; Update the temporal nature
   (unless (null (ttl ent))
     (when (> (ttl ent) 0)
-      (decf (ttl ent)))))
+      (decf (ttl ent))))
+
+  ;; If it is invulnerable, decrement how long it has left to be so.
+  (unless (null (inttl ent))
+    (when (> (inttl ent) 0)
+      (decf (inttl ent)))))
 
 ;; The player's world objects get bound to the edges of the screen
 ;;
