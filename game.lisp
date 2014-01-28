@@ -211,12 +211,14 @@
                  (apply #'all-entities-in-roles scene role-fists))
                 (face-entities
                  (apply #'all-entities-in-roles scene role-faces)))
-            (dolist (fist fist-entities)
-              (dolist (face face-entities)
-                (collide fist face))))))
+            ;; Only loop at all if there are things to collide!
+            (when (and fist-entities face-entities)
+              (dolist (fist fist-entities)
+                (dolist (face face-entities)
+                  (collide fist face)))))))
 
       ;; 8. removal of not alive objects out of the world.
-      (flet ((remove-y/n (e)(not (alivep e)))
+      (flet ((remove-y/n (e) (not (alivep e)))
              ;; make this a method like UPON-DEATH or something.  XXX
              ;; Or maybe DIE is the right place for modify-score to be
              ;; called since that is not called on stale things. Hrm,
@@ -225,7 +227,8 @@
                (when (deadp e)
                  (modify-score game (points e)))))
 
-        (symbol-macrolet ((all-views (views scene)))
+        ;; XXX Check for hash-table removal violation problems, if any.
+        (let ((all-views (views scene)))
           (loop for role being the hash-keys of all-views do
              ;; Figure out what needs to be removed for this role.
                (let ((removable-entities
