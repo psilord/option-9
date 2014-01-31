@@ -28,9 +28,9 @@
     (when (contacts f face)
       (perform-collide f face))))
 
-;; However, for proximity mines, don't wait until their vulnerable to start
+;; However, for field mines, don't wait until their vulnerable to start
 ;; pulling them to the user.
-(defmethod collide ((f tesla-field) (face proximity-mine))
+(defmethod collide ((f tesla-field) (face field-mine))
   (when (alivep face)
     (when (contacts f face)
       (perform-collide f face))))
