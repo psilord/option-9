@@ -343,6 +343,57 @@ non-normalized distance for both values."
              (as-double-float non-normalized)))
        (as-double-float non-normalized)))))
 
+(declaim (ftype (function (pvec &key (:span keyword)) pvec)
+                pv-rand-dir-into))
+(defun pv-rand-dir-into (pv &key (span :xy))
+  "Into PV place a normalized vector which is randomly oriented in
+the vector space defined by the :SPAN keyword. :SPAN may be one of:
+:X, :Y, :Z, :XZ, :XY, :YZ, :XYZ."
+  (flet ((rand-one-dim ()
+           (* (random-sign) 1d0))
+
+         (rand-two-dim ()
+           ;; parametric description of a circle centered at zero radius one.
+           (let ((t0 (random (* 2d0 pi))))
+             (values (sin t0) (cos t0))))
+
+         (rand-three-dim ()
+           (let ((longitude (random (* 2d0 pi)))
+                 (colatitude (random (* 1d0 pi))))
+             (values (* 1d0 (cos longitude) (sin colatitude))
+                     (* 1d0 (sin longitude) (sin colatitude))
+                     (* 1d0 (cos colatitude))))))
+
+    (ecase span
+      ((:x)
+       (pv-set-into pv (rand-one-dim) 0d0 0d0))
+      ((:y)
+       (pv-set-into pv 0d0 (rand-one-dim) 0d0))
+      ((:z)
+       (pv-set-into pv 0d0 0d0 (rand-one-dim)))
+      ((:xy)
+       (multiple-value-bind (x y) (rand-two-dim)
+         (pv-set-into pv x y 0d0)))
+      ((:xz)
+       (multiple-value-bind (x z) (rand-two-dim)
+         (pv-set-into pv x 0d0 z)))
+      ((:yz)
+       (multiple-value-bind (y z) (rand-two-dim)
+         (pv-set-into pv 0d0 y z)))
+      ((:xyz)
+       (multiple-value-bind (x y z) (rand-three-dim)
+         (pv-set-into pv x y z))))
+
+    ;; already normalized by virtue of construction.
+    pv))
+
+(declaim (ftype (function (&key (:span keyword)) pvec)
+                pv-rand-dir))
+(defun pv-rand-dir (&key (span :xy))
+  "Compute and return a new pvec with a normalized vector in the
+  specified SPAN."
+  (pv-rand-dir-into (pvec) :span span))
+
 
 
 
