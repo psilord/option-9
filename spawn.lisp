@@ -284,19 +284,20 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
                   (mutator #'identity)
                   (num-sparks 10)
                   (ttl-max 0 ttl-max-supplied-p)
-                  (velocity-factor 1d0)
+                  (initial-velocity 0d0)
+                  (velocity-factor .02d0)
                   &allow-other-keys)
   (let ((loc (resolve-spawn-location loc/ent)))
     (dotimes (p num-sparks)
       (let ((initializer `(,(insts/equiv-choice ioi/e)
                             :roles (:scenery)
-                            :flyingp t
-                            :dv ,(pv-copy loc) ;; each spark needs own copy!
-                            ;; :rotatingp t
-                            ;; :drv ,(pvec 0d0 0d0 (/ pi (random 256d0)))
-                            :dfv ,(pvec (* (random-delta) velocity-factor)
-                                        (* (random-delta) velocity-factor)
-                                        0d0))))
+                            ;; each spark needs own copy!
+                            :dv ,(pv-copy loc)
+                            ;; And it moves in a random direction.
+                            :dtv ,(pv-scale-into
+                                   (pv-rand-dir :span :xy)
+                                   (+ initial-velocity
+                                      (random velocity-factor))))))
 
         (flet ((spark-mutator (spark)
                  ;; Complete the spark instantiation by updating the ttl.

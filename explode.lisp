@@ -18,6 +18,9 @@
         ;; Emit a number of sparks related to the death of the entity if
         ;; we have decided there is no shrapnel to emit.
         (spawn 'sp-sparks
-               :insts/sparks ent (game-context ent) :num-sparks (sparks ent)))))
+               :insts/sparks ent (game-context ent)
+               ;; Give the small impression of a shockwave
+               :initial-velocity .005d0
+               :num-sparks (sparks ent)))))
 
 
