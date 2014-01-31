@@ -6,3 +6,9 @@
   (let ((ao (pm-get-trans (world-basis a)))
         (bo (pm-get-trans (world-basis b))))
     (pv-dist ao bo :sqrt sqrt)))
+
+(defun random-sign ()
+  (if (zerop (random 2)) 1d0 -1d0))
+
+(defun random-delta (&key (velocity .02d0))
+  (* (random velocity) (random-sign)))

@@ -78,11 +78,6 @@
          (setf (dfvx p) (* .015d0 amount)))))))
 
 
-(defun random-sign ()
-  (if (zerop (random 2)) 1d0 -1d0))
-
-(defun random-delta (&key (velocity .02d0))
-  (* (random velocity) (random-sign)))
 
 (defun realize-score-boards (game)
   (when (modified-score-p game) ;; don't redraw unless required.
