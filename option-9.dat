@@ -72,7 +72,7 @@
    ;; that may (and often does) collide with the entity name
    ;; namespace. Each geometry is named by a unique (to that namespace)
    ;; keyword.
-    "assets/players.geo"
+   ("assets/players.geo"
     "assets/powerups.geo"
     "assets/enemy-1.geo"
     "assets/enemy-2.geo"
@@ -88,6 +88,8 @@
    ;;
    ;; 2. Type check that the :class is findable with find-class to
    ;; prevent typos.
+   ;;
+   ;; 3. Split this into entity instance files? Maybe.
    :entities
    ;; A list of descriptions of all entities in the game.
    (((:instance :player-simple-shot)
