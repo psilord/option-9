@@ -70,7 +70,8 @@
    ;; the geometries found therein stored in a table of geometries in
    ;; the asset table. The name of the shapes is in its own namespace
    ;; that may (and often does) collide with the entity name
-   ;; namespace.
+   ;; namespace. Each geometry is named by a unique (to that namespace)
+   ;; keyword.
     "assets/players.geo"
     "assets/powerups.geo"
     "assets/enemy-1.geo"
