@@ -46,7 +46,7 @@
     ((:shrapnel :enemy-mine :enemy-shot :enemy) (:player)))
 
    :instance-equivalence
-   ;; equivalence-name, vector of :instances
+   ;; equivalence-name, vector of entity :instances
    ;;
    ;; each with equal probability of construction out of the equivalence
    ;; class.
@@ -69,10 +69,24 @@
    ;; things one draws on the screen. Each one will be processed and
    ;; the geometries found therein stored in a table of geometries in
    ;; the asset table. The name of the shapes is in its own namespace
-   ;; that may (and often does) collide with the entitity name
+   ;; that may (and often does) collide with the entity name
    ;; namespace.
-   ("assets/geometries.geo" "assets/powerups.geo")
+    "assets/players.geo"
+    "assets/powerups.geo"
+    "assets/enemy-1.geo"
+    "assets/enemy-2.geo"
+    "assets/enemy-3.geo"
+    "assets/mines.geo"
+    "assets/font-1.geo"
+    "assets/scenery.geo")
 
+   ;; TODO:
+   ;;
+   ;; 1. Type check these that the geometries are known and have been
+   ;; loaded.
+   ;;
+   ;; 2. Type check that the :class is findable with find-class to
+   ;; prevent typos.
    :entities
    ;; A list of descriptions of all entities in the game.
    (((:instance :player-simple-shot)
