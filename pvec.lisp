@@ -390,8 +390,8 @@ the vector space defined by the :SPAN keyword. :SPAN may be one of:
 (declaim (ftype (function (&key (:span keyword)) pvec)
                 pv-rand-dir))
 (defun pv-rand-dir (&key (span :xy))
-  "Compute and return a new pvec with a normalized vector in the
-  specified SPAN."
+  "Compute and return a new pvec with a randomized oriented and
+  normalized vector in the specified SPAN."
   (pv-rand-dir-into (pvec) :span span))
 
 

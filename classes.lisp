@@ -88,12 +88,7 @@
                     :accessor initial-sparks)
    (%additional-sparks :initarg :additional-sparks
                        :initform 50
-                       :accessor additional-sparks)
-   ;; Unless we specify otherwise, we always try to run whatever
-   ;; finishing constructor work we need to on a class by class basis.
-   (%auto-finish-construction :initarg :auto-finish-construction
-                              :initform t
-                              :accessor auto-finish-construction))
+                       :accessor additional-sparks))
   (:documentation "The Entity Class"))
 
 (defclass ephemeral ()
@@ -158,6 +153,11 @@ vector at that position"))
    (%dv :initarg :dv
         :initform (pvec)
         :accessor dv)
+   ;; A one time applied rotation vector. Applied once to the
+   ;; local-basis then zeroed.
+   (%dr :initarg :dr
+        :initform (pvec)
+        :accessor dr)
    ;; Should I apply the incremental rotation into my basis?
    (%rotatingp :initarg :rotatingp
                :initform NIL
@@ -189,14 +189,26 @@ vector at that position"))
               :accessor children))
   (:documentation "A hierarchical reference frame system for all objects."))
 
-(defclass shape ()
-  ((%primitives :initarg :primitives
+;; All geometry locations are in a single local coordinate system
+(defclass geometry ()
+  (
+   ;; This names bases which are subcoordinate frames of this model at which
+   ;; weapons can be placed and fire down one of the axes.
+   ;; ((<loc-name> <sub coordinate system in relation to model axis>) ...)
+   ;; TODO Hrm, need to think about this more...
+   (%port-specs :initarg :port-specs
+                :initform nil
+                :accessor port-specs)
+   (%primitives :initarg :primitives
                 :initform nil
                 :accessor primitives))
   (:documentation "The Shape Class"))
 
-(defclass drawable (entity frame shape)
-  ()
+(defclass drawable (entity frame)
+  (;; A drawable HASA geometry.
+   (%geometry :initarg :geometry
+              :initform nil
+              :accessor geometry))
   (:documentation "The Drawable Class"))
 
 (defclass collidable (drawable)

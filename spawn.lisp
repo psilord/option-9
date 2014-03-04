@@ -212,6 +212,10 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
   (let* ((xloc (random 1.0d0))
          (initializer `(,(insts/equiv-choice ioi/e)
                          :roles (:enemy)
+                         ;; All enemies go downwards, so rotate it
+                         ;; with a one time rotation to point down.
+                         :dr ,(pvec 0d0 0d0 pi)
+
                          :flyingp t
                          :dv ,(pvec xloc .95d0 0d0)
                          :dfv ,(pvec (coerce
@@ -219,7 +223,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
                                          (if (> (the double-float xloc) .5d0)
                                              -1d0
                                              1d0)) 'double-float)
-                                     (- (random .01d0))
+                                     (random .01d0)
                                      0d0))))
 
     ;; This will be potentially realized later if the conditions are
@@ -249,18 +253,17 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
     (with-pvec-accessors (o loc)
       (let ((initializer `(,ioi/e
                            :roles (:enemy-shot)
+                           ;; All enemies shoot downwards, so rotate
+                           ;; it with a one time rotation to point
+                           ;; down.
+                           :dr ,(pvec 0d0 0d0 pi)
+
                            :flyingp t
                            ;; This goes into the world location of
-                           ;; the enemy.
+                           ;; the enemy, "fixed" to be the tip of the enemy.
                            :dv ,(pvec ox (- oy .03d0) 0d0)
-                           ;; And it flies going down.  XXX It should
-                           ;; fly in the direction of the main gun on
-                           ;; the ship.  And shots have a "front"
-                           ;; which should be rotated to orient in
-                           ;; parallel with the "front" direction
-                           ;; vector of the ship firing it.
                            :dfv ,(pvec 0d0
-                                       (+ (- (+ .005d0 (random .005d0)))
+                                       (+ (+ (+ .005d0 (random .005d0)))
                                           (dfvy loc/ent))
                                        0d0))))
 

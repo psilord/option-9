@@ -155,7 +155,7 @@
                                 (assert (= which 0))
                                 ;; XXX crappy zeroing to get rid of jitter.
                                 ;; need a batter calibration algorithm.
-                                (when (and (or (= axis 0) (= axis 1)) t)
+                                (when (and (or (= axis 0) (= axis 1)) nil)
                                   (let ((val (/ value 32768d0)))
                                     (if (or (> val .07d0)
                                             (< val -.07d0))

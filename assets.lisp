@@ -14,26 +14,23 @@
   s)
 
 (defmethod make-instance-finish :after ((e entity))
-  (when (auto-finish-construction e)
-    (setf (hit-points e) (max-hit-points e)))
+  (setf (hit-points e) (max-hit-points e))
   e)
 
 ;; A powerup's ttl is the random amount up to ttl-max PLUS a constant second
 (defmethod make-instance-finish :after ((p powerup))
-  (when (auto-finish-construction p)
-    (when (ttl p)
-      (incf (ttl p) 60)))
+  (when (ttl p)
+    (incf (ttl p) 60))
   p)
 
 ;; Ships that specify a main-shield via keyword need to have them converted
 ;; to realized shield objects.
 (defmethod make-instance-finish :after ((ent ship))
-  (when (auto-finish-construction ent)
-    (when (ship-main-shield ent)
-      (setf (ship-main-shield ent) (make-entity (ship-main-shield ent))))
-    (when (ship-passive-gun ent)
-      (setf (ship-passive-gun ent)
-            (make-entity (ship-passive-gun ent)))))
+  (when (ship-main-shield ent)
+    (setf (ship-main-shield ent) (make-entity (ship-main-shield ent))))
+  (when (ship-passive-gun ent)
+    (setf (ship-passive-gun ent)
+          (make-entity (ship-passive-gun ent))))
   ent)
 
 ;; For enemy-3 there is only a 25 percent chance that it actually has
@@ -41,9 +38,8 @@
 ;; shouldn't have a shield, the we set the main-shield to null which
 ;; makes the above generic method a noop.
 (defmethod make-instance-finish :before ((ent enemy-3))
-  (when (auto-finish-construction ent)
-    (when (<= (random 1.0) .75)
-      (setf (ship-main-shield ent) nil)))
+  (when (<= (random 1.0) .75)
+    (setf (ship-main-shield ent) nil))
   ent)
 
 
@@ -77,23 +73,30 @@
         ;; Ensure any specified roles are actually valid!
         (assert (apply #'defined-roles-p *assets* roles))
 
-        ;; Concerning the :primitives initarg value, replace named
-        ;; geometries with real geometries. Otherwise, leave it alone
-        ;; since I assume it specifies a geometry in place.
-        (let* ((?geometry (member :primitives full-args))
+        ;; Concerning the :geometry initarg value, replace named
+        ;; geometries with real geometries from the cache. Otherwise,
+        ;; make-instance the form found assuming it is an in-place
+        ;; geometry specification.
+        (let* ((?geometry (member :geometry full-args))
                (?geometry-name (cadr ?geometry)))
-          (when (and ?geometry ?geometry-name (symbolp ?geometry-name))
-            ;; Ok, we found a geometry-name, replace it with the actual
-            ;; geometry.
-            (multiple-value-bind (geometry presentp)
-                (gethash ?geometry-name (geometries *assets*))
-              (when (not presentp)
-                (error "Cannot find geometry-name ~A in the assets!"
-                       ?geometry-name))
-              ;; Replace the copy-seq'ed full-args entry for the
-              ;; :primitives initarg to be the actual geometry instead
-              ;; of its name.
-              (setf (cadr ?geometry) geometry))))
+          ;; Only mess with the ?geometry initializer if we have one at all.
+          (when ?geometry
+            (if (and ?geometry-name (symbolp ?geometry-name))
+                ;; Ok, we found a geometry-name, replace it with an actual
+                ;; geometry object constructed form the initializers
+                (multiple-value-bind (geometry presentp)
+                    (gethash ?geometry-name (geometries *assets*))
+                  (when (not presentp)
+                    (error "Cannot find geometry-name ~A in the assets!"
+                           ?geometry-name))
+                  ;; Replace the copy-seq'ed full-args entry for the
+                  ;; :geometry initarg to be the actual geometry instead
+                  ;; of its name.
+                  (setf (cadr ?geometry)
+                        (apply #'make-instance 'geometry geometry)))
+                ;; Ok, we have an inplace form, so just convert it.
+                (setf (cadr ?geometry)
+                      (apply #'make-instance 'geometry (cadr ?geometry))))))
 
         (make-instance-finish
          ;; The values of the override arguments are accepted
@@ -141,7 +144,7 @@ Given an :instance name, just return it."
            ;; so later when we make-instance it'll work even if the
            ;; user only "used" our package.
            (let ((*package* (find-package 'option-9)))
-             (read strm)))))
+             (eval (read strm))))))
 
     ;; Ensure the thing we expect to be there actually are.
     (assert (member :defined-roles entities))
@@ -187,7 +190,7 @@ Given an :instance name, just return it."
                                   :direction :input
                                   :if-does-not-exist :error)
                    (let ((*package* (find-package 'option-9)))
-                     (read gstrm)))))
+                     (eval (read gstrm))))))
             ;; Insert all geometry forms into the geometry hash keyed
             ;; by the name of the form and whose value is the geometry
             ;; form.

@@ -1,3 +1,5 @@
+;; -*- mode: Lisp; -*-
+
 ;; Copyright 2010 Peter K. Keller (psilord@cs.wisc.edu)
 ;;
 ;; Licensed under the Apache License, Version 2.0 (the "License"); you
@@ -14,410 +16,410 @@
 
 
 ;; This is a big plist of repeated :keyword <form> ... pairs.
-(
- :defined-roles
-    ;; Roles are not types. For example, a hostile object whose role
-    ;; is enemy-mine may be able to be converted to a friendly role of
-    ;; player-mine, but the type of the in memory instance doesn't
-    ;; change. An entity may have multiple roles.  During execution, all
-    ;; hard coded roles in the engine or asset files are checked against
-    ;; these roles for consistency.
-    (:player ; player ships
-     :player-powerup ; any kind of power up with which a player can collide.
-     :player-shot ; any kind of a shot from a player
-     :enemy-mine ; any kind of a mine from an enemy
-     :enemy-shot ; any kind of a shot from an enemy
-     :enemy ; any kind of an enemy ship
-     :score-board ; objects used in the scoreboard
-     :high-score-board ; objects used in the highscore board
-     :shrapnel ; things that can affect both players and enemies.
-     :scenery) ; anything else that doesn't participate in the collisions.
+`(
+  :defined-roles
+     ;; Roles are not types. For example, a hostile object whose role
+     ;; is enemy-mine may be able to be converted to a friendly role of
+     ;; player-mine, but the type of the in memory instance doesn't
+     ;; change. An entity may have multiple roles.  During execution, all
+     ;; hard coded roles in the engine or asset files are checked against
+     ;; these roles for consistency.
+     (:player ; player ships
+      :player-powerup ; any kind of power up with which a player can collide.
+      :player-shot ; any kind of a shot from a player
+      :enemy-mine ; any kind of a mine from an enemy
+      :enemy-shot ; any kind of a shot from an enemy
+      :enemy ; any kind of an enemy ship
+      :score-board ; objects used in the scoreboard
+      :high-score-board ; objects used in the highscore board
+      :shrapnel ; things that can affect both players and enemies.
+      :scenery) ; anything else that doesn't participate in the collisions.
 
-    :collision-plan
-  ;; Each entry is a list. Each list holds two list entries: first one
-  ;; is a set of fist roles, second is a set of face roles. These
-  ;; roles must be defined in :defined-roles and that is validated by
-  ;; the dat file loader. They are processed in left to right order.
-  (((:player) (:player-powerup))
-   ((:player-shot) (:shrapnel :enemy-mine :enemy-shot :enemy))
-   ((:shrapnel) (:enemy-mine :enemy-shot :enemy))
-   ((:shrapnel :enemy-mine :enemy-shot :enemy) (:player)))
+     :collision-plan
+   ;; Each entry is a list. Each list holds two list entries: first one
+   ;; is a set of fist roles, second is a set of face roles. These
+   ;; roles must be defined in :defined-roles and that is validated by
+   ;; the dat file loader. They are processed in left to right order.
+   (((:player) (:player-powerup))
+    ((:player-shot) (:shrapnel :enemy-mine :enemy-shot :enemy))
+    ((:shrapnel) (:enemy-mine :enemy-shot :enemy))
+    ((:shrapnel :enemy-mine :enemy-shot :enemy) (:player)))
 
-  :instance-equivalence
-  ;; equivalence-name, vector of :instances
-  ;;
-  ;; each with equal probability of construction out of the equivalence
-  ;; class.
-  ;;
-  ;; NOTE: The equivalence-class-name must never also be one of the
-  ;; :instance names.  There is one namespace for :instance names and
-  ;; equivalence-class-names. They must also be VECTORS.
-  ((:insts/sparks #(:spark-1 :spark-2 :spark-3))
-   (:insts/enemies #(:enemy-1 :enemy-2 :enemy-3))
-   (:insts/mines #(:proximity-mine :field-mine))
-   (:insts/powerups #(:powerup-hardnose
-                      :powerup-super-shot
-                      :powerup-shot-shield
-                      :powerup-ship-shield
-                      :powerup-tesla-gun
-                      :powerup-health)))
+   :instance-equivalence
+   ;; equivalence-name, vector of :instances
+   ;;
+   ;; each with equal probability of construction out of the equivalence
+   ;; class.
+   ;;
+   ;; NOTE: The equivalence-class-name must never also be one of the
+   ;; :instance names.  There is one namespace for :instance names and
+   ;; equivalence-class-names. They must also be VECTORS.
+   ((:insts/sparks #(:spark-1 :spark-2 :spark-3))
+    (:insts/enemies #(:enemy-1 :enemy-2 :enemy-3))
+    (:insts/mines #(:proximity-mine :field-mine))
+    (:insts/powerups #(:powerup-hardnose
+                       :powerup-super-shot
+                       :powerup-shot-shield
+                       :powerup-ship-shield
+                       :powerup-tesla-gun
+                       :powerup-health)))
 
-  :geometries
-  ;; Files that contain geometries/primitives/etc. Basically, the
-  ;; things one draws on the screen. Each one will be processed and
-  ;; the geometries found therein stored in a table of geometries in
-  ;; the asset table. The name of the shapes is in its own namespace
-  ;; that may (and often does) collide with the entitity name
-  ;; namespace.
-  ("geometries.geo")
+   :geometries
+   ;; Files that contain geometries/primitives/etc. Basically, the
+   ;; things one draws on the screen. Each one will be processed and
+   ;; the geometries found therein stored in a table of geometries in
+   ;; the asset table. The name of the shapes is in its own namespace
+   ;; that may (and often does) collide with the entitity name
+   ;; namespace.
+   ("geometries.geo")
 
-  :entities
-  ;; A list of descriptions of all entities in the game.
-  (((:instance :player-simple-shot)
-    (:class simple-shot)
-    (:initargs
-     :radius .04
-     :charge 1
-     :damage-points 100
-     :primitives :player-simple-shot))
+   :entities
+   ;; A list of descriptions of all entities in the game.
+   (((:instance :player-simple-shot)
+     (:class simple-shot)
+     (:initargs
+      :radius .04
+      :charge 1
+      :damage-points 100
+      :geometry :player-simple-shot))
 
-   ((:instance :player-hardnose-shot)
-    (:class hardnose-shot)
-    (:initargs
-     :radius .04
-     :charge 1
-     :damage-points 200
-     :primitives :player-hardnose-shot))
+    ((:instance :player-hardnose-shot)
+     (:class hardnose-shot)
+     (:initargs
+      :radius .04
+      :charge 1
+      :damage-points 200
+      :geometry :player-hardnose-shot))
 
-   ((:instance :player-super-shot)
-    (:class super-shot)
-    (:initargs
-     :radius .04
-     :charge 1
-     :damage-points 400
-     :primitives :player-super-shot))
+    ((:instance :player-super-shot)
+     (:class super-shot)
+     (:initargs
+      :radius .04
+      :charge 1
+      :damage-points 400
+      :geometry :player-super-shot))
 
-   ((:instance :powerup-super-shot)
-    (:class powerup)
-    (:initargs
-     :ttl-max 240
-     :radius .04
-     :main-gun :player-super-shot
-     :primitives :powerup-super-shot))
+    ((:instance :powerup-super-shot)
+     (:class powerup)
+     (:initargs
+      :ttl-max 240
+      :radius .04
+      :main-gun :player-super-shot
+      :geometry :powerup-super-shot))
 
-   ((:instance :powerup-hardnose)
-    (:class powerup)
-    (:initargs
-     :ttl-max 240
-     :radius .04
-     :main-gun :player-hardnose-shot
-     :primitives :powerup-hardnose))
+    ((:instance :powerup-hardnose)
+     (:class powerup)
+     (:initargs
+      :ttl-max 240
+      :radius .04
+      :main-gun :player-hardnose-shot
+      :geometry :powerup-hardnose))
 
-   ((:instance :enemy-1-simple-shot)
-    (:class simple-shot)
-    (:initargs
-     :radius .02
-     :points 10
-     :damage-points 10
-     :primitives :enemy-1-simple-shot))
+    ((:instance :enemy-1-simple-shot)
+     (:class simple-shot)
+     (:initargs
+      :radius .02
+      :points 10
+      :damage-points 10
+      :geometry :enemy-1-simple-shot))
 
-   ;; When enemy-1 dies, it blows up into shrapnel
-   ((:instance :enemy-1/shrapnel-1)
-    (:class simple-shot)
-    (:initargs
-     :radius .01
-     :points 1
-     :damage-points 1
-     :ttl 45
-     :inttl 10
-     :primitives :enemy-1/shrapnel-1))
+    ;; When enemy-1 dies, it blows up into shrapnel
+    ((:instance :enemy-1/shrapnel-1)
+     (:class simple-shot)
+     (:initargs
+      :radius .01
+      :points 1
+      :damage-points 1
+      :ttl 45
+      :inttl 10
+      :geometry :enemy-1/shrapnel-1))
 
-   ((:instance :enemy-1/shrapnel-2)
-    (:class simple-shot)
-    (:initargs
-     :radius .01
-     :points 1
-     :damage-points 1
-     :ttl 45
-     :inttl 10
-     :primitives :enemy-1/shrapnel-2))
+    ((:instance :enemy-1/shrapnel-2)
+     (:class simple-shot)
+     (:initargs
+      :radius .01
+      :points 1
+      :damage-points 1
+      :ttl 45
+      :inttl 10
+      :geometry :enemy-1/shrapnel-2))
 
-   ((:instance :enemy-1/shrapnel-3)
-    (:class simple-shot)
-    (:initargs
-     :radius .01
-     :points 1
-     :damage-points 1
-     :ttl 45
-     :inttl 10
-     :primitives :enemy-1/shrapnel-3))
+    ((:instance :enemy-1/shrapnel-3)
+     (:class simple-shot)
+     (:initargs
+      :radius .01
+      :points 1
+      :damage-points 1
+      :ttl 45
+      :inttl 10
+      :geometry :enemy-1/shrapnel-3))
 
 
-   ((:instance :enemy-2-simple-shot)
-    (:class simple-shot)
-    (:initargs
-     :radius .02
-     :damage-points 10
-     :primitives :enemy-1-simple-shot))
+    ((:instance :enemy-2-simple-shot)
+     (:class simple-shot)
+     (:initargs
+      :radius .02
+      :damage-points 10
+      :geometry :enemy-1-simple-shot))
 
-   ;; When enemy-2 dies, it blows up into shrapnel
-   ((:instance :enemy-2/shrapnel-1)
-    (:class simple-shot)
-    (:initargs
-     :radius .01
-     :points 1
-     :damage-points 1
-     :ttl 45
-     :inttl 10
-     :primitives :enemy-2/shrapnel-1))
+    ;; When enemy-2 dies, it blows up into shrapnel
+    ((:instance :enemy-2/shrapnel-1)
+     (:class simple-shot)
+     (:initargs
+      :radius .01
+      :points 1
+      :damage-points 1
+      :ttl 45
+      :inttl 10
+      :geometry :enemy-2/shrapnel-1))
 
-   ((:instance :enemy-2/shrapnel-2)
-    (:class simple-shot)
-    (:initargs
-     :radius .01
-     :points 1
-     :damage-points 1
-     :ttl 45
-     :inttl 10
-     :primitives :enemy-2/shrapnel-2))
+    ((:instance :enemy-2/shrapnel-2)
+     (:class simple-shot)
+     (:initargs
+      :radius .01
+      :points 1
+      :damage-points 1
+      :ttl 45
+      :inttl 10
+      :geometry :enemy-2/shrapnel-2))
 
-   ((:instance :enemy-2/shrapnel-3)
-    (:class simple-shot)
-    (:initargs
-     :radius .01
-     :points 1
-     :damage-points 1
-     :ttl 45
-     :inttl 10
-     :primitives :enemy-2/shrapnel-3))
+    ((:instance :enemy-2/shrapnel-3)
+     (:class simple-shot)
+     (:initargs
+      :radius .01
+      :points 1
+      :damage-points 1
+      :ttl 45
+      :inttl 10
+      :geometry :enemy-2/shrapnel-3))
 
-   ((:instance :enemy-3-simple-shot)
-    (:class simple-shot)
-    (:initargs
-     :radius .02
-     :points 10
-     :charge 1
-     :damage-points 10
-     :primitives :enemy-3-simple-shot))
+    ((:instance :enemy-3-simple-shot)
+     (:class simple-shot)
+     (:initargs
+      :radius .02
+      :points 10
+      :charge 1
+      :damage-points 10
+      :geometry :enemy-3-simple-shot))
 
-   ((:instance :enemy-3/shrapnel-1)
-    (:class simple-shot)
-    (:initargs
-     :radius .01
-     :points 50
-     :damage-points 1
-     :ttl 60
-     :inttl 10
-     :primitives :enemy-3/shrapnel-1))
+    ((:instance :enemy-3/shrapnel-1)
+     (:class simple-shot)
+     (:initargs
+      :radius .01
+      :points 50
+      :damage-points 1
+      :ttl 60
+      :inttl 10
+      :geometry :enemy-3/shrapnel-1))
 
-   ((:instance :enemy-3/shrapnel-2)
-    (:class simple-shot)
-    (:initargs
-     :radius .01
-     :points 50
-     :damage-points 1
-     :ttl 60
-     :inttl 10
-     :primitives :enemy-3/shrapnel-2))
+    ((:instance :enemy-3/shrapnel-2)
+     (:class simple-shot)
+     (:initargs
+      :radius .01
+      :points 50
+      :damage-points 1
+      :ttl 60
+      :inttl 10
+      :geometry :enemy-3/shrapnel-2))
 
-   ;; The tesla-gun's rendering is purely algorithmic and therefore there
-   ;; are no primitives
-   ((:instance :tesla-gun)
-    (:class tesla-field)
-    (:initargs
-     ;; Default tesla gun has all lines, and only gets larger.
-     :power-lines 4
-     :power-range 3))
+    ;; The tesla-gun's rendering is purely algorithmic and therefore there
+    ;; are no primitives
+    ((:instance :tesla-gun)
+     (:class tesla-field)
+     (:initargs
+      ;; Default tesla gun has all lines, and only gets larger.
+      :power-lines 4
+      :power-range 3))
 
-   ((:instance :powerup-tesla-gun)
-    (:class powerup)
-    (:initargs
-     :ttl-max 240
-     :radius .05
-     :passive-gun :tesla-gun
-     :primitives :powerup-tesla-gun))
+    ((:instance :powerup-tesla-gun)
+     (:class powerup)
+     (:initargs
+      :ttl-max 240
+      :radius .05
+      :passive-gun :tesla-gun
+      :geometry :powerup-tesla-gun))
 
-   ((:instance :powerup-health)
-    (:class powerup)
-    (:initargs
-     :ttl-max 240
-     :radius .04
-     :health-level 20
-     :primitives :powerup-health))
+    ((:instance :powerup-health)
+     (:class powerup)
+     (:initargs
+      :ttl-max 240
+      :radius .04
+      :health-level 20
+      :geometry :powerup-health))
 
-   ((:instance :player)
-    (:class player)
-    (:initargs
-     :radius .04
-     :charge 1
-     :main-gun :player-simple-shot
-     :max-hit-points 40
-     :damage-points 100
-     ;; :passive-gun :tesla-gun
-     :primitives :player))
+    ((:instance :player)
+     (:class player)
+     (:initargs
+      :radius .04
+      :charge 1
+      :main-gun :player-simple-shot
+      :max-hit-points 40
+      :damage-points 100
+      ;; :passive-gun :tesla-gun
+      :geometry :player))
 
-   ((:instance :ship-shot-shield)
-    (:class shot-shield)
-    (:initargs
-     :shots-absorbed 5
-     :primitives :ship-shot-shield))
+    ((:instance :ship-shot-shield)
+     (:class shot-shield)
+     (:initargs
+      :shots-absorbed 5
+      :geometry :ship-shot-shield))
 
-   ((:instance :powerup-shot-shield)
-    (:class powerup)
-    (:initargs
-     :ttl-max 240
-     :radius .04
-     :main-shield :ship-shot-shield
-     :primitives :powerup-shot-shield))
+    ((:instance :powerup-shot-shield)
+     (:class powerup)
+     (:initargs
+      :ttl-max 240
+      :radius .04
+      :main-shield :ship-shot-shield
+      :geometry :powerup-shot-shield))
 
-   ((:instance :ship-ship-shield)
-    (:class ship-shield)
-    (:initargs
-     :shots-absorbed 5
-     :primitives :ship-ship-shield))
+    ((:instance :ship-ship-shield)
+     (:class ship-shield)
+     (:initargs
+      :shots-absorbed 5
+      :geometry :ship-ship-shield))
 
-   ((:instance :powerup-ship-shield)
-    (:class powerup)
-    (:initargs
-     :ttl-max 240
-     :radius .04
-     :main-shield :ship-ship-shield
-     :primitives :powerup-ship-shield))
+    ((:instance :powerup-ship-shield)
+     (:class powerup)
+     (:initargs
+      :ttl-max 240
+      :radius .04
+      :main-shield :ship-ship-shield
+      :geometry :powerup-ship-shield))
 
-   ((:instance :enemy-3-shot-shield)
-    (:class shot-shield)
-    (:initargs
-     :shots-absorbed 2
-     :primitives :enemy-3-shot-shield))
+    ((:instance :enemy-3-shot-shield)
+     (:class shot-shield)
+     (:initargs
+      :shots-absorbed 2
+      :geometry :enemy-3-shot-shield))
 
-   ((:instance :enemy-1)
-    (:class enemy-1)
-    (:initargs
-     :points 100
-     :radius .04
-     :max-hit-points 100
-     :damage-points 100
-     :main-gun :enemy-1-simple-shot
-     :shrapnel-generation .50
-     :shrapnel (:enemy-1/shrapnel-1 :enemy-1/shrapnel-2 :enemy-1/shrapnel-3)
-     :primitives :enemy-1))
+    ((:instance :enemy-1)
+     (:class enemy-1)
+     (:initargs
+      :points 100
+      :radius .04
+      :max-hit-points 100
+      :damage-points 100
+      :main-gun :enemy-1-simple-shot
+      :shrapnel-generation .50
+      :shrapnel (:enemy-1/shrapnel-1 :enemy-1/shrapnel-2 :enemy-1/shrapnel-3)
+      :geometry :enemy-1))
 
-   ((:instance :enemy-2)
-    (:class enemy-2)
-    (:initargs
-     :radius .04
-     :points 100
-     :max-hit-points 100
-     :damage-points 100
-     :shrapnel-generation .50
-     :shrapnel (:enemy-2/shrapnel-1 :enemy-2/shrapnel-2 :enemy-2/shrapnel-3)
-     :main-gun :enemy-2-simple-shot
-     :primitives :enemy-2))
+    ((:instance :enemy-2)
+     (:class enemy-2)
+     (:initargs
+      :radius .04
+      :points 100
+      :max-hit-points 100
+      :damage-points 100
+      :shrapnel-generation .50
+      :shrapnel (:enemy-2/shrapnel-1 :enemy-2/shrapnel-2 :enemy-2/shrapnel-3)
+      :main-gun :enemy-2-simple-shot
+      :geometry :enemy-2))
 
-   ((:instance :enemy-3)
-    (:class enemy-3)
-    (:initargs
-     :radius .04
-     :points 100
-     :max-hit-points 300
-     :damage-points 300
-     :charge 1
-     :main-gun :enemy-3-simple-shot
-     :main-shield :enemy-3-shot-shield
-     :shrapnel-generation .50
-     :shrapnel (:enemy-3/shrapnel-1 :enemy-3/shrapnel-2)
-     :primitives :enemy-3))
+    ((:instance :enemy-3)
+     (:class enemy-3)
+     (:initargs
+      :radius .04
+      :points 100
+      :max-hit-points 300
+      :damage-points 300
+      :charge 1
+      :main-gun :enemy-3-simple-shot
+      :main-shield :enemy-3-shot-shield
+      :shrapnel-generation .50
+      :shrapnel (:enemy-3/shrapnel-1 :enemy-3/shrapnel-2)
+      :geometry :enemy-3))
 
-   ((:instance :proximity-mine)
-    (:class proximity-mine)
-    (:initargs
-     :radius .10
-     :points 100
-     :max-hit-points 100
-     :damage-points 200
-     :charge -1
-     :initial-sparks 300
-     :additional-sparks 100
-     :inttl 10
-     :primitives :proximity-mine))
+    ((:instance :proximity-mine)
+     (:class proximity-mine)
+     (:initargs
+      :radius .10
+      :points 100
+      :max-hit-points 100
+      :damage-points 200
+      :charge -1
+      :initial-sparks 300
+      :additional-sparks 100
+      :inttl 10
+      :geometry :proximity-mine))
 
-   ((:instance :field-mine)
-    (:class field-mine)
-    (:initargs
-     :radius .04
-     :points 100
-     :max-hit-points 100
-     :damage-points 200
-     :charge -1
-     :initial-sparks 300
-     :additional-sparks 100
-     :inttl 10
-     :primitives :field-mine))
+    ((:instance :field-mine)
+     (:class field-mine)
+     (:initargs
+      :radius .04
+      :points 100
+      :max-hit-points 100
+      :damage-points 200
+      :charge -1
+      :initial-sparks 300
+      :additional-sparks 100
+      :inttl 10
+      :geometry :field-mine))
 
-   ((:instance :digit-0)
-    (:class digit)
-    (:initargs
-     :primitives :digit-0))
+    ((:instance :digit-0)
+     (:class digit)
+     (:initargs
+      :geometry :digit-0))
 
-   ((:instance :digit-1)
-    (:class digit)
-    (:initargs
-     :primitives :digit-1))
+    ((:instance :digit-1)
+     (:class digit)
+     (:initargs
+      :geometry :digit-1))
 
-   ((:instance :digit-2)
-    (:class digit)
-    (:initargs
-     :primitives :digit-2))
+    ((:instance :digit-2)
+     (:class digit)
+     (:initargs
+      :geometry :digit-2))
 
-   ((:instance :digit-3)
-    (:class digit)
-    (:initargs
-     :primitives :digit-3))
+    ((:instance :digit-3)
+     (:class digit)
+     (:initargs
+      :geometry :digit-3))
 
-   ((:instance :digit-4)
-    (:class digit)
-    (:initargs
-     :primitives :digit-4))
+    ((:instance :digit-4)
+     (:class digit)
+     (:initargs
+      :geometry :digit-4))
 
-   ((:instance :digit-5)
-    (:class digit)
-    (:initargs
-     :primitives :digit-5))
+    ((:instance :digit-5)
+     (:class digit)
+     (:initargs
+      :geometry :digit-5))
 
-   ((:instance :digit-6)
-    (:class digit)
-    (:initargs
-     :primitives :digit-6))
+    ((:instance :digit-6)
+     (:class digit)
+     (:initargs
+      :geometry :digit-6))
 
-   ((:instance :digit-7)
-    (:class digit)
-    (:initargs
-     :primitives :digit-7))
+    ((:instance :digit-7)
+     (:class digit)
+     (:initargs
+      :geometry :digit-7))
 
-   ((:instance :digit-8)
-    (:class digit)
-    (:initargs
-     :primitives :digit-8))
+    ((:instance :digit-8)
+     (:class digit)
+     (:initargs
+      :geometry :digit-8))
 
-   ((:instance :digit-9)
-    (:class digit)
-    (:initargs
-     :primitives :digit-9))
+    ((:instance :digit-9)
+     (:class digit)
+     (:initargs
+      :geometry :digit-9))
 
-   ((:instance :spark-1)
-    (:class spark)
-    (:initargs
-     :ttl-max 30
-     :primitives :spark-1))
+    ((:instance :spark-1)
+     (:class spark)
+     (:initargs
+      :ttl-max 30
+      :geometry :spark-1))
 
-   ((:instance :spark-2)
-    (:class spark)
-    (:initargs
-     :ttl-max 30
-     :primitives :spark-2))
+    ((:instance :spark-2)
+     (:class spark)
+     (:initargs
+      :ttl-max 30
+      :geometry :spark-2))
 
-   ((:instance :spark-3)
-    (:class spark)
-    (:initargs
-     :ttl-max 30
-     :primitives :spark-3))))
+    ((:instance :spark-3)
+     (:class spark)
+     (:initargs
+      :ttl-max 30
+      :geometry :spark-3))))

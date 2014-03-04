@@ -1,28 +1,31 @@
 (in-package :option-9)
 
 (defmethod render ((ent drawable) scale)
-  (destructuring-bind (sx sy) scale
-    ;; render a list of possibly differing primitives associated with
-    ;; this shape. NOTE: this is realy simple, nothign like texturing
-    ;; is supported.
-    (dolist (primitive (primitives ent))
-      (gl:with-primitive (car primitive)
-        ;; render each specific primitive
-        (let ((vertex (pvec)))
-          (dolist (vertex/color (cdr primitive))
-            ;; Apply the point to the world basis of the
-            ;; drawable.
-            (destructuring-bind ((vx vy vz) (cx cy cz))
-                vertex/color
-              (gl:color cx cy cz)
-              (pv-set-into vertex
-                           ;; TODO Remove scaling hack.
-                           (coerce (* sx vx) 'double-float)
-                           (coerce (* sy vy) 'double-float)
-                           vz)
-              (pm-apply-into vertex (world-basis ent) vertex)
-              (with-pvec-accessors (w vertex)
-                (gl:vertex wx wy wz)))))))))
+  (let ((geometry (geometry ent)))
+    ;; only render if we actually have a geometry to render.
+    (when geometry
+      (destructuring-bind (sx sy) scale
+        ;; render a list of possibly differing primitives associated with
+        ;; this shape. NOTE: this is realy simple, nothign like texturing
+        ;; is supported.
+        (dolist (primitive (primitives geometry))
+          (gl:with-primitive (car primitive)
+            ;; render each specific primitive
+            (let ((vertex (pvec)))
+              (dolist (vertex/color (cdr primitive))
+                ;; Apply the point to the world basis of the
+                ;; drawable.
+                (destructuring-bind ((vx vy vz) (cx cy cz))
+                    vertex/color
+                  (gl:color cx cy cz)
+                  (pv-set-into vertex
+                               ;; TODO Remove scaling hack.
+                               (coerce (* sx vx) 'double-float)
+                               (coerce (* sy vy) 'double-float)
+                               vz)
+                  (pm-apply-into vertex (world-basis ent) vertex)
+                  (with-pvec-accessors (w vertex)
+                    (gl:vertex wx wy wz)))))))))))
 
 
 ;; Ships have various other things which need to be renderede as well. So

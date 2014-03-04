@@ -120,6 +120,44 @@
   (with-pvec-accessors (p (dv f))
     (setf pz new-val)))
 
+
+
+;; Accessors for the rotation vector
+(defmethod drx ((f frame))
+  (with-pvec-accessors (p (dr f))
+    px))
+
+(defmethod (setf drx) (new-val (f frame))
+  (with-pvec-accessors (p (dr f))
+    (setf px new-val)))
+
+(defmethod dry ((f frame))
+  (with-pvec-accessors (p (dr f))
+    py))
+
+(defmethod (setf dry) (new-val (f frame))
+  (with-pvec-accessors (p (dr f))
+    (setf py new-val)))
+
+(defmethod drz ((f frame))
+  (with-pvec-accessors (p (dr f))
+    pz))
+
+(defmethod (setf drz) (new-val (f frame))
+  (with-pvec-accessors (p (dr f))
+    (setf pz new-val)))
+
+
+
+
+
+
+
+
+
+
+
+
 ;; by default, there is no decay.
 (defmethod dtv-decay ((f frame) &key (decay 1d0))
   (when (not (pv-zero-p (dtv f)))
