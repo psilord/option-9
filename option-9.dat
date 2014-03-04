@@ -71,7 +71,7 @@
    ;; the asset table. The name of the shapes is in its own namespace
    ;; that may (and often does) collide with the entitity name
    ;; namespace.
-   ("assets/geometries.geo")
+   ("assets/geometries.geo" "assets/powerups.geo")
 
    :entities
    ;; A list of descriptions of all entities in the game.
