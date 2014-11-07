@@ -56,7 +56,7 @@
    ;; equivalence-class-names. They must also be VECTORS.
    ((:insts/sparks #(:spark-1 :spark-2 :spark-3))
     (:insts/enemies #(:enemy-1 :enemy-2 :enemy-3))
-    (:insts/mines #(:proximity-mine :field-mine))
+    (:insts/mines #(:generic-proximity-mine :generic-field-mine))
     (:insts/powerups #(:powerup-hardnose
                        :powerup-super-shot
                        :powerup-shot-shield
@@ -64,16 +64,102 @@
                        :powerup-tesla-gun
                        :powerup-health)))
 
+   ;; These map generic instance names to specialized instance names
+   ;; based upon the context in which they exist.  Asset translation
+   ;; from the generic term of something to the specific instance
+   ;; required by that entity. For example, a :simple-shot picked up
+   ;; by an :enemy-2 ship turns into a grounded :enemy-2-simple-shot
+   ;; instance name.  Powerups just have the generic term in them and
+   ;; it is selected in a data driven manner per owner who picks it
+   ;; up. This exists as its own table in the game, as opposed to in
+   ;; each associated real instance because it saves memory and speed
+   ;; in object creation.
+   ;;
+   ;; The tesla-gun happens to be the same instance kind (and
+   ;; rendering, etc) for all ships.
+   ;; TODO: Process me and turn me into an efficient object in the assets
+   ;; object.
+   :instance-specialization-map
+   ((:player-1 ;; instance-name for a real instance in the game
+     (;; Turrets
+      (:generic-one-shot-turret  (:player-1-one-shot-turret))
+      (:generic-shield-turret    (:player-1-shield-turret))
+      ;; Active weapon shots
+      (:generic-simple-shot      (:player-1-simple-shot))
+      (:generic-hardnose-shot    (:player-1-hardnose-shot))
+      (:generic-super-shot       (:player-1-super-shot))
+      ;; Passive weapons
+      (:generic-tesla-gun        (:tesla-gun))
+      ;; Shields
+      (:generic-shot-shield      (:player-1-shot-shield))
+      (:generic-ship-shield      (:player-1-ship-shield))
+      ;; Mines
+      (:generic-proximity-mine   (:proximity-mine))
+      (:generic-field-mine       (:field-mine))))
+
+    (:enemy-1 ;; instance name for a real instance in the game
+     (;; Turrets
+      (:generic-one-shot-turret  (:enemy-1-one-shot-turret))
+      (:generic-shield-turret    (:enemy-1-shield-turret))
+      ;; Active weapon shots
+      (:generic-simple-shot      (:enemy-1-simple-shot))
+      (:generic-hardnose-shot    (:enemy-1-hardnose-shot))
+      (:generic-super-shot       (:enemy-1-super-shot))
+      ;; Passive weapons
+      (:generic-tesla-gun        (:tesla-gun))
+      ;; Shields
+      (:generic-shot-shield      (:enemy-1-shot-shield))
+      (:generic-ship-shield      (:enemy-1-ship-shield))
+      ;; Mines
+      (:generic-proximity-mine   (:proximity-mine))
+      (:generic-field-mine       (:field-mine))))
+
+    (:enemy-2 ;; instance name for a real instance in the game
+     (;; Turrets
+      (:generic-one-shot-turret  (:enemy-2-one-shot-turret))
+      (:generic-shield-turret    (:enemy-2-shield-turret))
+      ;; Active weapon shots
+      (:generic-simple-shot      (:enemy-2-simple-shot))
+      (:generic-hardnose-shot    (:enemy-2-hardnose-shot))
+      (:generic-super-shot       (:enemy-2-super-shot))
+      ;; Passive weapons
+      (:generic-tesla-gun        (:tesla-gun))
+      ;; Shields
+      (:generic-shot-shield      (:enemy-2-shot-shield))
+      (:generic-ship-shield      (:enemy-2-ship-shield))
+      ;; Mines
+      (:generic-proximity-mine   (:proximity-mine))
+      (:generic-field-mine       (:field-mine))))
+
+    (:enemy-3 ;; instance name for a real instance in the game
+     (;; Turrets
+      (:generic-one-shot-turret  (:enemy-3-one-shot-turret))
+      (:generic-shield-turret    (:enemy-3-shield-turret))
+      ;; Active weapon shots
+      (:generic-simple-shot      (:enemy-3-simple-shot))
+      (:generic-hardnose-shot    (:enemy-3-hardnose-shot))
+      (:generic-super-shot       (:enemy-3-super-shot))
+      ;; Passive weapons
+      (:generic-tesla-gun        (:tesla-gun))
+      ;; Shields
+      (:generic-shot-shield      (:enemy-3-shot-shield))
+      (:generic-ship-shield      (:enemy-3-ship-shield))
+      ;; Mines
+      (:generic-proximity-mine   (:proximity-mine))
+      (:generic-field-mine       (:field-mine)))))
+
+
    :geometries
    ;; Files that contain geometries/primitives/etc. Basically, the
-   ;; things one draws on the screen. Each one will be processed and
-   ;; the geometries found therein stored in a table of geometries in
-   ;; the asset table. The name of the shapes is in its own namespace
-   ;; that may (and often does) collide with the entity name
-   ;; namespace. Each geometry is named by a unique (to that namespace)
-   ;; keyword.
+   ;; things one draws on the screen or other physical geometry
+   ;; needs. Each one will be processed and the geometries found
+   ;; therein stored in a table of geometries in the asset table. The
+   ;; name of the shapes is in its own namespace that may (and often
+   ;; does) collide with the entity name namespace. Each geometry is
+   ;; named by a unique (to that namespace) keyword.
    ("assets/players.geo"
     "assets/powerups.geo"
+    "assets/turrets.geo"
     "assets/enemy-1.geo"
     "assets/enemy-2.geo"
     "assets/enemy-3.geo"
@@ -92,59 +178,159 @@
    ;; 3. Split this into entity instance files? Maybe.
    :entities
    ;; A list of descriptions of all entities in the game.
-   (((:instance :player-simple-shot)
+   (
+    ;; ;;;;;;;;;;;;;
+    ;; Turrets which contain payloads.
+    ;; ;;;;;;;;;;;;;
+
+    ((:instance :player-1-one-shot-turret)
+     (:class one-shot-turret)
+     (:initargs
+      :geometry :small-yellow-triangle))
+
+    ((:instance :player-1-shield-turret)
+     (:class shield-turret)
+     (:initargs
+      :geometry :small-red-triangle))
+
+    ((:instance :enemy-1-one-shot-turret)
+     (:class one-shot-turret)
+     (:initargs
+      :geometry :small-yellow-triangle))
+
+    ((:instance :enemy-1-shield-turret)
+     (:class shield-turret)
+     (:initargs
+      :geometry :small-red-triangle))
+
+    ((:instance :enemy-2-one-shot-turret)
+     (:class one-shot-turret)
+     (:initargs
+      :geometry :small-yellow-triangle))
+
+    ((:instance :enemy-2-shield-turret)
+     (:class shield-turret)
+     (:initargs
+      :geometry :small-red-triangle))
+
+    ((:instance :enemy-3-one-shot-turret)
+     (:class one-shot-turret)
+     (:initargs
+      :geometry :small-yellow-triangle))
+
+    ((:instance :enemy-3-shield-turret)
+     (:class shield-turret)
+     (:initargs
+      :geometry :small-red-triangle))
+
+    ;; ;;;;;;;;;;;;;
+    ;; Player 1
+    ;; ;;;;;;;;;;;;;
+
+    ((:instance :player-1)
+     (:class player)
+     (:initargs
+      :radius 4
+      :charge 1
+      :main-gun :player-simple-shot
+      :max-hit-points 40
+      :damage-points 100
+
+      :port-layout
+      (
+       ;; :port-location,
+       ;; specialized or genreic :instance-name-of-turrent,
+       ;; specialized or generic :instance-name
+
+       ;; Describe all default turrets and payloads upon spawn
+       ;; of :player-1
+       (:shield-port :generic-shield-turret nil)
+       (:passive-weapon-port :generic-one-shot-turret nil)
+       (:front-weapon-port :generic-one-shot-turret :generic-simple-shot)
+       (:left-weapon-port :generic-one-shot-turret :generic-simple-shot)
+       (:center-weapon-port :generic-one-shot-turret nil)
+       (:right-weapon-port :generic-one-shot-turret :generic-simple-shot)
+       (:rear-weapon-port :generic-one-shot-turret :generic-simple-shot))
+      :geometry :player-1-ship))
+
+    ((:instance :player-1-shot-shield)
+     (:class shot-shield)
+     (:initargs
+      :shots-absorbed 5
+      :geometry :player-1-shot-shield))
+
+    ((:instance :player-1-ship-shield)
+     (:class ship-shield)
+     (:initargs
+      :shots-absorbed 5
+      :geometry :player-1-ship-shield))
+
+    ((:instance :player-1-simple-shot)
      (:class simple-shot)
      (:initargs
-      :radius .04
+      :radius 4
       :charge 1
       :damage-points 100
-      :geometry :player-simple-shot))
+      :flyingp t
+      :dfv ,(pvec 0d0 1.7d0 0d0)
+      :geometry :player-1-simple-shot))
 
-    ((:instance :player-hardnose-shot)
+    ((:instance :player-1-hardnose-shot)
      (:class hardnose-shot)
      (:initargs
-      :radius .04
+      :radius 4
       :charge 1
       :damage-points 200
-      :geometry :player-hardnose-shot))
+      :flyingp t
+      :dfv ,(pvec 0d0 1.9d0 0d0)
+      :geometry :player-1-hardnose-shot))
 
-    ((:instance :player-super-shot)
+    ((:instance :player-1-super-shot)
      (:class super-shot)
      (:initargs
-      :radius .04
+      :radius 4
       :charge 1
       :damage-points 400
-      :geometry :player-super-shot))
+      :flyingp t
+      :dfv ,(pvec 0d0 2.5d0 0d0)
+      :geometry :player-1-super-shot))
 
-    ((:instance :powerup-super-shot)
-     (:class powerup)
+    ((:instance :tesla-gun)
+     ;; The tesla-gun's rendering is purely algorithmic and therefore there
+     ;; are no geometry primitives
+     (:class tesla-field)
      (:initargs
-      :ttl-max 240
-      :radius .04
-      :main-gun :player-super-shot
-      :geometry :powerup-super-shot))
+      ;; Default tesla gun has all lines, and only gets larger.
+      :power-lines 4
+      :power-range 3))
 
-    ((:instance :powerup-hardnose)
-     (:class powerup)
+    ;; ;;;;;;;;;;;;;
+    ;; Enemy 1
+    ;; ;;;;;;;;;;;;;
+
+    ((:instance :enemy-1)
+     (:class enemy-1)
      (:initargs
-      :ttl-max 240
-      :radius .04
-      :main-gun :player-hardnose-shot
-      :geometry :powerup-hardnose))
+      :points 100
+      :radius 4
+      :max-hit-points 100
+      :damage-points 100
+      :shrapnel-generation .50
+      :shrapnel (:enemy-1/shrapnel-1 :enemy-1/shrapnel-2 :enemy-1/shrapnel-3)
+      :port-layout
+      ((:shield-port :generic-shield-turret nil)
+       (:passive-weapon-port :generic-one-shot-turret nil)
+       (:front-weapon-port :generic-one-shot-turret :generic-simple-shot)
+       (:left-weapon-port :generic-one-shot-turret nil)
+       (:center-weapon-port :generic-one-shot-turret nil)
+       (:right-weapon-port :generic-one-shot-turret nil)
+       (:rear-weapon-port :generic-one-shot-turret nil))
+      :geometry :enemy-1-ship))
 
-    ((:instance :enemy-1-simple-shot)
-     (:class simple-shot)
-     (:initargs
-      :radius .02
-      :points 10
-      :damage-points 10
-      :geometry :enemy-1-simple-shot))
-
-    ;; When enemy-1 dies, it blows up into shrapnel
     ((:instance :enemy-1/shrapnel-1)
      (:class simple-shot)
      (:initargs
-      :radius .01
+      :radius 1
       :points 1
       :damage-points 1
       :ttl 45
@@ -154,7 +340,7 @@
     ((:instance :enemy-1/shrapnel-2)
      (:class simple-shot)
      (:initargs
-      :radius .01
+      :radius 1
       :points 1
       :damage-points 1
       :ttl 45
@@ -164,26 +350,50 @@
     ((:instance :enemy-1/shrapnel-3)
      (:class simple-shot)
      (:initargs
-      :radius .01
+      :radius 1
       :points 1
       :damage-points 1
       :ttl 45
       :inttl 10
       :geometry :enemy-1/shrapnel-3))
 
-
-    ((:instance :enemy-2-simple-shot)
+    ((:instance :enemy-1-simple-shot)
      (:class simple-shot)
      (:initargs
-      :radius .02
+      :radius 2
+      :points 10
       :damage-points 10
+      :flyingp t
+      ;; :dfv depends on ship velocy when spawning it.
       :geometry :enemy-1-simple-shot))
 
-    ;; When enemy-2 dies, it blows up into shrapnel
+    ;; ;;;;;;;;;;;;;
+    ;; Enemy 2
+    ;; ;;;;;;;;;;;;;
+
+    ((:instance :enemy-2)
+     (:class enemy-2)
+     (:initargs
+      :radius 4
+      :points 100
+      :max-hit-points 100
+      :damage-points 100
+      :shrapnel-generation .50
+      :shrapnel (:enemy-2/shrapnel-1 :enemy-2/shrapnel-2 :enemy-2/shrapnel-3)
+      :port-layout
+      ((:shield-port :generic-shield-turret nil)
+       (:passive-weapon-port :generic-one-shot-turret nil)
+       (:front-weapon-port :generic-one-shot-turret :generic-simple-shot)
+       (:left-weapon-port :generic-one-shot-turret nil)
+       (:center-weapon-port :generic-one-shot-turret nil)
+       (:right-weapon-port :generic-one-shot-turret nil)
+       (:rear-weapon-port :generic-one-shot-turret nil))
+      :geometry :enemy-2-ship))
+
     ((:instance :enemy-2/shrapnel-1)
      (:class simple-shot)
      (:initargs
-      :radius .01
+      :radius 1
       :points 1
       :damage-points 1
       :ttl 45
@@ -193,7 +403,7 @@
     ((:instance :enemy-2/shrapnel-2)
      (:class simple-shot)
      (:initargs
-      :radius .01
+      :radius 1
       :points 1
       :damage-points 1
       :ttl 45
@@ -203,26 +413,51 @@
     ((:instance :enemy-2/shrapnel-3)
      (:class simple-shot)
      (:initargs
-      :radius .01
+      :radius 1
       :points 1
       :damage-points 1
       :ttl 45
       :inttl 10
       :geometry :enemy-2/shrapnel-3))
 
-    ((:instance :enemy-3-simple-shot)
+    ((:instance :enemy-2-simple-shot)
      (:class simple-shot)
      (:initargs
-      :radius .02
-      :points 10
-      :charge 1
+      :radius 2
       :damage-points 10
-      :geometry :enemy-3-simple-shot))
+      :flyingp t
+      ;; :dfv depends on ship velocy when spawning it.
+      :geometry :enemy-2-simple-shot))
+
+    ;; ;;;;;;;;;;;;;
+    ;; Enemy 3
+    ;; ;;;;;;;;;;;;;
+
+    ((:instance :enemy-3)
+     (:class enemy-3)
+     (:initargs
+      :radius 4
+      :points 100
+      :max-hit-points 300
+      :damage-points 300
+      :charge 1
+      :main-shield :enemy-3-shot-shield
+      :shrapnel-generation .50
+      :shrapnel (:enemy-3/shrapnel-1 :enemy-3/shrapnel-2)
+      :port-layout
+      ((:shield-port :generic-shield-turret nil)
+       (:passive-weapon-port :generic-one-shot-turret nil)
+       (:front-weapon-port :generic-one-shot-turret :generic-simple-shot)
+       (:left-weapon-port :generic-one-shot-turret nil)
+       (:center-weapon-port :generic-one-shot-turret nil)
+       (:right-weapon-port :generic-one-shot-turret nil)
+       (:rear-weapon-port :generic-one-shot-turret nil))
+      :geometry :enemy-3-ship))
 
     ((:instance :enemy-3/shrapnel-1)
      (:class simple-shot)
      (:initargs
-      :radius .01
+      :radius 1
       :points 50
       :damage-points 1
       :ttl 60
@@ -232,76 +467,23 @@
     ((:instance :enemy-3/shrapnel-2)
      (:class simple-shot)
      (:initargs
-      :radius .01
+      :radius 1
       :points 50
       :damage-points 1
       :ttl 60
       :inttl 10
       :geometry :enemy-3/shrapnel-2))
 
-    ;; The tesla-gun's rendering is purely algorithmic and therefore there
-    ;; are no primitives
-    ((:instance :tesla-gun)
-     (:class tesla-field)
+    ((:instance :enemy-3-simple-shot)
+     (:class simple-shot)
      (:initargs
-      ;; Default tesla gun has all lines, and only gets larger.
-      :power-lines 4
-      :power-range 3))
-
-    ((:instance :powerup-tesla-gun)
-     (:class powerup)
-     (:initargs
-      :ttl-max 240
-      :radius .05
-      :passive-gun :tesla-gun
-      :geometry :powerup-tesla-gun))
-
-    ((:instance :powerup-health)
-     (:class powerup)
-     (:initargs
-      :ttl-max 240
-      :radius .04
-      :health-level 20
-      :geometry :powerup-health))
-
-    ((:instance :player)
-     (:class player)
-     (:initargs
-      :radius .04
+      :radius 2
+      :points 10
       :charge 1
-      :main-gun :player-simple-shot
-      :max-hit-points 40
-      :damage-points 100
-      ;; :passive-gun :tesla-gun
-      :geometry :player))
-
-    ((:instance :ship-shot-shield)
-     (:class shot-shield)
-     (:initargs
-      :shots-absorbed 5
-      :geometry :ship-shot-shield))
-
-    ((:instance :powerup-shot-shield)
-     (:class powerup)
-     (:initargs
-      :ttl-max 240
-      :radius .04
-      :main-shield :ship-shot-shield
-      :geometry :powerup-shot-shield))
-
-    ((:instance :ship-ship-shield)
-     (:class ship-shield)
-     (:initargs
-      :shots-absorbed 5
-      :geometry :ship-ship-shield))
-
-    ((:instance :powerup-ship-shield)
-     (:class powerup)
-     (:initargs
-      :ttl-max 240
-      :radius .04
-      :main-shield :ship-ship-shield
-      :geometry :powerup-ship-shield))
+      :damage-points 10
+      :flyingp t
+      ;; :dfv depends on ship velocy when spawning it.
+      :geometry :enemy-3-simple-shot))
 
     ((:instance :enemy-3-shot-shield)
      (:class shot-shield)
@@ -309,48 +491,68 @@
       :shots-absorbed 2
       :geometry :enemy-3-shot-shield))
 
-    ((:instance :enemy-1)
-     (:class enemy-1)
-     (:initargs
-      :points 100
-      :radius .04
-      :max-hit-points 100
-      :damage-points 100
-      :main-gun :enemy-1-simple-shot
-      :shrapnel-generation .50
-      :shrapnel (:enemy-1/shrapnel-1 :enemy-1/shrapnel-2 :enemy-1/shrapnel-3)
-      :geometry :enemy-1))
 
-    ((:instance :enemy-2)
-     (:class enemy-2)
-     (:initargs
-      :radius .04
-      :points 100
-      :max-hit-points 100
-      :damage-points 100
-      :shrapnel-generation .50
-      :shrapnel (:enemy-2/shrapnel-1 :enemy-2/shrapnel-2 :enemy-2/shrapnel-3)
-      :main-gun :enemy-2-simple-shot
-      :geometry :enemy-2))
+    ;; ;;;;;;;;;;;;;
+    ;; Powerups
+    ;; ;;;;;;;;;;;;;
 
-    ((:instance :enemy-3)
-     (:class enemy-3)
+    ((:instance :powerup-shot-shield)
+     (:class powerup)
      (:initargs
-      :radius .04
-      :points 100
-      :max-hit-points 300
-      :damage-points 300
-      :charge 1
-      :main-gun :enemy-3-simple-shot
-      :main-shield :enemy-3-shot-shield
-      :shrapnel-generation .50
-      :shrapnel (:enemy-3/shrapnel-1 :enemy-3/shrapnel-2)
-      :geometry :enemy-3))
+      :ttl-max 240
+      :radius 4
+      ;; These are port-layout lists: port-name, turret-name, payload-name
+      :powerup-turrets ((:shield-port nil :generic-shot-shield))
+      :geometry :powerup-shot-shield))
+
+    ((:instance :powerup-ship-shield)
+     (:class powerup)
+     (:initargs
+      :ttl-max 240
+      :radius 4
+      :powerup-turrets ((:shield-port nil :generic-ship-shield))
+      :geometry :powerup-ship-shield))
+
+    ((:instance :powerup-hardnose)
+     (:class powerup)
+     (:initargs
+      :ttl-max 240
+      :radius 4
+      :powerup-turrets ((:front-weapon-port nil :generic-hardnose-shot))
+      :geometry :powerup-hardnose))
+
+    ((:instance :powerup-super-shot)
+     (:class powerup)
+     (:initargs
+      :ttl-max 240
+      :radius 4
+      :powerup-turrets ((:front-weapon-port nil :generic-super-shot))
+      :geometry :powerup-super-shot))
+
+    ((:instance :powerup-tesla-gun)
+     (:class powerup)
+     (:initargs
+      :ttl-max 240
+      :radius 5
+      :powerup-turrets ((:passive-weapon-port nil :generic-tesla-gun))
+      :geometry :powerup-tesla-gun))
+
+    ((:instance :powerup-health)
+     (:class powerup)
+     (:initargs
+      :ttl-max 240
+      :radius 4
+      :health-level 20
+      :geometry :powerup-health))
+
+    ;; ;;;;;;;;;;;;;
+    ;; Mines
+    ;; ;;;;;;;;;;;;;
 
     ((:instance :proximity-mine)
      (:class proximity-mine)
      (:initargs
-      :radius .10
+      :radius 10
       :points 100
       :max-hit-points 100
       :damage-points 200
@@ -358,12 +560,13 @@
       :initial-sparks 300
       :additional-sparks 100
       :inttl 10
+      :flyingp t
       :geometry :proximity-mine))
 
     ((:instance :field-mine)
      (:class field-mine)
      (:initargs
-      :radius .04
+      :radius 4
       :points 100
       :max-hit-points 100
       :damage-points 200
@@ -371,7 +574,12 @@
       :initial-sparks 300
       :additional-sparks 100
       :inttl 10
+      :flyingp t
       :geometry :field-mine))
+
+    ;; ;;;;;;;;;;;;;
+    ;; Alphanumerics
+    ;; ;;;;;;;;;;;;;
 
     ((:instance :digit-0)
      (:class digit)
@@ -422,6 +630,10 @@
      (:class digit)
      (:initargs
       :geometry :digit-9))
+
+    ;; ;;;;;;;;;;;;;
+    ;; Scenery
+    ;; ;;;;;;;;;;;;;
 
     ((:instance :spark-1)
      (:class spark)

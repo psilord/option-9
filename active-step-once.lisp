@@ -89,10 +89,10 @@ the FUNC to each frame as one walks towards the leaves."
   (let* ((loc (pm-get-trans (local-basis ent)))
          (new-loc (pv-copy loc)))
     (with-multiple-pvec-accessors ((l loc) (n new-loc))
-      (when (< ly .03d0) (setf ny .03d0))
-      (when (> ly .95d0) (setf ny .95d0))
-      (when (< lx .04d0) (setf nx .04d0))
-      (when (> lx .96d0) (setf nx .96d0)))
+      (when (< ly 3d0) (setf ny 3d0))
+      (when (> ly 95d0) (setf ny 95d0))
+      (when (< lx 4d0) (setf nx 4d0))
+      (when (> lx 96d0) (setf nx 96d0)))
     (pm-set-trans-into (local-basis ent) new-loc)
 
     ;; XXX sadly, fix up the shield too. I need to think about this a
@@ -109,17 +109,6 @@ the FUNC to each frame as one walks towards the leaves."
 (defmethod active-step-once :after ((ent drawable))
   (with-pvec-accessors (o (pm-get-trans (world-basis ent)))
     (when (or (and (not (null (ttl ent))) (zerop (ttl ent)))
-              (< ox -.05d0) (> ox 1.05d0)
-              (< oy -.05d0) (> oy 1.05d0))
+              (< ox -5d0) (> ox 105d0)
+              (< oy -5d0) (> oy 105d0))
       (mark-stale ent))))
-
-(defmethod active-step-once :after ((ent ship))
-  ;; Shield are going to be drawn right where the ship is, so after the ship
-  ;; has had its local-basis fixed up, copy it over to the shield then tell the
-  ;; shield to do its own processing.
-  (let ((shield (ship-main-shield ent)))
-    (when shield
-      (at-location shield ent)
-      (active-step-once shield))))
-
-

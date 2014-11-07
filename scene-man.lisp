@@ -13,8 +13,8 @@ duplicate adds are performed."
 
 ;; This is recursive from the root (at the parent) to the leaves, but
 ;; I don't ever expect the depth of this tree to be stack breaking.
-;; When the child is removed, all subtrees of it are ripped out of the
-;; scene tree with it.
+;; When the child is removed, all children of it are ripped out of the
+;; scene tree with it too. XXX Fix using the orphan-policy mechanism.
 (defmethod remove-child ((parent frame) (child frame))
   "Return CHILD if removed, or NIL otherwise."
   (when (children parent)
@@ -70,6 +70,8 @@ along with their other physcal vectors and such, and reinsert them."))
     ;; NIL entity lists are squeezed out by the appending keyword...
     (loop for group in entity-lists appending group)))
 
+;; TODO: This is broken and doesn't understand the orphan policy! It
+;; just the item and all children recursively.
 (defmethod remove-from-scene ((sman scene-manager) item)
   ;; 1. remove the item out of all of the role views.  If this starts
   ;; sucking in speed as the number of objects rise, then change it to
@@ -81,5 +83,7 @@ along with their other physcal vectors and such, and reinsert them."))
   ;; 2. get the parent of the item from the var and then remove-child it.
   (remove-child (parent item) item)
 
-  ;; 3. Assert there are no children, for I will have to deal with that.
-  (assert (null (children item))))
+  ;; 3. TODO This needs to be verified that it is right.
+  (when (children item)
+    (loop for child being the hash-values in (children item) do
+         (remove-from-scene sman child))))

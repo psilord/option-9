@@ -26,8 +26,14 @@
 ;; Ships that specify a main-shield via keyword need to have them converted
 ;; to realized shield objects.
 (defmethod make-instance-finish :after ((ent ship))
+
+  ;; FIXME to deal with the fact I use turrets now! THis is actually
+  ;; handled in SPAWN with the port layouts, so I think I can just
+  ;; delete this entire method.
   (when (ship-main-shield ent)
-    (setf (ship-main-shield ent) (make-entity (ship-main-shield ent))))
+    (setf (ship-main-shield ent)
+          (make-entity (ship-main-shield ent))))
+
   (when (ship-passive-gun ent)
     (setf (ship-passive-gun ent)
           (make-entity (ship-passive-gun ent))))
@@ -38,6 +44,7 @@
 ;; shouldn't have a shield, the we set the main-shield to null which
 ;; makes the above generic method a noop.
 (defmethod make-instance-finish :before ((ent enemy-3))
+  ;; FIXME to deal with the fact I use turrets now.
   (when (<= (random 1.0) .75)
     (setf (ship-main-shield ent) nil))
   ent)
@@ -59,7 +66,10 @@
     (assert instance)
     (let ((found-instance (cadr (assoc :instance info)))
           (cls (cadr (assoc :class info)))
-          (initargs (cdr (assoc :initargs info))))
+          ;; Add in the instance name associated with this object too!
+          (initargs (cons :instance-name
+                          (cons instance
+                                (cdr (assoc :initargs info))))))
 
       (assert (eq found-instance instance))
       (assert cls)
@@ -122,12 +132,36 @@ Given an :instance name, just return it."
         (return-from defined-roles-p nil))))
   t)
 
+(defun specialize-generic-instance-name (context-instance-name
+                                         generic-instance-name)
+  "Given a CONTEXT instance-name keyword (like :player-1), lookup the
+NAME, which is a generic instance name keyword (like :hardnose-shot),
+and return a KEYWORD which is either the specialized name (such
+as :player-1-hardnose-shot), or the original GENERIC-INSTANCE-NAME if
+no specialization was found."
+  (multiple-value-bind (cin-hash presentp)
+      (gethash context-instance-name (instance-specialization-map *assets*))
+
+    (unless presentp
+      (return-from specialize-generic-instance-name generic-instance-name))
+
+    (multiple-value-bind (spec-name-list presentp)
+        (gethash generic-instance-name cin-hash)
+
+      (unless presentp
+        (return-from specialize-generic-instance-name generic-instance-name))
+
+      ;; Until I possibly extend the spec-name-lists, just return the
+      ;; first one.
+      (car spec-name-list))))
+
 ;; This takes a relative filename based at the installation location
 ;; of the package.
 (defun load-dat-file (filename)
   (let ((entity-hash (make-hash-table :test #'eq))
         (geometry-hash (make-hash-table :test #'eq))
         (instance-equivalences (make-hash-table :test #'eq))
+        (instance-specializations (make-hash-table :test #'eq))
         (defined-roles (make-hash-table :test #'eq))
         (collision-plan nil)
         (entities
@@ -150,6 +184,7 @@ Given an :instance name, just return it."
     (assert (member :defined-roles entities))
     (assert (member :collision-plan entities))
     (assert (member :instance-equivalence entities))
+    (assert (member :instance-specialization-map entities))
     (assert (member :geometries entities))
     (assert (member :entities entities))
 
@@ -174,6 +209,16 @@ Given an :instance name, just return it."
     ;; Consume the equivalence classes
     (loop for i in (cadr (member :instance-equivalence entities)) do
          (setf (gethash (car i) instance-equivalences) (cadr i)))
+
+    ;; Consume the instance specialization map and convert it into a hash of
+    ;; hashes.
+    (loop for inst in (cadr (member :instance-specialization-map entities)) do
+         (destructuring-bind (context-name mappings) inst
+           (let ((spec-hash (make-hash-table :test #'eq)))
+             (loop for entry in mappings do
+                  (destructuring-bind (generic-name spec-name-list) entry
+                    (setf (gethash generic-name spec-hash) spec-name-list)))
+             (setf (gethash context-name instance-specializations) spec-hash))))
 
     ;; Consume the geometry information by processing each file in the
     ;; :geometries list, rip all geometries out and insert it into the
@@ -206,7 +251,20 @@ Given an :instance name, just return it."
 
     ;; Consume the entities into a hash indexed by the :instance in the form.
     (loop for i in (cadr (member :entities entities)) do
+       ;; If :geometry exists in the initiargs and it is a symbol,
+       ;; ensure it is defined in the geometry-hash
+         (let* ((initargs (assoc :initargs i))
+                (geometry-name (cadr (member :geometry initargs))))
+           (when (and geometry-name (symbolp geometry-name))
+             (multiple-value-bind (entry presentp)
+                 (gethash geometry-name geometry-hash)
+               (declare (ignore entry))
+               (unless presentp
+                 (error "Entity instance ~A uses a :geometry symbol ~(~S~) which does not exist in the geometry hash table!"
+                        i geometry-name)))))
+       ;; If the typecheck passed, store it!
          (setf (gethash (cadr (assoc :instance i)) entity-hash) i))
+
 
     ;; Create the master object which holds all the assets.
     (make-instance 'assets
@@ -214,4 +272,5 @@ Given an :instance name, just return it."
                    :collision-plan collision-plan
                    :entities entity-hash
                    :geometries geometry-hash
-                   :insts/equiv instance-equivalences)))
+                   :insts/equiv instance-equivalences
+                   :instance-specialization-map instance-specializations)))

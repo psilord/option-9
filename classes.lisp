@@ -32,6 +32,10 @@
    (%collision-plan :initarg :collision-plan
                     :initform nil
                     :accessor collision-plan)
+   ;; How do I convert generic-instance names to grounded-instance-names?
+   (%instance-specialization-map :initarg :instance-specialization-map
+                                 :initform nil
+                                 :accessor instance-specialization-map)
    ;; The storage of all of the geometries for everything drawable in the game.
    (%geometries :initarg :geometries
                 :initform nil
@@ -42,6 +46,18 @@
    (%insts/equiv :initarg :insts/equiv
                  :initform nil
                  :accessor insts/equiv)))
+
+;; This hold a keyword which identifies what game instance name this object
+;; will have. It is at the top of the game object hierarchy.
+(defclass instance ()
+  ((%instance-name :initarg :instance-name
+                   :initform :unknown-instance-name
+                   :reader instance-name))
+  (:documentation "All classes that can be described as :instance in
+the config files have this type as its base so we can do certain
+instance specializations in a data driven manner. In practice, this means
+the class must be of type DRAWABLE or more specialized."))
+
 
 (defclass entity ()
   ((%id :initarg :id
@@ -192,23 +208,30 @@ vector at that position"))
 ;; All geometry locations are in a single local coordinate system
 (defclass geometry ()
   (
-   ;; This names bases which are subcoordinate frames of this model at which
-   ;; weapons can be placed and fire down one of the axes.
-   ;; ((<loc-name> <sub coordinate system in relation to model axis>) ...)
-   ;; TODO Hrm, need to think about this more...
-   (%port-specs :initarg :port-specs
-                :initform nil
-                :accessor port-specs)
+   ;; This represents a set of places at which turrets may
+   ;; be placed.
+   (%ports :initarg :ports
+           :initform nil
+           :accessor ports)
+   ;; Actual lines, and other geometrical information.
    (%primitives :initarg :primitives
                 :initform nil
                 :accessor primitives))
   (:documentation "The Shape Class"))
 
-(defclass drawable (entity frame)
+(defclass drawable (entity frame instance)
   (;; A drawable HASA geometry.
    (%geometry :initarg :geometry
               :initform nil
-              :accessor geometry))
+              :accessor geometry)
+   ;; If my parent gets destroyed, what happens to me?
+   (%orphan-policy :initarg :orphan-policy
+                   ;; :destroy means this object is also destroyed.
+                   ;; :universe means fling object into the :universe.
+                   ;; :nearest-ancestor means the first alive ancestor of
+                   ;; my destroyed parent inherits me.
+                   :initform :destroy
+                   :accessor orphan-policy))
   (:documentation "The Drawable Class"))
 
 (defclass collidable (drawable)
@@ -232,22 +255,65 @@ vector at that position"))
   (:documentation "The Brain Class"))
 
 (defclass powerup (brain)
-  ((%main-gun :initarg :main-gun
+  ((%powerup-turrets
+    :initarg :powerup-turrets
+    ;; ((:port-name :turret-instance-name :payload-name/nil) ...)
+    ;; If payload name is nil, then inherit the payload
+    ;; already in the previous turret.
+    :initform nil
+    :accessor powerup-turrets)
+
+   (%health-level :initarg :health-level
+                  :initform 0
+                  :accessor powerup-health-level)
+
+   ;; destroy
+   (%main-gun :initarg :main-gun
               :initform nil
               :accessor powerup-main-gun)
+   ;; destroy
    (%passive-gun :initarg :passive-gun
                  :initform nil
                  :accessor powerup-passive-gun)
+   ;; destroy
    (%main-shield :initarg :main-shield
                  :initform nil
                  :accessor powerup-main-shield)
-   (%health-level :initarg :health-level
-                  :initform 0
-                  :accessor powerup-health-level))
+   )
   (:documentation "The Powerup class"))
 
+;; Turrets can be placed into ports.
+(defclass turret (brain)
+  ;; A keyword that indicates in which port this turret resides.
+  ((%port :initarg :port
+          :initform nil
+          :accessor port)
+
+   ;; This is what the turret contains
+   (%payload :initarg :payload
+             :initform nil
+             :accessor payload)
+
+   ;; Does this turret contain an INSTANCE-NAME that we must generate? Or
+   ;; does it contain an actual instance of something (like a shield?).
+   (%payload-instance-p :initarg :payload-instance-p
+                        :initform nil
+                        :accessor payload-instance-p)))
+
+;; specific weapon turrets
+(defclass weapon-turret (turret) ())
+
+;; Special behavior for how these fire.
+(defclass one-shot-turret (weapon-turret) ())
+(defclass two-shot-turret (weapon-turret) ())
+(defclass three-shot-turret (weapon-turret) ())
+
+;; specific shield turrets
+(defclass shield-turret (turret) ())
+
 (defclass ship (brain)
-  ((%main-gun :initarg :main-gun
+  (;; All of these will be replaced by turrets and these slots will be removed.
+   (%main-gun :initarg :main-gun
               :initform nil
               :accessor ship-main-gun)
    (%passive-gun :initarg :passive-gun
@@ -255,7 +321,24 @@ vector at that position"))
                  :accessor ship-passive-gun)
    (%main-shield :initarg :main-shield
                  :initform nil
-                 :accessor ship-main-shield))
+                 :accessor ship-main-shield)
+
+
+   ;; used in the assets file to denote which turret instances are placed
+   ;; at which ports in the geometry description when this object is created.
+   (%port-layout :initarg :port-layout
+                 :initform nil
+                 :accessor port-layout)
+
+   ;; A hash table of actual turret instances keyed by port location
+   ;; name (since there can only be one turret at that location).
+   ;; These are created at spawn, by the defaults in the
+   ;; turret-layout, or adjusted by powerups and such. These same turrents
+   ;; are also inserted into the children slot of this object.
+   (%turrets :initarg :turrets
+             :initform (make-hash-table)
+             :accessor turrets))
+
   (:documentation "The Ship Class"))
 
 (defclass player (ship)
@@ -324,6 +407,12 @@ vector at that position"))
   ()
   (:documentation "The Ship Shield Class"))
 
+
+
+
+
+
+
 (defclass fieldpath ()
   ;; How many steps the path went before it either hit something or
   ;; reached the end of its range. This is in world space.
@@ -369,7 +458,7 @@ vector at that position"))
                      :accessor entity-contacts))
   (:documentation "The Field Class"))
 
-(defclass tesla-field (field weapon)
+(defclass tesla-field (field)
   ;; This is a quantized range of power for the tesla-field
   ((%power-range :initarg :power-range
                  :initform 1

@@ -1,83 +1,76 @@
 (in-package :option-9)
 
-(defmethod render ((ent drawable) scale)
+;;;; XXX TODO Remove scale from all functions.
+
+(defmethod render (ent)
+  nil)
+
+(defmethod render ((ent drawable))
   (let ((geometry (geometry ent)))
     ;; only render if we actually have a geometry to render.
     (when geometry
-      (destructuring-bind (sx sy) scale
-        ;; render a list of possibly differing primitives associated with
-        ;; this shape. NOTE: this is realy simple, nothign like texturing
-        ;; is supported.
-        (dolist (primitive (primitives geometry))
-          (gl:with-primitive (car primitive)
-            ;; render each specific primitive
-            (let ((vertex (pvec)))
-              (dolist (vertex/color (cdr primitive))
-                ;; Apply the point to the world basis of the
-                ;; drawable.
-                (destructuring-bind ((vx vy vz) (cx cy cz))
-                    vertex/color
-                  (gl:color cx cy cz)
-                  (pv-set-into vertex
-                               ;; TODO Remove scaling hack.
-                               (coerce (* sx vx) 'double-float)
-                               (coerce (* sy vy) 'double-float)
-                               vz)
-                  (pm-apply-into vertex (world-basis ent) vertex)
-                  (with-pvec-accessors (w vertex)
-                    (gl:vertex wx wy wz)))))))))))
+      ;; render a list of possibly differing primitives associated with
+      ;; this shape. NOTE: this is realy simple, nothign like texturing
+      ;; is supported.
+      (dolist (primitive (primitives geometry))
+        (gl:with-primitive (car primitive)
+          ;; render each specific primitive
+          (let ((vertex (pvec)))
+            (dolist (vertex/color (cdr primitive))
+              ;; Apply the point to the world basis of the
+              ;; drawable.
+              (destructuring-bind ((vx vy vz) (cx cy cz))
+                  vertex/color
+                (gl:color cx cy cz)
+                (pv-set-into vertex vx vy vz)
+                (pm-apply-into vertex (world-basis ent) vertex)
+                (with-pvec-accessors (w vertex)
+                  (gl:vertex wx wy wz))))))))))
 
 
-;; Ships have various other things which need to be renderede as well. So
+;; Ships have various other things which need to be rendered as well. So
 ;; do them...
-(defmethod render :after ((s ship) scale)
+(defmethod render :after ((s ship))
 
   ;; If there is a passive-gun (which is field-like) render that.
   (when (ship-passive-gun s)
-    (render (ship-passive-gun s) scale))
-
-  ;; If there is a shield, render that too.
-  (when (ship-main-shield s)
-    (render (ship-main-shield s) scale))
+    (render (ship-passive-gun s)))
 
   ;; If the hit-points is not equal to the maximum hit points, then
   ;; render the health bar
   (when (/= (hit-points s) (max-hit-points s))
     (with-pvec-accessors (o (pm-get-trans (world-basis s)))
-      (destructuring-bind (xscale yscale) scale
-        (gl:line-width 4.0)
-        (gl:with-primitive :lines
-          (let* ((per (/ (hit-points s) (max-hit-points s)))
-                 (invper (- 1.0 per)))
-            (gl:color 1 1 1)
-            ;; start life bar
-            (gl:vertex (+ ox (* -4 xscale))
-                       (+ oy (* 5 yscale))
-                       0d0)
-            ;; End life bar
-            (gl:vertex (+ ox (* (- 4 (* 8 invper)) xscale))
-                       (+ oy (* 5 yscale))
-                       0d0)
+      (gl:line-width 4.0)
+      (gl:with-primitive :lines
+        (let* ((per (/ (hit-points s) (max-hit-points s)))
+               (invper (- 1.0 per)))
+          (gl:color 1 1 1)
+          ;; start life bar
+          (gl:vertex (+ ox -4)
+                     (+ oy 5)
+                     0d0)
+          ;; End life bar
+          (gl:vertex (+ ox (- 4 (* 8 invper)))
+                     (+ oy 5)
+                     0d0)
 
-            ;; start filler
-            (gl:color .2 .2 .2)
-            (gl:vertex (+ ox (* (- 4 (* 8 invper)) xscale))
-                       (+ oy (* 5 yscale))
-                       0d0)
+          ;; start filler
+          (gl:color .2 .2 .2)
+          (gl:vertex (+ ox (- 4 (* 8 invper)))
+                     (+ oy 5)
+                     0d0)
 
-            (gl:vertex (+ ox (* 4 xscale))
-                       (+ oy (* 5 yscale))
-                       0d0)))
-        (gl:line-width 1.0)))))
+          (gl:vertex (+ ox 4)
+                     (+ oy 5)
+                     0d0)))
+      (gl:line-width 1.0))))
 
 ;; Draw the field lines before any actual geometry of the weapon. We
 ;; do this by walking the entity-contacts hash table which lets us
 ;; know how to render the various paths. We render this before the
 ;; regular render so any :primitives for the passive-gun get rendered
 ;; on top of the passive effect.
-(defmethod render :before ((f tesla-field) scale)
-  (declare (ignorable scale))
-
+(defmethod render :before ((f tesla-field))
   (maphash
    #'(lambda (eid path-contact)
        (with-accessors ((pc-number-of-contacts number-of-contacts)
@@ -104,4 +97,3 @@
 
              (gl:line-width 1.0)))))
    (entity-contacts f)))
-

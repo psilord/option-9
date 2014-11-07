@@ -3,7 +3,7 @@
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
 (defclass spawnable ()
-  ((%ioi/e :initarg :ioi/e ;; instance-or-insts/equiv
+  ((%ioi/e :initarg :ioi/e ;; keyword which is the instance or insts/equiv
            :initform nil
            :accessor spawnable-ioi/e)
    (%spawn-context :initarg :spawn-context
@@ -12,6 +12,7 @@
    (%initializer :initarg :initializer
                  :initform nil
                  :accessor spawnable-initializer)
+   ;; The instance that is my parent in the scene-tree.
    (%parent :initarg :parent
             :initform :universe
             :accessor spawnable-parent)
@@ -28,10 +29,11 @@
 ;; spawn-class of the spawn itself. These classes represent the spawn class
 ;; of the newly spawned entity. The entity may change who it collides with
 ;; at a later time.
-(defclass sp-player (spawnable) ())
+(defclass sp-ship (spawnable) ())
+(defclass sp-player (sp-ship) ())
 (defclass sp-player-shot (spawnable) ())
 (defclass sp-player-powerup (spawnable) ())
-(defclass sp-enemy (spawnable) ())
+(defclass sp-enemy (sp-ship) ())
 (defclass sp-enemy-shot (spawnable) ())
 (defclass sp-enemy-mine (spawnable) ())
 (defclass sp-sparks (spawnable) ())
@@ -64,8 +66,8 @@ INITARGS."
 ;; a CATEGORY is really a developer defined thing just to separate different
 ;; spawn algorithms for various instances.
 (defgeneric spawn (spawn-class ioi/e loc/ent game
-                               &key spawn-context parent mutator
-                               &allow-other-keys)
+                   &key spawn-context parent orphan-policy mutator
+                     &allow-other-keys)
   (:documentation "TODO"))
 
 (defgeneric realize-spawn (spawnable)
@@ -85,7 +87,7 @@ location of spawning is."))
 (defun realize-spawns (game)
   "Iterate the spawnables list and if possible, realize all of the
 spawnables into real in game entities. Those that can't be immediately
-realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
+realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
   (dolist (spawnable (spawnables game))
     (multiple-value-bind (spawnedp reason-failed)
         (realize-spawn spawnable)
@@ -129,27 +131,86 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
     (values T :spawned)))
 
 
+;; used for sp-ships since we have to create additional entities inside them
+(defmethod realize-spawn ((spawnable sp-ship))
+  (let ((entity (funcall (spawnable-mutator spawnable)
+                         (apply #'make-entity
+                                (spawnable-initializer spawnable)))))
+
+    ;; first add the ship into the scene graph.
+    (insert-into-scene (scene-man (spawnable-game spawnable))
+                       entity
+                       (spawnable-parent spawnable))
+
+    ;; Then make each turret specified in the turret-layout and add them as
+    ;; children to the ship.
+    (dolist (layout (port-layout entity))
+      (destructuring-bind (port turret-instance payload) layout
+        ;; create a real instance of the turrent
+        (let* ((port-frame
+                ;; Get the orientation matrix of the turret in relation to the
+                ;; origin of the entity.
+                ;; XXX This is a ridiculous query. Fix it.
+                (cadadr (assoc port (ports (geometry entity)))))
+
+               (a-turret
+                (make-entity
+                 ;; Get an appropriate instance for this entity and turret.
+                 (specialize-generic-instance-name (instance-name entity)
+                                                   turret-instance)
+                 ;; TODO: For now, we set the orphan
+                 ;; policy to just be destroyed. However,
+                 ;; maybe this should be set in option-9.dat
+                 ;; or somehow dynamically.
+                 :orphan-policy :destroy
+
+                 ;; Get an appropriate payload for this entity and payload name.
+                 :payload (specialize-generic-instance-name
+                           (instance-name entity) payload)
+                 :port port
+
+                 :local-basis (pm-copy port-frame))))
+
+          ;; Add each turret to the scene tree with the entity as the parent.
+          ;; I've forgotten a bit how this works, ah well, I'll remember soon
+          ;; enough.
+          (insert-into-scene (scene-man (spawnable-game spawnable))
+                             a-turret
+                             entity)
+
+          ;; associate the turret instance with the port location in
+          ;; the turrets hash table. This allows us later to route
+          ;; events to turrets. When the turret is destroyed, we'll have
+          ;; to remove it from here too.
+          (setf (turret entity port) a-turret)
+          )))
+
+
+    (values T :spawned)))
+
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spawning Player 1
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod spawn ((spawn-class (eql 'sp-player)) ioi/e loc/ent game
                   &key
-                  (spawn-context 1) ;; default to player 1
-                  (parent :universe)
-                  (mutator #'identity)
-                  &allow-other-keys)
+                    (spawn-context 1) ;; default to player 1
+                    (parent :universe)
+                    (orphan-policy :destroy)
+                    (mutator #'identity)
+                    &allow-other-keys)
   (declare (ignorable loc/ent))
 
   ;; This initialization list is ultimately given to MAKE-ENTITY
   (let ((initializer `(,(insts/equiv-choice ioi/e)
+                        :orphan-policy ,orphan-policy
                         :roles (:player)
                         :flyingp t
-                        :dv ,(pvec .5d0 .05d0 0d0))))
+                        :dv ,(pvec 50d0 5d0 0d0))))
 
     ;; This will be potentially realized later if the conditions are
     ;; still good for realization.
     (add-spawnable
-     (make-spawnable spawn-class
+     (make-spawnable 'sp-ship
                      :ioi/e ioi/e
                      :spawn-context spawn-context
                      :initializer initializer
@@ -163,28 +224,19 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod spawn ((spawn-class (eql 'sp-player-shot)) ioi/e loc/ent game
                   &key
-                  spawn-context
-                  (parent :universe)
-                  (mutator #'identity)
-                  &allow-other-keys)
+                    spawn-context
+                    (parent :universe)
+                    (orphan-policy :destroy)
+                    (mutator #'identity)
+                    &allow-other-keys)
   (let ((loc (resolve-spawn-location loc/ent)))
-    ;; the shot starts its journey in nearly the same location as the
-    ;; player ship.
     (with-pvec-accessors (o loc)
       (let ((initializer `(,ioi/e
+                           :orphan-policy ,orphan-policy
                            :roles (:player-shot)
-                           :flyingp t
-                           ;; This goes into the world location of
-                           ;; the player.
-                           :dv ,(pvec ox (+ oy .03d0) 0d0)
-                           ;; And it flies going up.
-                           ;; XXX It should fly in the direction of the
-                           ;; main gun (which is up y axis) on the ship.
-                           ;; And shots have a "front" which should be
-                           ;; rotated to orient in parallel with the
-                           ;; "front" direction vector of the ship firing
-                           ;; it.
-                           :dfv ,(pvec 0d0 .022d0 0d0))))
+                           ;; Put it at the location and rotation of the
+                           ;; turret.
+                           :local-basis ,(pm-copy (world-basis loc/ent)))))
 
         (add-spawnable
          (make-spawnable spawn-class
@@ -202,34 +254,43 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod spawn ((spawn-class (eql 'sp-enemy)) ioi/e loc/ent game
                   &key
-                  spawn-context
-                  (parent :universe)
-                  (mutator #'identity)
-                  &allow-other-keys)
+                    spawn-context
+                    (parent :universe)
+                    (orphan-policy :destroy)
+                    (mutator #'identity)
+                    &allow-other-keys)
   (declare (ignorable loc/ent))
 
   ;; This initialization list is ultimately given to MAKE-ENTITY
-  (let* ((xloc (random 1.0d0))
+  (let* ((xloc (random 100d0))
          (initializer `(,(insts/equiv-choice ioi/e)
+                         :orphan-policy ,orphan-policy
                          :roles (:enemy)
-                         ;; All enemies go downwards, so rotate it
-                         ;; with a one time rotation to point down.
+
+                         ;; All enemies fly in a downwards direction,
+                         ;; so rotate it with a one time rotation to
+                         ;; point straight down.
                          :dr ,(pvec 0d0 0d0 pi)
 
                          :flyingp t
-                         :dv ,(pvec xloc .95d0 0d0)
-                         :dfv ,(pvec (coerce
-                                      (* (random .001d0)
-                                         (if (> (the double-float xloc) .5d0)
-                                             -1d0
-                                             1d0)) 'double-float)
-                                     (random .01d0)
-                                     0d0))))
+                         :dv ,(pvec xloc 95d0 0d0)
+
+                         :dfv ,(pvec
+                                ;; Strafe
+                                (coerce
+                                 (* (random .1d0)
+                                    (if (> (the double-float xloc) 50d0)
+                                        -1d0
+                                        1d0)) 'double-float)
+                                ;; forward direction
+                                (random 1d0)
+                                ;; Stay in the plane.
+                                0d0))))
 
     ;; This will be potentially realized later if the conditions are
     ;; still good for realization.
     (add-spawnable
-     (make-spawnable spawn-class
+     (make-spawnable 'sp-ship
                      :ioi/e ioi/e
                      :spawn-context spawn-context
                      :initializer initializer
@@ -243,28 +304,33 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod spawn ((spawn-class (eql 'sp-enemy-shot)) ioi/e loc/ent game
                   &key
-                  spawn-context
-                  (parent :universe)
-                  (mutator #'identity)
-                  &allow-other-keys)
+                    spawn-context
+                    (parent :universe)
+                    (orphan-policy :destroy)
+                    (mutator #'identity)
+                    &allow-other-keys)
   (let ((loc (resolve-spawn-location loc/ent)))
-    ;; the shot starts its journey in nearly the same location as the
-    ;; enemy ship.
+    ;; Start the shot at the location of the loc/ent that created
+    ;; it. On our case a turret.
     (with-pvec-accessors (o loc)
       (let ((initializer `(,ioi/e
+                           :orphan-policy ,orphan-policy
                            :roles (:enemy-shot)
-                           ;; All enemies shoot downwards, so rotate
-                           ;; it with a one time rotation to point
-                           ;; down.
-                           :dr ,(pvec 0d0 0d0 pi)
-
-                           :flyingp t
-                           ;; This goes into the world location of
-                           ;; the enemy, "fixed" to be the tip of the enemy.
-                           :dv ,(pvec ox (- oy .03d0) 0d0)
+                           :local-basis ,(pm-copy (world-basis loc/ent))
                            :dfv ,(pvec 0d0
-                                       (+ (+ (+ .005d0 (random .005d0)))
-                                          (dfvy loc/ent))
+                                       (+ .5d0 (random .5d0)
+                                          (dfvy
+                                           ;; FIXME: This is a bit of
+                                           ;; a hack...  If loc/ent is
+                                           ;; a turret, get our parent
+                                           ;; (the ship's) velocity to
+                                           ;; add to the shot. There
+                                           ;; must be a better way to
+                                           ;; do this.
+                                           (if (subtypep
+                                                (type-of loc/ent) 'turret)
+                                               (parent loc/ent)
+                                               loc/ent)))
                                        0d0))))
 
         (add-spawnable
@@ -282,17 +348,19 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod spawn ((spawn-class (eql 'sp-sparks)) ioi/e loc/ent game
                   &key
-                  spawn-context
-                  (parent :universe)
-                  (mutator #'identity)
-                  (num-sparks 10)
-                  (ttl-max 0 ttl-max-supplied-p)
-                  (initial-velocity 0d0)
-                  (velocity-factor .02d0)
-                  &allow-other-keys)
+                    spawn-context
+                    (parent :universe)
+                    (orphan-policy :destroy)
+                    (mutator #'identity)
+                    (num-sparks 10)
+                    (ttl-max 0 ttl-max-supplied-p)
+                    (initial-velocity 0d0)
+                    (velocity-factor 2d0)
+                    &allow-other-keys)
   (let ((loc (resolve-spawn-location loc/ent)))
     (dotimes (p num-sparks)
       (let ((initializer `(,(insts/equiv-choice ioi/e)
+                            :orphan-policy ,orphan-policy
                             :roles (:scenery)
                             ;; each spark needs own copy!
                             :dv ,(pv-copy loc)
@@ -325,12 +393,14 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod spawn ((spawn-class (eql 'sp-player-powerup)) ioi/e loc/ent game
                   &key
-                  spawn-context
-                  (parent :universe)
-                  (mutator #'identity)
-                  &allow-other-keys)
+                    spawn-context
+                    (parent :universe)
+                    (orphan-policy :destroy)
+                    (mutator #'identity)
+                    &allow-other-keys)
   (let* ((loc (resolve-spawn-location loc/ent))
          (initializer `(,(insts/equiv-choice ioi/e)
+                         :orphan-policy ,orphan-policy
                          :roles (:player-powerup)
                          :flyingp t
                          :dv ,(pv-copy loc))))
@@ -349,15 +419,31 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod spawn ((spawn-class (eql 'sp-enemy-mine)) ioi/e loc/ent game
                   &key
-                  spawn-context
-                  (parent :universe)
-                  (mutator #'identity)
-                  &allow-other-keys)
+                    spawn-context
+                    (parent :universe)
+                    (orphan-policy :destroy)
+                    (mutator #'identity)
+                    &allow-other-keys)
   (let* ((loc (resolve-spawn-location loc/ent))
-         (initializer `(,(insts/equiv-choice ioi/e)
-                         :roles (:enemy-mine)
-                         :flyingp t
-                         :dv ,(pv-copy loc))))
+
+         ;; Find a random generic mine, then create the specialized instance
+         ;; of it for this particular ioi/e if it is an entity.
+         (the-mine-instance-name
+          (if (subtypep (type-of loc/ent) 'instance)
+              ;; If we happen to be spawning this because of a death
+              ;; of an entity, we'll use that entity's specializations
+              ;; to pick a random mine.
+              (specialize-generic-instance-name
+               (instance-name loc/ent)
+               (insts/equiv-choice ioi/e))
+              ;; Otherwise, it better be a SPECIFIC mine instance we
+              ;; want at the location specified.
+              ioi/e))
+
+         (initializer `(,the-mine-instance-name
+                        :orphan-policy ,orphan-policy
+                        :roles (:enemy-mine)
+                        :dv ,(pv-copy loc))))
     (add-spawnable
      (make-spawnable spawn-class
                      :ioi/e ioi/e
@@ -373,14 +459,16 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod spawn ((spawn-class (eql 'sp-alphanum)) ioi/e loc/ent game
                   &key
-                  spawn-context
-                  (parent :universe)
-                  (mutator #'identity)
-                  roles
-                  &allow-other-keys)
+                    spawn-context
+                    (parent :universe)
+                    (orphan-policy :destroy)
+                    (mutator #'identity)
+                    roles
+                    &allow-other-keys)
 
   (let* ((loc (resolve-spawn-location loc/ent))
          (initializer `(,(insts/equiv-choice ioi/e)
+                         :orphan-policy ,orphan-policy
                          :roles ,roles
                          :dv ,(pv-copy loc))))
     (add-spawnable
@@ -398,15 +486,17 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod spawn ((spawn-class (eql 'sp-shrapnel)) ioi/e loc/ent game
                   &key
-                  spawn-context
-                  (parent :universe)
-                  (mutator #'identity)
-                  (velocity-factor .5d0)
-                  &allow-other-keys)
+                    spawn-context
+                    (parent :universe)
+                    (orphan-policy :destroy)
+                    (mutator #'identity)
+                    (velocity-factor 50d0)
+                    &allow-other-keys)
 
 
   (let* ((loc (resolve-spawn-location loc/ent))
          (initializer `(,(insts/equiv-choice ioi/e)
+                         :orphan-policy ,orphan-policy
                          :roles (:shrapnel)
                          :dv ,(pv-copy loc)
                          :rotatingp t
@@ -424,4 +514,3 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN."
                      :mutator mutator
                      :game game)
      game)))
-

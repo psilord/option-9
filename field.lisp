@@ -151,8 +151,8 @@
                (multiple-value-bind (dx dy)
                    (e-field-direction dx dy)
                  ;; than vx vy is by itself, return -1, otherwise 1
-                 (let ((nx (+ vx (* .001 dx)))
-                       (ny (+ vy (* .001 dy))))
+                 (let ((nx (+ vx (* .1 dx)))
+                       (ny (+ vy (* .1 dy))))
                    (if (< (euclidean-distance qox qoy nx ny)
                           (euclidean-distance qox qoy vx vy))
                        -1.0
@@ -179,7 +179,7 @@
       (let ((vx tx) (vy ty) (sum 0))
         ;; First, we compute the field direction at the initial point, if
         ;; by following that vector, we get closer to q1, we'll reverse
-        (when (or (< vx 0.0) (> vx 1.0) (< vy 0.0) (> vy 1.0))
+        (when (or (< vx 0.0) (> vx 100.0) (< vy 0.0) (> vy 100.0))
           (return-from trace-field-line))
 
         ;; direction and follow the stream backwards.
@@ -204,7 +204,7 @@
                 (when
                     (dotimes (index (range f) t)
 
-                      (when (or (< vx 0) (> vx 1) (< vy 0) (> vy 1))
+                      (when (or (< vx 0.0) (> vx 100.0) (< vy 0.0) (> vy 100.0))
                         ;; we went off the screen, so no contact.
                         (return t))
 
@@ -255,10 +255,18 @@
                           ;; where oscillations are less likely to
                           ;; happen. This equation to compute the
                           ;; incremental was pulled out of my butt.
-                          (let* ((delta (/ (+ index 25) 450))
-                                 (incremental (if (< sum .15)
-                                                  (* delta delta)
-                                                  .015)))
+                          (let* ((delta (/ (+ index 25.0) 450.0))
+                                 (incremental (if (< sum 2.0)
+                                                  ;; the 100.0 is
+                                                  ;; there because
+                                                  ;; this value is
+                                                  ;; resized according
+                                                  ;; to the raw size
+                                                  ;; of the world
+                                                  ;; which is (0,0) to
+                                                  ;; (100,100).
+                                                  (* delta delta 100.0)
+                                                  1.5)))
                             (incf sum incremental)
                             (setf vx (+ vx (* dx incremental dir))
                                   vy (+ vy (* dy incremental dir)))))))
@@ -278,8 +286,8 @@
   (let* ((num-paths (num-paths f))
          (delta (/ (* 2.0 pi) num-paths)))
     (flet ((start-point (x y path-num)
-             (values (+ x (* (+ (radius q1) .001) (sin (* path-num delta))))
-                     (+ y (* (+ (radius q1) .001) (cos (* path-num delta)))))))
+             (values (+ x (* (+ (radius q1) .1) (sin (* path-num delta))))
+                     (+ y (* (+ (radius q1) .1) (cos (* path-num delta)))))))
       (dotimes (path-num num-paths)
         (with-pvec-accessors (o (pm-get-trans (world-basis q1)))
           (multiple-value-bind (nx ny)
@@ -293,6 +301,3 @@
       (gethash (id e) (entity-contacts f))
     (when presentp
       path-contact)))
-
-
-

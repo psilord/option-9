@@ -1,0 +1,3 @@
+
+;; Tell opengl to not check for errors, I'll do it myself.
+(pushnew :cl-opengl-no-check-error *features*)

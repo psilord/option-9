@@ -180,7 +180,7 @@ advantage of the simulation step."))
 simulation of the entity. A passive step is something which requires final
 knowledge of all entity locations. An example is field generation."))
 
-(defgeneric render (drawable scale)
+(defgeneric render (drawable)
   (:documentation
    "Renders the entity shape with respect to the frame at the scale desired."))
 
@@ -202,9 +202,18 @@ collided with something."))
   (:documentation
    "When something dies and needs to explode, this is how it explodes."))
 
-(defgeneric shoot (ship)
+(defgeneric shoot (ship port)
   (:documentation
-   "The ship, be it player or enemy or something else, shoots its main gun."))
+   "The ship, be it player or enemy or something else, shoots whatever turret
+exists at the identified port."))
+
+(defgeneric turret (ship turret-name)
+  (:documentation
+   "Find the instance of the turret named TURRET-NAME in the SHIP."))
+
+(defgeneric (setf turret) (turret-instance ship turret-name)
+  (:documentation
+   "Set the TURRET-NAME in the SHIP to be the TURRET-INSTANCE."))
 
 (defgeneric absorbs (collider shield)
   (:documentation
@@ -231,16 +240,16 @@ of the contact between the concacter and the contactee."))
 computes their solution in terms of a source of the effect and other entities
 (which may also include the source) on the board."))
 
-(defgeneric increase-density (tesla-field)
-  (:documentation
-   "Increases the number of lines traced from the source of the field or
-as appropriate for whatever class this gets applied to."))
-
 (defgeneric increase-power (item)
   (:documentation
    "Increases one of multiple aspects of the object that represents its
 power. It does so randomly but intelligently such that if one aspect is
 already at max, another is chosen."))
+
+(defgeneric increase-density (tesla-field)
+  (:documentation
+   "Increases the number of lines traced from the source of the field or
+as appropriate for whatever class this gets applied to."))
 
 (defgeneric increase-range (item)
   (:documentation

@@ -46,13 +46,13 @@
         (:begin
          (ecase dir
            (:up
-            (setf (dfvy p) .015d0))
+            (setf (dfvy p) 1.5d0))
            (:down
-            (setf (dfvy p) -.015d0))
+            (setf (dfvy p) -1.5d0))
            (:left
-            (setf (dfvx p) -.015d0))
+            (setf (dfvx p) -1.5d0))
            (:right
-            (setf (dfvx p) .015d0))))
+            (setf (dfvx p) 1.5d0))))
         (:end
          (ecase dir
            (:up
@@ -73,9 +73,9 @@
     (when p
       (cond
         ((= axis 1);; y axis
-         (setf (dfvy p) (* -1d0 .015d0 amount)))
+         (setf (dfvy p) (* -1d0 1.5d0 amount)))
         ((= axis 0) ;; x axis
-         (setf (dfvx p) (* .015d0 amount)))))))
+         (setf (dfvx p) (* 1.5d0 amount)))))))
 
 
 
@@ -99,14 +99,14 @@
       ;; realize the score board
       (dolist (digit (entities-with-role (scene-man game) :score-board))
         (remove-from-scene (scene-man game) digit))
-      (let ((xstart .85)
-            (xstep -.02)
+      (let ((xstart 85)
+            (xstep -2)
             (ci 0))
         (dolist (c score-chars)
           (spawn 'sp-alphanum
                  (cdr (assoc c db))
                  (pvec (coerce (+ xstart (* xstep ci)) 'double-float)
-                       .98d0
+                       98d0
                        0d0)
                  game
                  :roles '(:score-board))
@@ -115,14 +115,14 @@
       ;; realize the highscore board
       (dolist (digit (entities-with-role (scene-man game) :high-score-board))
         (remove-from-scene (scene-man game) digit))
-      (let ((xstart .15)
-            (xstep -.02)
+      (let ((xstart 15)
+            (xstep -2)
             (ci 0))
         (dolist (c highscore-chars)
           (spawn 'sp-alphanum
                  (cdr (assoc c db))
                  (pvec (coerce (+ xstart (* xstep ci)) 'double-float)
-                       .98d0
+                       98d0
                        0d0)
                  game
                  :roles '(:high-score-board))
@@ -147,9 +147,8 @@
 
 (defun display (game)
   (gl:clear :color-buffer-bit)
-  (walk-frame-hierarchy (root (scene-man game))
-                        #'(lambda (obj)
-                            (render obj `(.01d0 .01d0)))))
+  (walk-frame-hierarchy (root (scene-man game)) #'render))
+
 (defun step-game (game)
   (unless (paused game)
     (let ((scene (scene-man game)))
@@ -157,14 +156,17 @@
       ;; 1. If there is no player, spawn one.
       (unless (entities-with-role scene :player)
         (reset-score-to-zero game)
-        (spawn 'sp-player :player NIL game))
+        (spawn 'sp-player :player-1 NIL game))
 
       ;; 2. If enough time as passed, spawn an enemy
-      (decf (enemy-spawn-timer game))
-      (when (zerop (enemy-spawn-timer game))
-        (setf (enemy-spawn-timer game) (1+ (random 120)))
-        ;; Just pick a random enemy from the various enemy instances
-        (spawn 'sp-enemy :insts/enemies NIL game))
+      ;;#+ignore
+      (progn
+        (decf (enemy-spawn-timer game))
+        (when (zerop (enemy-spawn-timer game))
+          (setf (enemy-spawn-timer game) (1+ (random 90)))
+          ;; Just pick a random enemy from the various enemy instances
+          (spawn 'sp-enemy :insts/enemies NIL game))
+        )
 
       ;; 3. Show the score boards
       (realize-score-boards game)
@@ -235,8 +237,3 @@
                    ;; all views.
                    (remove-from-scene scene ent))))))
       )))
-
-
-
-
-

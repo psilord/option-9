@@ -114,7 +114,8 @@
       ;; Initialize viewing values.
       (gl:matrix-mode :projection)
       (gl:load-identity)
-      (gl:ortho 0 1 0 1 -1 1)
+      ;; The world is (0,0) to (100,100)
+      (gl:ortho 0 100 0 100 -1 1)
 
       (initialize-joysticks)
 
@@ -130,7 +131,27 @@
                             (let ((player (car (entities-with-role
                                                 (scene-man *game*) :player))))
                               (when player
-                                (shoot player))))
+                                (shoot player :front-weapon-port))))
+                           (:sdl-key-z
+                            (let ((player (car (entities-with-role
+                                                (scene-man *game*) :player))))
+                              (when player
+                                (shoot player :left-weapon-port))))
+                           (:sdl-key-d
+                            (let ((player (car (entities-with-role
+                                                (scene-man *game*) :player))))
+                              (when player
+                                (shoot player :center-weapon-port))))
+                           (:sdl-key-x
+                            (let ((player (car (entities-with-role
+                                                (scene-man *game*) :player))))
+                              (when player
+                                (shoot player :rear-weapon-port))))
+                           (:sdl-key-c
+                            (let ((player (car (entities-with-role
+                                                (scene-man *game*) :player))))
+                              (when player
+                                (shoot player :right-weapon-port))))
                            (:sdl-key-up
                             (move-player-keyboard *game* :begin :up))
                            (:sdl-key-down
@@ -157,8 +178,8 @@
                                 ;; need a batter calibration algorithm.
                                 (when (and (or (= axis 0) (= axis 1)) nil)
                                   (let ((val (/ value 32768d0)))
-                                    (if (or (> val .07d0)
-                                            (< val -.07d0))
+                                    (if (or (> val 7d0)
+                                            (< val -7d0))
                                         (move-player-joystick *game* axis val)
                                         (move-player-joystick *game* axis 0d0)))))
 
@@ -171,7 +192,7 @@
                                                        (scene-man *game*)
                                                        :player))))
                                      (when player
-                                       (shoot player))))
+                                       (shoot player :front-turret-port))))
                                   ((= button 6)
                                    (sdl:push-quit-event))))
 

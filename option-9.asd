@@ -55,5 +55,6 @@
                (:file "passive-step-once")
                (:file "generate")
                (:file "events")
+               (:file "turrets")
                (:file "scene-man")
                (:file "option-9")))
