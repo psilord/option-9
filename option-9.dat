@@ -302,7 +302,7 @@
      (:initargs
       ;; Default tesla gun has all lines, and only gets larger.
       :power-lines 4
-      :power-range 3))
+      :power-range 7))
 
     ;; ;;;;;;;;;;;;;
     ;; Enemy 1

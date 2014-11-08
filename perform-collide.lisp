@@ -90,7 +90,7 @@
              ;; ensure the ship's port containes the computed turret
              (setf (turret collider port-name) replacement-turret)))
 
-          ((:passive-weapon-port)
+          ((:passive-weapon-port--)
            ;; FIXME: Make this deal with turrets properly. This current code
            ;; path is totally screwed.
 
@@ -111,7 +111,9 @@
                    ;; verb.
                    (at-location (ship-passive-gun collider) collider)))))
 
-          ((:shield-port)
+          ((:shield-port :passive-weapon-port)
+           ;; TODO: Ask the current payload, if there is one AND IT IS THE SAME,
+           ;; then increase the power of the payload only.
            (let* ((the-turret (turret collider port-name))
                   ;; Try and figure out if the possibly generic name
                   ;; this payload has should be specialized to an
@@ -120,14 +122,14 @@
                             (instance-name collider) payload))
                   ;; Note payload here would have been specialized!
                   (payload (if payload
-                               (let ((the-shield (make-entity payload)))
+                               (let ((the-item (make-entity payload)))
                                  ;; Set up its initial location, which is
                                  ;; where the turret is on the collider!
-                                 (at-location the-shield the-turret)
+                                 (at-location the-item the-turret)
                                  ;; jam it into the scene-tree.
                                  (insert-into-scene
                                   (scene-man (game-context collider))
-                                  the-shield
+                                  the-item
                                   collider)
                                  ;; And get rid of the one currently there
                                  ;; from the scene tree and turret!
@@ -137,7 +139,7 @@
                                     (payload the-turret))
                                    (setf (payload the-turret) nil))
                                  ;; here is the payload we wish to use.
-                                 the-shield)
+                                 the-item)
                                ;; or use the one I already have.
                                (payload the-turret)))
                   ;; Maybe I have a new turret to use too!

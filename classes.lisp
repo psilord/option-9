@@ -435,7 +435,7 @@ vector at that position"))
               :accessor path-ids))
   (:documentation "The Path Contact Class. This is stored on a per entity basis and records the field path-ids that touch that particular entity."))
 
-(defclass field ()
+(defclass field (drawable)
   ;; This range is described in the number of steps I should follow
   ;; the field line trace.
   ((%range :initarg :range

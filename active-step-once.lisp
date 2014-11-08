@@ -23,15 +23,6 @@ the FUNC to each frame as one walks towards the leaves."
       (pm-mul-into (world-basis f) (world-basis (parent f)) (local-basis f))
       (pm-copy-into (world-basis f) (local-basis f))))
 
-(defmethod resolve-world-basis :after ((s ship))
-  ;; If a ship has a shield, then resolve where it is supposed to be.
-  ;; flyingp doesn't matter here.
-  (let ((shield (ship-main-shield s)))
-    (when shield
-      (pm-mul-into (world-basis shield)
-                   (world-basis (parent s))
-                   (local-basis shield)))))
-
 ;; XXX Transform each one of these operations into VERBS, it'll make clipping
 ;; and other effects much easier.
 (defmethod update-local-basis ((f frame))
@@ -93,15 +84,7 @@ the FUNC to each frame as one walks towards the leaves."
       (when (> ly 95d0) (setf ny 95d0))
       (when (< lx 4d0) (setf nx 4d0))
       (when (> lx 96d0) (setf nx 96d0)))
-    (pm-set-trans-into (local-basis ent) new-loc)
-
-    ;; XXX sadly, fix up the shield too. I need to think about this a
-    ;; little bit more. This is copied from the (ENT SHIP) defmethod
-    ;; and I don't like the fact it was copied and both ran, but this
-    ;; one copies different information.
-    (let ((shield (ship-main-shield ent)))
-      (when shield
-        (at-location shield ent)))))
+    (pm-set-trans-into (local-basis ent) new-loc)))
 
 ;; When the ttl for any drawable hits zero or its world coordinates
 ;; leave the arena region, it goes stale and will be removed from the

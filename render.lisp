@@ -32,10 +32,6 @@
 ;; do them...
 (defmethod render :after ((s ship))
 
-  ;; If there is a passive-gun (which is field-like) render that.
-  (when (ship-passive-gun s)
-    (render (ship-passive-gun s)))
-
   ;; If the hit-points is not equal to the maximum hit points, then
   ;; render the health bar
   (when (/= (hit-points s) (max-hit-points s))

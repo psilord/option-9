@@ -23,22 +23,11 @@
     (incf (ttl p) 60))
   p)
 
-;; Ships that specify a main-shield via keyword need to have them converted
-;; to realized shield objects.
-(defmethod make-instance-finish :after ((ent ship))
 
-  ;; FIXME to deal with the fact I use turrets now! THis is actually
-  ;; handled in SPAWN with the port layouts, so I think I can just
-  ;; delete this entire method.
-  (when (ship-main-shield ent)
-    (setf (ship-main-shield ent)
-          (make-entity (ship-main-shield ent))))
-
-  (when (ship-passive-gun ent)
-    (setf (ship-passive-gun ent)
-          (make-entity (ship-passive-gun ent))))
-  ent)
-
+;; XXX TODO: This needs to be figured out probably in SPAWN. Need(?) to add
+;; a 'control' language to the object instances to allow spwn to handle
+;; things like this. Maybe it should just BE lisp in the asset file?
+;;
 ;; For enemy-3 there is only a 25 percent chance that it actually has
 ;; the shield specified in the option-9.dat file. If we decide it
 ;; shouldn't have a shield, the we set the main-shield to null which

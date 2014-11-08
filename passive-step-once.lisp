@@ -9,10 +9,9 @@
 ;; If the ship has a passive gun, then simulate it with the ship as
 ;; the source charge and other brains as the charges
 (defmethod passive-step-once :after ((ent ship))
-  (when (ship-passive-gun ent)
-    (let ((ents
-           (all-entities-in-roles (scene-man (game-context ent))
-                                  :player :enemy-mine :enemy :enemy-shot)))
-      (generate (ship-passive-gun ent) ent ents))))
-
-
+  (let ((payload (payload (turret ent :passive-weapon-port))))
+    (when payload
+      (let ((ents
+             (all-entities-in-roles (scene-man (game-context ent))
+                                    :player :enemy-mine :enemy :enemy-shot)))
+        (generate payload ent ents)))))

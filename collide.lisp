@@ -19,8 +19,9 @@
 (defmethod collide :before ((fist collidable) (face ship))
   (when (and (alivep fist) (alivep face)
              (vulnerable fist) (vulnerable face))
-    (when (ship-passive-gun face)
-      (collide (ship-passive-gun face) fist))))
+    (let ((payload (payload (turret face :passive-weapon-port))))
+      (when payload
+        (collide payload fist)))))
 
 ;; If any field lines hit the face, perform the collision with it.
 (defmethod collide ((f tesla-field) (face collidable))
@@ -34,5 +35,3 @@
   (when (alivep face)
     (when (contacts f face)
       (perform-collide f face))))
-
-
