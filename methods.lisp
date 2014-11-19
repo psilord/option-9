@@ -176,5 +176,6 @@
   (pm-copy-into (world-basis destination) (world-basis source)))
 
 
+;; Used to give things temporary invulnerability.
 (defmethod vulnerable ((ent entity))
   (or (null (inttl ent)) (zerop (inttl ent))))

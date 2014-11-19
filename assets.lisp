@@ -23,7 +23,6 @@
     (incf (ttl p) 60))
   p)
 
-
 ;; XXX TODO: This needs to be figured out probably in SPAWN. Need(?) to add
 ;; a 'control' language to the object instances to allow spwn to handle
 ;; things like this. Maybe it should just BE lisp in the asset file?
@@ -35,7 +34,10 @@
 (defmethod make-instance-finish :before ((ent enemy-3))
   ;; FIXME to deal with the fact I use turrets now.
   (when (<= (random 1.0) .75)
-    (setf (ship-main-shield ent) nil))
+    ;; TODO: 75 percent chance to create the shield for this ship.
+
+    #+ignore(setf (ship-main-shield ent) nil))
+
   ent)
 
 

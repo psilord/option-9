@@ -265,21 +265,7 @@ vector at that position"))
 
    (%health-level :initarg :health-level
                   :initform 0
-                  :accessor powerup-health-level)
-
-   ;; destroy
-   (%main-gun :initarg :main-gun
-              :initform nil
-              :accessor powerup-main-gun)
-   ;; destroy
-   (%passive-gun :initarg :passive-gun
-                 :initform nil
-                 :accessor powerup-passive-gun)
-   ;; destroy
-   (%main-shield :initarg :main-shield
-                 :initform nil
-                 :accessor powerup-main-shield)
-   )
+                  :accessor powerup-health-level))
   (:documentation "The Powerup class"))
 
 ;; Turrets can be placed into ports.
@@ -312,16 +298,7 @@ vector at that position"))
 (defclass shield-turret (turret) ())
 
 (defclass ship (brain)
-  (;; All of these will be replaced by turrets and these slots will be removed.
-   (%main-gun :initarg :main-gun
-              :initform nil
-              :accessor ship-main-gun)
-   (%passive-gun :initarg :passive-gun
-                 :initform nil
-                 :accessor ship-passive-gun)
-   (%main-shield :initarg :main-shield
-                 :initform nil
-                 :accessor ship-main-shield)
+  (
 
 
    ;; used in the assets file to denote which turret instances are placed
@@ -394,9 +371,13 @@ vector at that position"))
   (:documentation "The Field Mine Class"))
 
 (defclass shield (brain)
+  ;; how many shots this shield has currentlyabsorbed
   ((%shots-absorbed :initarg :shots-absorbed
-                    :initform 5
-                    :accessor shots-absorbed))
+                    :initform 0
+                    :accessor shots-absorbed)
+   ;; how many total shots it can absorb when fully charged.
+   (%max-shot-absorption :initarg :max-shot-absorption
+                         :accessor max-shot-absorption))
   (:documentation "The Shield Base Class"))
 
 (defclass shot-shield (shield)

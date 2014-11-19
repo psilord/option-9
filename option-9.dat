@@ -232,7 +232,6 @@
      (:initargs
       :radius 4
       :charge 1
-      :main-gun :player-simple-shot
       :max-hit-points 40
       :damage-points 100
 
@@ -256,13 +255,13 @@
     ((:instance :player-1-shot-shield)
      (:class shot-shield)
      (:initargs
-      :shots-absorbed 5
+      :max-shot-absorption 5
       :geometry :player-1-shot-shield))
 
     ((:instance :player-1-ship-shield)
      (:class ship-shield)
      (:initargs
-      :shots-absorbed 5
+      :max-shot-absorption 5
       :geometry :player-1-ship-shield))
 
     ((:instance :player-1-simple-shot)
@@ -302,7 +301,7 @@
      (:initargs
       ;; Default tesla gun has all lines, and only gets larger.
       :power-lines 4
-      :power-range 7))
+      :power-range 3))
 
     ;; ;;;;;;;;;;;;;
     ;; Enemy 1
@@ -441,7 +440,6 @@
       :max-hit-points 300
       :damage-points 300
       :charge 1
-      :main-shield :enemy-3-shot-shield
       :shrapnel-generation .50
       :shrapnel (:enemy-3/shrapnel-1 :enemy-3/shrapnel-2)
       :port-layout
@@ -488,7 +486,7 @@
     ((:instance :enemy-3-shot-shield)
      (:class shot-shield)
      (:initargs
-      :shots-absorbed 2
+      :max-shot-absorption 2
       :geometry :enemy-3-shot-shield))
 
 

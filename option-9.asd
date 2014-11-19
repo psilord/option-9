@@ -49,6 +49,7 @@
                (:file "shoot")
                (:file "think")
                (:file "idea")
+               (:file "increase-power")
                (:file "game")
                (:file "assets")
                (:file "active-step-once")

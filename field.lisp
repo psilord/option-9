@@ -133,16 +133,6 @@
   (unless (power-density-maxp tf)
     (incf (power-lines tf))))
 
-;; We don't waste an increase of power if possible.
-(defmethod increase-power ((tf tesla-field))
-  (if (zerop (random 2))
-      (if (power-density-maxp tf)
-          (increase-range tf)
-          (increase-density tf))
-      (if (power-range-maxp tf)
-          (increase-density tf)
-          (increase-range tf))))
-
 ;; Starting at x,y trace a field line until we get close to a charge
 ;; which is not q1 or we go out of bounds.
 (defmethod trace-field-line ((f field) path-num tx ty q1 charges)

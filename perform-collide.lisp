@@ -90,58 +90,54 @@
              ;; ensure the ship's port containes the computed turret
              (setf (turret collider port-name) replacement-turret)))
 
-          ((:passive-weapon-port--)
-           ;; FIXME: Make this deal with turrets properly. This current code
-           ;; path is totally screwed.
-
-           ;; If I already have this weapon, then increase its power
-           ;; if possible. (Otherwise, replace it with the new one.)
-
-           ;; TODO: fix this to call (INCREASE item payload) when the payload
-           ;; of the powerup is identical to the actual type of the current
-           ;; passive gun.
-           (when (powerup-passive-gun collidee)
-             (if (ship-passive-gun collider)
-                 (increase-power (ship-passive-gun collider))
-                 (progn
-                   (setf (ship-passive-gun collider)
-                         (make-entity (powerup-passive-gun collidee)))
-                   ;; XXX and orient it the same way the collider is,
-                   ;; maybe acquiring a passive gun should be a clos
-                   ;; verb.
-                   (at-location (ship-passive-gun collider) collider)))))
-
           ((:shield-port :passive-weapon-port)
-           ;; TODO: Ask the current payload, if there is one AND IT IS THE SAME,
-           ;; then increase the power of the payload only.
            (let* ((the-turret (turret collider port-name))
                   ;; Try and figure out if the possibly generic name
                   ;; this payload has should be specialized to an
                   ;; instance appropriate for this collider.
                   (payload (specialize-generic-instance-name
                             (instance-name collider) payload))
+
                   ;; Note payload here would have been specialized!
-                  (payload (if payload
-                               (let ((the-item (make-entity payload)))
-                                 ;; Set up its initial location, which is
-                                 ;; where the turret is on the collider!
-                                 (at-location the-item the-turret)
-                                 ;; jam it into the scene-tree.
-                                 (insert-into-scene
-                                  (scene-man (game-context collider))
-                                  the-item
-                                  collider)
-                                 ;; And get rid of the one currently there
-                                 ;; from the scene tree and turret!
-                                 (when (payload the-turret)
-                                   (remove-from-scene
-                                    (scene-man (game-context collider))
-                                    (payload the-turret))
-                                   (setf (payload the-turret) nil))
-                                 ;; here is the payload we wish to use.
-                                 the-item)
-                               ;; or use the one I already have.
-                               (payload the-turret)))
+                  ;; TODO: Ask the current payload, if there is one
+                  ;; AND IT IS THE SAME, then increase the power of
+                  ;; the payload
+                  (payload
+                   (cond
+                     ((and (payload the-turret)
+                           (eq (instance-name (payload the-turret)) payload))
+                      ;; if we already have one and it matches what we
+                      ;; just picked up, then see if it wants to
+                      ;; increase its power, and return the same
+                      ;; payload.
+                      (increase-power (payload the-turret))
+                      (payload the-turret))
+
+                     (payload
+                      (let ((the-item (make-entity payload)))
+                        ;; Set up its initial location, which is
+                        ;; where the turret is on the collider!
+                        (at-location the-item the-turret)
+                        ;; jam it into the scene-tree.
+                        (insert-into-scene
+                         (scene-man (game-context collider))
+                         the-item
+                         collider)
+                        ;; And get rid of the one currently there
+                        ;; from the scene tree and turret!
+                        (when (payload the-turret)
+                          (remove-from-scene
+                           (scene-man (game-context collider))
+                           (payload the-turret))
+                          (setf (payload the-turret) nil))
+                        ;; here is the payload we wish to use.
+                        the-item))
+
+                     (t
+                      ;; or use the one I already have.
+                      (payload the-turret))))
+
+
                   ;; Maybe I have a new turret to use too!
                   (replacement-turret
                    (if turret-name
