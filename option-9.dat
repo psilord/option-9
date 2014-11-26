@@ -84,6 +84,10 @@
      (;; Turrets
       (:generic-one-shot-turret  (:player-1-one-shot-turret))
       (:generic-shield-turret    (:player-1-shield-turret))
+      ;; Muzzles
+      (:generic-muzzle-simple-shot   (:generic-muzzle-simple-shot))
+      (:generic-muzzle-hardnose-shot (:generic-muzzle-simple-shot))
+      (:generic-muzzle-super-shot    (:generic-muzzle-simple-shot))
       ;; Active weapon shots
       (:generic-simple-shot      (:player-1-simple-shot))
       (:generic-hardnose-shot    (:player-1-hardnose-shot))
@@ -101,6 +105,10 @@
      (;; Turrets
       (:generic-one-shot-turret  (:enemy-1-one-shot-turret))
       (:generic-shield-turret    (:enemy-1-shield-turret))
+      ;; Muzzles
+      (:generic-muzzle-simple-shot   (:generic-muzzle-simple-shot))
+      (:generic-muzzle-hardnose-shot (:generic-muzzle-simple-shot))
+      (:generic-muzzle-super-shot    (:generic-muzzle-simple-shot))
       ;; Active weapon shots
       (:generic-simple-shot      (:enemy-1-simple-shot))
       (:generic-hardnose-shot    (:enemy-1-hardnose-shot))
@@ -118,6 +126,10 @@
      (;; Turrets
       (:generic-one-shot-turret  (:enemy-2-one-shot-turret))
       (:generic-shield-turret    (:enemy-2-shield-turret))
+      ;; Muzzles
+      (:generic-muzzle-simple-shot   (:generic-muzzle-simple-shot))
+      (:generic-muzzle-hardnose-shot (:generic-muzzle-simple-shot))
+      (:generic-muzzle-super-shot    (:generic-muzzle-simple-shot))
       ;; Active weapon shots
       (:generic-simple-shot      (:enemy-2-simple-shot))
       (:generic-hardnose-shot    (:enemy-2-hardnose-shot))
@@ -135,6 +147,10 @@
      (;; Turrets
       (:generic-one-shot-turret  (:enemy-3-one-shot-turret))
       (:generic-shield-turret    (:enemy-3-shield-turret))
+      ;; Muzzles
+      (:generic-muzzle-simple-shot   (:generic-muzzle-simple-shot))
+      (:generic-muzzle-hardnose-shot (:generic-muzzle-simple-shot))
+      (:generic-muzzle-super-shot    (:generic-muzzle-simple-shot))
       ;; Active weapon shots
       (:generic-simple-shot      (:enemy-3-simple-shot))
       (:generic-hardnose-shot    (:enemy-3-hardnose-shot))
@@ -224,6 +240,24 @@
       :geometry :small-red-triangle))
 
     ;; ;;;;;;;;;;;;;
+    ;; Generic Muzzles that go into turrets and can fire a shot.
+    ;; ;;;;;;;;;;;;;
+    ((:instance :generic-muzzle-simple-shot)
+     (:class muzzle)
+     (:initargs
+      :shot-instance-name :generic-simple-shot))
+
+    ((:instance :generic-muzzle-hardnose-shot)
+     (:class muzzle)
+     (:initargs
+      :shot-instance-name :generic-hardnose-shot))
+
+    ((:instance :generic-muzzle-super-shot)
+     (:class muzzle)
+     (:initargs
+      :shot-instance-name :generic-super-shot))
+
+    ;; ;;;;;;;;;;;;;
     ;; Player 1
     ;; ;;;;;;;;;;;;;
 
@@ -240,6 +274,11 @@
        ;; :port-location,
        ;; specialized or genreic :instance-name-of-turrent,
        ;; specialized or generic :instance-name
+
+       ;; XXXXXXXXXXXXXXXXXXXXXX
+       ;; TODO, convert weapons port shot names to generic muzzle names,
+       ;; convert SHOOT to look into the muzzle when it creates the instance
+       ;; it finds there. Do this for all ships.
 
        ;; Describe all default turrets and payloads upon spawn
        ;; of :player-1
@@ -443,7 +482,7 @@
       :shrapnel-generation .50
       :shrapnel (:enemy-3/shrapnel-1 :enemy-3/shrapnel-2)
       :port-layout
-      ((:shield-port :generic-shield-turret nil)
+      ((:shield-port :generic-shield-turret ((.75 :generic-shot-shield)))
        (:passive-weapon-port :generic-one-shot-turret nil)
        (:front-weapon-port :generic-one-shot-turret :generic-simple-shot)
        (:left-weapon-port :generic-one-shot-turret nil)

@@ -23,24 +23,6 @@
     (incf (ttl p) 60))
   p)
 
-;; XXX TODO: This needs to be figured out probably in SPAWN. Need(?) to add
-;; a 'control' language to the object instances to allow spwn to handle
-;; things like this. Maybe it should just BE lisp in the asset file?
-;;
-;; For enemy-3 there is only a 25 percent chance that it actually has
-;; the shield specified in the option-9.dat file. If we decide it
-;; shouldn't have a shield, the we set the main-shield to null which
-;; makes the above generic method a noop.
-(defmethod make-instance-finish :before ((ent enemy-3))
-  ;; FIXME to deal with the fact I use turrets now.
-  (when (<= (random 1.0) .75)
-    ;; TODO: 75 percent chance to create the shield for this ship.
-
-    #+ignore(setf (ship-main-shield ent) nil))
-
-  ent)
-
-
 (defmethod make-instance-finish :after ((ent tesla-field))
   (setf (power-range ent) (power-range ent))
   (setf (power-lines ent) (power-lines ent))
@@ -105,6 +87,45 @@
          ;; argument list in concordance with the ANSI spec.
          (apply #'make-instance cls :game-context *game* full-args))))))
 
+(defun weighted-choice (choices)
+  "Given a list of probabilistic CHOICES like:
+
+ ((.25 thing-1) (.25 thing-2) (.50 thing-3))
+
+choose a random number from 0 to 1.0 and if
+
+  0.0 below .25, return thing-1
+  .25 below .50, return thing-2
+  .50 upto 1.0, return thing-3.
+
+If the ranges add up to less than than 1.0, then the remainder of the
+probability range is the NIL result. If they add up to more than 1.0, it is an
+ERROR.
+
+If (ATOM CHOICES) => T, then just return CHOICES."
+
+  (when (atom choices)
+    (return-from weighted-choice choices))
+
+  ;; Assert that the probabilities sum to 1.0 or less.
+  ;; TODO: slow to do each time, but good for consistency.
+  (let ((prob-sum (reduce '+ choices :key 'car)))
+    (when (> prob-sum 1.0)
+      (error "Probability of list ~A is ~A and violates the constraint of being less than or equal to 1.0" choices prob-sum)))
+
+  (let ((stone (random 1.0)))
+    (loop for (prob choice) in choices
+       summing prob into prob-accum do
+         (when (< stone prob-accum)
+           (return-from weighted-choice choice))))
+
+  ;; Otherwise, nothing was chosen (the sum of the probability must have
+  ;; been less than 1.0, so we ascribe the rest of the probability to NIL).
+
+  nil)
+
+
+
 (defun insts/equiv-choice (ioi/e)
   "Given an instance equivalence class, select a random :instance from it.
 Given an :instance name, just return it."
@@ -113,6 +134,7 @@ Given an :instance name, just return it."
     (if presentp
         (svref instances (random (length instances)))
         ioi/e)))
+
 
 (defun defined-roles-p (assets &rest roles)
   (dolist (role roles)

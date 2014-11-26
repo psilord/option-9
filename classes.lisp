@@ -342,6 +342,15 @@ vector at that position"))
   ()
   (:documentation "The Weapon Class"))
 
+(defclass muzzle (weapon)
+  ;; Used to hold the instance name of the shot which will come out of
+  ;; the muzzle when the turret SHOOTs with it. This MAY also have stuff
+  ;; to do with charging shots and things....
+  ((%shot-instance-name :initarg :shot-instance-name
+                        :initform nil
+                        :accessor shot-instance-name))
+  (:documentation "The Muzzle Class"))
+
 (defclass shot (weapon)
   ()
   (:documentation "The Shot Class"))

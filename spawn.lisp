@@ -156,8 +156,9 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                (a-turret
                 (make-entity
                  ;; Get an appropriate instance for this entity and turret.
-                 (specialize-generic-instance-name (instance-name entity)
-                                                   turret-instance)
+                 (specialize-generic-instance-name
+                  (instance-name entity)
+                  (weighted-choice turret-instance))
                  ;; TODO: For now, we set the orphan
                  ;; policy to just be destroyed. However,
                  ;; maybe this should be set in option-9.dat
@@ -165,8 +166,20 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                  :orphan-policy :destroy
 
                  ;; Get an appropriate payload for this entity and payload name.
+
+                 ;; XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+                 ;; XXX PROBLEM. I really need to make-entity here for
+                 ;; ALL types of payloads, even weapons. This allows
+                 ;; me to spawn enemies out of the asset files with
+                 ;; shields or weapons in a turret. So, I think I need
+                 ;; a MUZZLE instance that contains the instance name
+                 ;; of the generic shot it will produce from the
+                 ;; turret. Basically, I can't use keywords anymore
+                 ;; for the shots that SHOOT produces.
                  :payload (specialize-generic-instance-name
-                           (instance-name entity) payload)
+                           (instance-name entity)
+                           (weighted-choice payload))
                  :port port
 
                  :local-basis (pm-copy port-frame))))
