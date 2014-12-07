@@ -345,11 +345,27 @@ vector at that position"))
 (defclass muzzle (weapon)
   ;; Used to hold the instance name of the shot which will come out of
   ;; the muzzle when the turret SHOOTs with it. This MAY also have stuff
-  ;; to do with charging shots and things....
+  ;; to do with charging of shots and things....
+  ;; Children types have different effects for how they render charging and
+  ;; other effects.
   ((%shot-instance-name :initarg :shot-instance-name
                         :initform nil
                         :accessor shot-instance-name))
   (:documentation "The Muzzle Class"))
+
+;; These are mostly different for rendering differences.
+(defclass simple-muzzle (muzzle)
+  ()
+  (:documentation "Muzzles which hold simple shots only"))
+
+(defclass hardnose-muzzle (muzzle)
+  ()
+  (:documentation "Muzzles which hold hardnose shots only"))
+
+(defclass super-muzzle (muzzle)
+  ()
+  (:documentation "Muzzles which hold super shots only"))
+
 
 (defclass shot (weapon)
   ()

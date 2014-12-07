@@ -103,12 +103,19 @@
 
   (with-game-init ("option-9.dat")
     (sdl:with-init (sdl:sdl-init-everything)
+
+      ;; for post processing smoothing of the lines and whantot.
+      ;; set before I make the OpenGL context.
+      ;;(sdl:set-gl-attribute :sdl-gl-multisamplebuffers 1)
+      ;;(sdl:set-gl-attribute :sdl-gl-multisamplesamples 4)
+
       (sdl:window 700 700
                   :title-caption "Option 9 Version 0.9"
                   :icon-caption "Option 9"
                   :opengl t
                   :opengl-attributes '((:SDL-GL-DOUBLEBUFFER 1))
                   :fps (make-instance 'sdl:fps-fixed :target-frame-rate 60))
+
       (sdl:show-cursor nil)
       (gl:clear-color 0 0 0 0)
       ;; Initialize viewing values.
@@ -116,6 +123,9 @@
       (gl:load-identity)
       ;; The world is (0,0) to (100,100)
       (gl:ortho 0 100 0 100 -1 1)
+
+      ;; nice antialiased lines, given the multisampling stuff.
+      ;;(gl:enable :multisample)
 
       (initialize-joysticks)
 

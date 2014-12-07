@@ -86,8 +86,8 @@
       (:generic-shield-turret    (:player-1-shield-turret))
       ;; Muzzles
       (:generic-muzzle-simple-shot   (:generic-muzzle-simple-shot))
-      (:generic-muzzle-hardnose-shot (:generic-muzzle-simple-shot))
-      (:generic-muzzle-super-shot    (:generic-muzzle-simple-shot))
+      (:generic-muzzle-hardnose-shot (:generic-muzzle-hardnose-shot))
+      (:generic-muzzle-super-shot    (:generic-muzzle-super-shot))
       ;; Active weapon shots
       (:generic-simple-shot      (:player-1-simple-shot))
       (:generic-hardnose-shot    (:player-1-hardnose-shot))
@@ -107,8 +107,8 @@
       (:generic-shield-turret    (:enemy-1-shield-turret))
       ;; Muzzles
       (:generic-muzzle-simple-shot   (:generic-muzzle-simple-shot))
-      (:generic-muzzle-hardnose-shot (:generic-muzzle-simple-shot))
-      (:generic-muzzle-super-shot    (:generic-muzzle-simple-shot))
+      (:generic-muzzle-hardnose-shot (:generic-muzzle-hardnose-shot))
+      (:generic-muzzle-super-shot    (:generic-muzzle-super-shot))
       ;; Active weapon shots
       (:generic-simple-shot      (:enemy-1-simple-shot))
       (:generic-hardnose-shot    (:enemy-1-hardnose-shot))
@@ -128,8 +128,8 @@
       (:generic-shield-turret    (:enemy-2-shield-turret))
       ;; Muzzles
       (:generic-muzzle-simple-shot   (:generic-muzzle-simple-shot))
-      (:generic-muzzle-hardnose-shot (:generic-muzzle-simple-shot))
-      (:generic-muzzle-super-shot    (:generic-muzzle-simple-shot))
+      (:generic-muzzle-hardnose-shot (:generic-muzzle-hardnose-shot))
+      (:generic-muzzle-super-shot    (:generic-muzzle-super-shot))
       ;; Active weapon shots
       (:generic-simple-shot      (:enemy-2-simple-shot))
       (:generic-hardnose-shot    (:enemy-2-hardnose-shot))
@@ -149,8 +149,8 @@
       (:generic-shield-turret    (:enemy-3-shield-turret))
       ;; Muzzles
       (:generic-muzzle-simple-shot   (:generic-muzzle-simple-shot))
-      (:generic-muzzle-hardnose-shot (:generic-muzzle-simple-shot))
-      (:generic-muzzle-super-shot    (:generic-muzzle-simple-shot))
+      (:generic-muzzle-hardnose-shot (:generic-muzzle-hardnose-shot))
+      (:generic-muzzle-super-shot    (:generic-muzzle-super-shot))
       ;; Active weapon shots
       (:generic-simple-shot      (:enemy-3-simple-shot))
       (:generic-hardnose-shot    (:enemy-3-hardnose-shot))
@@ -243,17 +243,17 @@
     ;; Generic Muzzles that go into turrets and can fire a shot.
     ;; ;;;;;;;;;;;;;
     ((:instance :generic-muzzle-simple-shot)
-     (:class muzzle)
+     (:class simple-muzzle)
      (:initargs
       :shot-instance-name :generic-simple-shot))
 
     ((:instance :generic-muzzle-hardnose-shot)
-     (:class muzzle)
+     (:class hardnose-muzzle)
      (:initargs
       :shot-instance-name :generic-hardnose-shot))
 
     ((:instance :generic-muzzle-super-shot)
-     (:class muzzle)
+     (:class super-muzzle)
      (:initargs
       :shot-instance-name :generic-super-shot))
 
@@ -284,11 +284,11 @@
        ;; of :player-1
        (:shield-port :generic-shield-turret nil)
        (:passive-weapon-port :generic-one-shot-turret nil)
-       (:front-weapon-port :generic-one-shot-turret :generic-simple-shot)
-       (:left-weapon-port :generic-one-shot-turret :generic-simple-shot)
+       (:front-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot)
+       (:left-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot)
        (:center-weapon-port :generic-one-shot-turret nil)
-       (:right-weapon-port :generic-one-shot-turret :generic-simple-shot)
-       (:rear-weapon-port :generic-one-shot-turret :generic-simple-shot))
+       (:right-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot)
+       (:rear-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot))
       :geometry :player-1-ship))
 
     ((:instance :player-1-shot-shield)
@@ -358,7 +358,7 @@
       :port-layout
       ((:shield-port :generic-shield-turret nil)
        (:passive-weapon-port :generic-one-shot-turret nil)
-       (:front-weapon-port :generic-one-shot-turret :generic-simple-shot)
+       (:front-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot)
        (:left-weapon-port :generic-one-shot-turret nil)
        (:center-weapon-port :generic-one-shot-turret nil)
        (:right-weapon-port :generic-one-shot-turret nil)
@@ -421,7 +421,7 @@
       :port-layout
       ((:shield-port :generic-shield-turret nil)
        (:passive-weapon-port :generic-one-shot-turret nil)
-       (:front-weapon-port :generic-one-shot-turret :generic-simple-shot)
+       (:front-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot)
        (:left-weapon-port :generic-one-shot-turret nil)
        (:center-weapon-port :generic-one-shot-turret nil)
        (:right-weapon-port :generic-one-shot-turret nil)
@@ -484,7 +484,7 @@
       :port-layout
       ((:shield-port :generic-shield-turret ((.75 :generic-shot-shield)))
        (:passive-weapon-port :generic-one-shot-turret nil)
-       (:front-weapon-port :generic-one-shot-turret :generic-simple-shot)
+       (:front-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot)
        (:left-weapon-port :generic-one-shot-turret nil)
        (:center-weapon-port :generic-one-shot-turret nil)
        (:right-weapon-port :generic-one-shot-turret nil)
@@ -555,7 +555,7 @@
      (:initargs
       :ttl-max 240
       :radius 4
-      :powerup-turrets ((:front-weapon-port nil :generic-hardnose-shot))
+      :powerup-turrets ((:front-weapon-port nil :generic-muzzle-hardnose-shot))
       :geometry :powerup-hardnose))
 
     ((:instance :powerup-super-shot)
@@ -563,7 +563,7 @@
      (:initargs
       :ttl-max 240
       :radius 4
-      :powerup-turrets ((:front-weapon-port nil :generic-super-shot))
+      :powerup-turrets ((:front-weapon-port nil :generic-muzzle-super-shot))
       :geometry :powerup-super-shot))
 
     ((:instance :powerup-tesla-gun)

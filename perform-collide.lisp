@@ -56,115 +56,80 @@
 
         ;; For these forms, a port-name must always exist.
         (assert port-name)
+        (let* ((the-turret (turret collider port-name))
+               ;; Try and figure out if the possibly generic name
+               ;; this payload has should be specialized to an
+               ;; instance appropriate for this collider.
+               (payload (specialize-generic-instance-name
+                         (instance-name collider) payload))
 
-        (case port-name
-          ((:front-weapon-port :left-weapon-port :center-weapon-port
-                               :rear-weapon-port)
-           ;; upgrade the turret at the port-name, the payload, or both.
-           (let* ((the-turret (turret collider port-name))
-                  ;; Try and figure out if the possibly generic name
-                  ;; this payload has should be specialized to an
-                  ;; instance appropriate for this collider.
-                  (payload (specialize-generic-instance-name
-                            (instance-name collider) payload))
-                  ;; Note payload here would have been specialized!
-                  (payload (if payload
-                               payload
-                               ;; else get the current payload from the
-                               ;; named turret.
-                               (payload the-turret)))
-                  ;; Maybe I have a new turret to use too!
-                  (replacement-turret
-                   (if turret-name
-                       (make-entity turret-name)
-                       the-turret)))
+               ;; Note payload here would have been specialized!
+               ;; TODO: Ask the current payload, if there is one
+               ;; AND IT IS THE SAME, then increase the power of
+               ;; the payload
+               (payload
+                (cond
+                  ((and (payload the-turret)
+                        (eq (instance-name (payload the-turret)) payload))
+                   ;; if we already have one and it matches what we
+                   ;; just picked up, then see if it wants to
+                   ;; increase its power, and return the same
+                   ;; payload.
+                   (increase-power (payload the-turret))
+                   (payload the-turret))
 
-             ;; Ensure the computed payload is assigned into the
-             ;; computed turret.
-             (setf (payload replacement-turret) payload)
-
-             ;; These turrets use instance names as their payload.
-             (setf (payload-instance-p replacement-turret)
-                   (if (keywordp payload) nil t))
-
-             ;; ensure the ship's port containes the computed turret
-             (setf (turret collider port-name) replacement-turret)))
-
-          ((:shield-port :passive-weapon-port)
-           (let* ((the-turret (turret collider port-name))
-                  ;; Try and figure out if the possibly generic name
-                  ;; this payload has should be specialized to an
-                  ;; instance appropriate for this collider.
-                  (payload (specialize-generic-instance-name
-                            (instance-name collider) payload))
-
-                  ;; Note payload here would have been specialized!
-                  ;; TODO: Ask the current payload, if there is one
-                  ;; AND IT IS THE SAME, then increase the power of
-                  ;; the payload
                   (payload
-                   (cond
-                     ((and (payload the-turret)
-                           (eq (instance-name (payload the-turret)) payload))
-                      ;; if we already have one and it matches what we
-                      ;; just picked up, then see if it wants to
-                      ;; increase its power, and return the same
-                      ;; payload.
-                      (increase-power (payload the-turret))
-                      (payload the-turret))
+                   (let ((the-item (make-entity payload)))
+                     ;; Set up its initial location, which is
+                     ;; where the turret is on the collider!
+                     (at-location the-item the-turret)
+                     ;; jam it into the scene-tree.
+                     (insert-into-scene
+                      (scene-man (game-context collider))
+                      the-item
+                      collider)
+                     ;; And get rid of the one currently there
+                     ;; from the scene tree and turret!
+                     (when (payload the-turret)
+                       (remove-from-scene
+                        (scene-man (game-context collider))
+                        (payload the-turret))
+                       (setf (payload the-turret) nil))
+                     ;; here is the payload we wish to use.
+                     the-item))
 
-                     (payload
-                      (let ((the-item (make-entity payload)))
-                        ;; Set up its initial location, which is
-                        ;; where the turret is on the collider!
-                        (at-location the-item the-turret)
-                        ;; jam it into the scene-tree.
-                        (insert-into-scene
-                         (scene-man (game-context collider))
-                         the-item
-                         collider)
-                        ;; And get rid of the one currently there
-                        ;; from the scene tree and turret!
-                        (when (payload the-turret)
-                          (remove-from-scene
-                           (scene-man (game-context collider))
-                           (payload the-turret))
-                          (setf (payload the-turret) nil))
-                        ;; here is the payload we wish to use.
-                        the-item))
-
-                     (t
-                      ;; or use the one I already have.
-                      (payload the-turret))))
+                  (t
+                   ;; or use the one I already have.
+                   (payload the-turret))))
 
 
-                  ;; Maybe I have a new turret to use too!
-                  (replacement-turret
-                   (if turret-name
-                       (let ((new-turret (make-entity turret-name)))
-                         ;; dump current turret.
-                         (remove-from-scene (scene-man (game-context collider))
-                                            the-turret)
-                         (setf (turret collider port-name) nil)
-                         ;; shove new one into scene tree.
-                         (insert-into-scene
-                          (scene-man (game-context collider))
-                          new-turret collider)
-                         ;; and this is out replacement...
-                         new-turret)
-                       ;; or just use the old one.
-                       the-turret)))
+               ;; Maybe I have a new turret to use too!
+               (replacement-turret
+                (if turret-name
+                    (let ((new-turret (make-entity turret-name)))
+                      ;; dump current turret.
+                      (remove-from-scene (scene-man (game-context collider))
+                                         the-turret)
+                      (setf (turret collider port-name) nil)
+                      ;; shove new one into scene tree.
+                      (insert-into-scene
+                       (scene-man (game-context collider))
+                       new-turret collider)
+                      ;; and this is out replacement...
+                      new-turret)
+                    ;; or just use the old one.
+                    the-turret)))
 
-             ;; Ensure the computed payload is assigned into the
-             ;; computed turret.
-             (setf (payload replacement-turret) payload)
+          ;; Ensure the computed payload is assigned into the
+          ;; computed turret.
+          (setf (payload replacement-turret) payload)
 
-             ;; These turrets use instance names as their payload.
-             (setf (payload-instance-p replacement-turret)
-                   (if (keywordp payload) nil t))
+          ;; These turrets use instance names as their payload.
+          (setf (payload-instance-p replacement-turret)
+                (if (keywordp payload) nil t))
 
-             ;; ensure the ship's port containes the computed turret
-             (setf (turret collider port-name) replacement-turret))))))
+          ;; ensure the ship's port containes the computed turret
+          (setf (turret collider port-name) replacement-turret))))
 
 
 
