@@ -61,7 +61,7 @@
 
 ;; Eval any typed in expressions in the option-9 package.
 (defun text-console ()
-  (format t "Welcome to Text Console~%")
+  (format t "Welcome to Text Console, (quit) exits the console!~%")
   (let ((*package* (find-package 'option-9)))
     ;; If the mouse cursor is not shown, show it when we enter the
     ;; console.  Otherwise it freaks me out and I think my machine is
@@ -75,7 +75,7 @@
              (repl))
         (when (and sdl-initp cursor-not-shown)
           (sdl:show-cursor nil)))
-      (format t "Resuming game.~%"))))
+      (format t "Exiting Text Console.~%"))))
 
 
 #+ignore(defun option-9-profiled ()
@@ -135,7 +135,11 @@
                          ;; (format t "Key down: ~S~%" key)
                          (case key
                            (:sdl-key-p (toggle-paused *game*))
-                           (:sdl-key-e (text-console))
+                           (:sdl-key-e
+                            (format t "Pausing game....~%")
+                            (toggle-paused *game*)
+                            (text-console)
+                            (format t "Unpause to keep playing!~%"))
                            (:sdl-key-q (sdl:push-quit-event))
                            (:sdl-key-space
                             (let ((player (car (entities-with-role
