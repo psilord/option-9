@@ -157,8 +157,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                 (make-entity
                  ;; Get an appropriate instance for this entity and turret.
                  (specialize-generic-instance-name
-                  (instance-name entity)
-                  (weighted-choice turret-instance))
+                  (instance-name entity) turret-instance)
                  ;; TODO: For now, we set the orphan
                  ;; policy to just be destroyed. However,
                  ;; maybe this should be set in option-9.dat
@@ -168,8 +167,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                  ;; Get an appropriate payload for this entity and payload name.
                  :payload
                  (let ((payload (specialize-generic-instance-name
-                                 (instance-name entity)
-                                 (weighted-choice payload))))
+                                 (instance-name entity) payload)))
                    (when payload
                      (make-entity payload)))
 

@@ -146,27 +146,30 @@ Given an :instance name, just return it."
   t)
 
 (defun specialize-generic-instance-name (context-instance-name
-                                         generic-instance-name)
+                                         generic-instance-name/choice)
   "Given a CONTEXT instance-name keyword (like :player-1), lookup the
-NAME, which is a generic instance name keyword (like :hardnose-shot),
-and return a KEYWORD which is either the specialized name (such
-as :player-1-hardnose-shot), or the original GENERIC-INSTANCE-NAME if
-no specialization was found."
-  (multiple-value-bind (cin-hash presentp)
-      (gethash context-instance-name (instance-specialization-map *assets*))
-
-    (unless presentp
-      (return-from specialize-generic-instance-name generic-instance-name))
-
-    (multiple-value-bind (spec-name-list presentp)
-        (gethash generic-instance-name cin-hash)
+GENERIC-INSTANCE-NAME/CHOICE, which is a generic instance name keyword
+such as :generic-hardnose-shot or a weighted choice list such
+as ((.50 :generic-hardnose-shot) (.25 :generic-super-shot)). Return
+return a KEYWORD which is either the specialized name (such
+as :player-1-hardnose-shot), or the original symbol or chosen element
+from the GENERIC-INSTANCE-NAME/CHOICE if no specialization was found."
+  (let ((chosen-instance-name (weighted-choice generic-instance-name/choice)))
+    (multiple-value-bind (cin-hash presentp)
+        (gethash context-instance-name (instance-specialization-map *assets*))
 
       (unless presentp
-        (return-from specialize-generic-instance-name generic-instance-name))
+        (return-from specialize-generic-instance-name chosen-instance-name))
 
-      ;; Until I possibly extend the spec-name-lists, just return the
-      ;; first one.
-      (car spec-name-list))))
+      (multiple-value-bind (spec-name-list presentp)
+          (gethash chosen-instance-name cin-hash)
+
+        (unless presentp
+          (return-from specialize-generic-instance-name chosen-instance-name))
+
+        ;; Until I possibly extend the spec-name-lists, just return the
+        ;; first one.
+        (car spec-name-list)))))
 
 ;; This takes a relative filename based at the installation location
 ;; of the package.

@@ -39,6 +39,5 @@
            ;; Specialize the shot in the muzzle to be appropriate for the
            ;; ship firing it.
            (specialize-generic-instance-name
-            (instance-name ship)
-            (weighted-choice shot-name))
+            (instance-name ship) shot-name)
            turret (game-context ship))))
