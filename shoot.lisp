@@ -3,7 +3,8 @@
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
 ;; The shoot verb has become odd. It really means to activate the
-;; thing in the turret, so this verb probably has to change.
+;; thing in the turret, so this verb probably has to change. I've introduce
+;; the verb fire which is specific to a muzzle.
 
 (defgeneric fire (ship spawn-class muzzle turret)
   (:documentation "Fire a muzzle"))
