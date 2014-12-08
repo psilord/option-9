@@ -8,7 +8,7 @@
 
 ;; If any random entity sets a ttl-max and nothing more specific changes this
 ;; method, then assign a random ttl based upon the ttl-max.
-(defmethod make-instance-finish :after ((s ephemeral))
+(defmethod make-instance-finish :after ((s temporal))
   (when (not (null (ttl-max s)))
     (setf (ttl s) (random (ttl-max s))))
   s)

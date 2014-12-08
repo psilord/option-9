@@ -107,7 +107,7 @@ the class must be of type DRAWABLE or more specialized."))
                        :accessor additional-sparks))
   (:documentation "The Entity Class"))
 
-(defclass ephemeral ()
+(defclass temporal ()
   ;; temporal simulation variables
   (;; Time To Live
    (%ttl :initarg :ttl
@@ -147,7 +147,7 @@ the class must be of type DRAWABLE or more specialized."))
    "The Location Class. Used to hold a current position and direction
 vector at that position"))
 
-(defclass frame (ephemeral)
+(defclass frame (temporal)
   (
    ;; Incremental fly vector, accumulated into the basis at each step
    ;; (if flying).
