@@ -9,6 +9,11 @@
   (let ((geometry (geometry ent)))
     ;; only render if we actually have a geometry to render.
     (when geometry
+
+      ;; Give opengl my world-basis so all verticies are computed by ogl.
+      (gl:matrix-mode :modelview)
+      (gl:load-matrix (pm-convert-to-opengl (world-basis ent)))
+
       ;; render a list of possibly differing primitives associated with
       ;; this shape. NOTE: this is realy simple, nothign like texturing
       ;; is supported.
@@ -23,7 +28,6 @@
                   vertex/color
                 (gl:color cx cy cz)
                 (pv-set-into vertex vx vy vz)
-                (pm-apply-into vertex (world-basis ent) vertex)
                 (with-pvec-accessors (w vertex)
                   (gl:vertex wx wy wz))))))))))
 
@@ -35,6 +39,12 @@
   ;; If the hit-points is not equal to the maximum hit points, then
   ;; render the health bar
   (when (/= (hit-points s) (max-hit-points s))
+
+    ;; Hrm, this hud is in the world coordinates. I'm suspicious that this is
+    ;; the right coordinate system for this task..
+    (gl:matrix-mode :modelview)
+    (gl:load-identity)
+
     (with-pvec-accessors (o (pm-get-trans (world-basis s)))
       (gl:line-width 4.0)
       (gl:with-primitive :lines
@@ -67,6 +77,11 @@
 ;; regular render so any :primitives for the passive-gun get rendered
 ;; on top of the passive effect.
 (defmethod render :before ((f tesla-field))
+
+  ;; The tesla field is rendered in the world coordiante system.
+  (gl:matrix-mode :modelview)
+  (gl:load-identity)
+
   (maphash
    #'(lambda (eid path-contact)
        (with-accessors ((pc-number-of-contacts number-of-contacts)
