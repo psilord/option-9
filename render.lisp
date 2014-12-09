@@ -34,6 +34,7 @@
                 (pv-set-into vertex vx vy vz)
                 (with-pvec-accessors (w vertex)
                   (gl:vertex wx wy wz)))))))
+
       (gl:pop-matrix))))
 
 
@@ -45,8 +46,8 @@
   ;; render the health bar
   (when (/= (hit-points s) (max-hit-points s))
 
-    ;; Hrm, this hud is in the world coordinates. I'm suspicious that this is
-    ;; the right coordinate system for this task..
+    ;; TODO: Hrm, this hud is in the world coordinates. I'm suspicious
+    ;; that this is the right coordinate system for this task..
     (gl:matrix-mode :modelview)
     (gl:push-matrix)
     (gl:load-identity)
