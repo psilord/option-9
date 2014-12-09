@@ -12,7 +12,11 @@
 
       ;; Give opengl my world-basis so all verticies are computed by ogl.
       (gl:matrix-mode :modelview)
-      (gl:load-matrix (pm-convert-to-opengl (world-basis ent)))
+      ;; Push matrix because I have the inverted camera view matrix
+      ;; there already.
+      (gl:push-matrix)
+      ;; Then put the object into the camera's coordinate system.
+      (gl:mult-matrix (pm-convert-to-opengl (world-basis ent)))
 
       ;; render a list of possibly differing primitives associated with
       ;; this shape. NOTE: this is realy simple, nothign like texturing
@@ -29,7 +33,8 @@
                 (gl:color cx cy cz)
                 (pv-set-into vertex vx vy vz)
                 (with-pvec-accessors (w vertex)
-                  (gl:vertex wx wy wz))))))))))
+                  (gl:vertex wx wy wz)))))))
+      (gl:pop-matrix))))
 
 
 ;; Ships have various other things which need to be rendered as well. So
@@ -43,6 +48,7 @@
     ;; Hrm, this hud is in the world coordinates. I'm suspicious that this is
     ;; the right coordinate system for this task..
     (gl:matrix-mode :modelview)
+    (gl:push-matrix)
     (gl:load-identity)
 
     (with-pvec-accessors (o (pm-get-trans (world-basis s)))
@@ -69,7 +75,9 @@
           (gl:vertex (+ ox 4)
                      (+ oy 5)
                      0d0)))
-      (gl:line-width 1.0))))
+      (gl:line-width 1.0))
+
+    (gl:pop-matrix)))
 
 ;; Draw the field lines before any actual geometry of the weapon. We
 ;; do this by walking the entity-contacts hash table which lets us
@@ -80,6 +88,7 @@
 
   ;; The tesla field is rendered in the world coordiante system.
   (gl:matrix-mode :modelview)
+  (gl:push-matrix)
   (gl:load-identity)
 
   (maphash
@@ -107,4 +116,6 @@
                    (gl:vertex (x loc) (y loc) (z loc)))))
 
              (gl:line-width 1.0)))))
-   (entity-contacts f)))
+   (entity-contacts f))
+
+  (gl:pop-matrix))
