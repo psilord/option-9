@@ -114,7 +114,10 @@
                   :icon-caption "Option 9"
                   :opengl t
                   :opengl-attributes '((:SDL-GL-DOUBLEBUFFER 1))
-                  :fps (make-instance 'sdl:fps-fixed :target-frame-rate 60))
+                  :fps (make-instance 'sdl:fps-fixed))
+
+      ;; However, unlock the frame rate.
+      (setf (sdl:frame-rate) nil)
 
       (sdl:show-cursor nil)
       (gl:clear-color 0 0 0 0)
@@ -129,101 +132,129 @@
 
       (initialize-joysticks)
 
-      (sdl:with-events ()
-        (:quit-event () t)
-        (:key-down-event (:key key)
-                         ;; (format t "Key down: ~S~%" key)
+      (let ((current-time (local-time:now))
+            (dt-accum 0))
+        (sdl:with-events ()
+          (:quit-event () t)
+          (:key-down-event (:key key)
+                           ;; (format t "Key down: ~S~%" key)
+                           (case key
+                             (:sdl-key-p (toggle-paused *game*))
+                             (:sdl-key-e
+                              (format t "Pausing game....~%")
+                              (toggle-paused *game*)
+                              (text-console)
+                              (format t "Unpause to keep playing!~%"))
+                             (:sdl-key-q
+                              (sdl:push-quit-event))
+                             (:sdl-key-z
+                              (let ((player (car (entities-with-role
+                                                  (scene-man *game*) :player))))
+                                (when player
+                                  (shoot player :left-weapon-port))))
+                             (:sdl-key-d
+                              (let ((player (car (entities-with-role
+                                                  (scene-man *game*) :player))))
+                                (when player
+                                  (shoot player :center-weapon-port))))
+                             (:sdl-key-x
+                              (let ((player (car (entities-with-role
+                                                  (scene-man *game*) :player))))
+                                (when player
+                                  (shoot player :rear-weapon-port))))
+                             (:sdl-key-c
+                              (let ((player (car (entities-with-role
+                                                  (scene-man *game*) :player))))
+                                (when player
+                                  (shoot player :right-weapon-port))))
+                             (:sdl-key-up
+                              (move-player-keyboard *game* :begin :up))
+                             (:sdl-key-down
+                              (move-player-keyboard *game* :begin :down))
+                             (:sdl-key-left
+                              (move-player-keyboard *game* :begin :left))
+                             (:sdl-key-right
+                              (move-player-keyboard *game* :begin :right))))
+          (:key-up-event (:key key)
+                         ;; (format t "Key up: ~S~%" key)
                          (case key
-                           (:sdl-key-p (toggle-paused *game*))
-                           (:sdl-key-e
-                            (format t "Pausing game....~%")
-                            (toggle-paused *game*)
-                            (text-console)
-                            (format t "Unpause to keep playing!~%"))
-                           (:sdl-key-q (sdl:push-quit-event))
                            (:sdl-key-space
                             (let ((player (car (entities-with-role
                                                 (scene-man *game*) :player))))
                               (when player
                                 (shoot player :front-weapon-port))))
-                           (:sdl-key-z
-                            (let ((player (car (entities-with-role
-                                                (scene-man *game*) :player))))
-                              (when player
-                                (shoot player :left-weapon-port))))
-                           (:sdl-key-d
-                            (let ((player (car (entities-with-role
-                                                (scene-man *game*) :player))))
-                              (when player
-                                (shoot player :center-weapon-port))))
-                           (:sdl-key-x
-                            (let ((player (car (entities-with-role
-                                                (scene-man *game*) :player))))
-                              (when player
-                                (shoot player :rear-weapon-port))))
-                           (:sdl-key-c
-                            (let ((player (car (entities-with-role
-                                                (scene-man *game*) :player))))
-                              (when player
-                                (shoot player :right-weapon-port))))
                            (:sdl-key-up
-                            (move-player-keyboard *game* :begin :up))
+                            (move-player-keyboard *game* :end :up))
                            (:sdl-key-down
-                            (move-player-keyboard *game* :begin :down))
+                            (move-player-keyboard *game* :end :down))
                            (:sdl-key-left
-                            (move-player-keyboard *game* :begin :left))
+                            (move-player-keyboard *game* :end :left))
                            (:sdl-key-right
-                            (move-player-keyboard *game* :begin :right))))
-        (:key-up-event (:key key)
-                       ;; (format t "Key up: ~S~%" key)
-                       (case key
-                         (:sdl-key-up
-                          (move-player-keyboard *game* :end :up))
-                         (:sdl-key-down
-                          (move-player-keyboard *game* :end :down))
-                         (:sdl-key-left
-                          (move-player-keyboard *game* :end :left))
-                         (:sdl-key-right
-                          (move-player-keyboard *game* :end :right))))
+                            (move-player-keyboard *game* :end :right))))
 
-        (:joy-axis-motion-event (:which which :axis axis :value value)
-                                (assert (= which 0))
-                                ;; XXX crappy zeroing to get rid of jitter.
-                                ;; need a batter calibration algorithm.
-                                (when (and (or (= axis 0) (= axis 1)) nil)
-                                  (let ((val (/ value 32768d0)))
-                                    (if (or (> val 7d0)
-                                            (< val -7d0))
-                                        (move-player-joystick *game* axis val)
-                                        (move-player-joystick *game* axis 0d0)))))
+          (:joy-axis-motion-event (:which which :axis axis :value value)
+                                  (assert (= which 0))
+                                  ;; XXX crappy zeroing to get rid of jitter.
+                                  ;; need a batter calibration algorithm.
+                                  (when (and (or (= axis 0) (= axis 1)) nil)
+                                    (let ((val (/ value 32768d0)))
+                                      (if (or (> val 7d0)
+                                              (< val -7d0))
+                                          (move-player-joystick *game* axis val)
+                                          (move-player-joystick *game* axis 0d0)))))
 
-        (:joy-button-down-event (:which which :button button :state state)
-                                (format t "JOY BUTTON DN: ~A ~A ~A~%"
-                                        which button state)
-                                (cond
-                                  ((= button 0)
-                                   (let ((player (car (entities-with-role
-                                                       (scene-man *game*)
-                                                       :player))))
-                                     (when player
-                                       (shoot player :front-turret-port))))
-                                  ((= button 6)
-                                   (sdl:push-quit-event))))
+          (:joy-button-down-event (:which which :button button :state state)
+                                  (format t "JOY BUTTON DN: ~A ~A ~A~%"
+                                          which button state)
+                                  (cond
+                                    ((= button 0)
+                                     (let ((player (car (entities-with-role
+                                                         (scene-man *game*)
+                                                         :player))))
+                                       (when player
+                                         (shoot player :front-turret-port))))
+                                    ((= button 6)
+                                     (sdl:push-quit-event))))
 
-        (:joy-button-up-event (:which which :button button :state state)
-                              (format t "JOY BUTTON UP: ~A ~A ~A~%"
-                                      which button state))
+          (:joy-button-up-event (:which which :button button :state state)
+                                (format t "JOY BUTTON UP: ~A ~A ~A~%"
+                                        which button state))
 
-        ;; :axis instead of :hat. Stupid wrong docs.
-        (:joy-hat-motion-event (:which which :axis axis :value value)
-                               (format t "JOY HAT: ~A ~A ~A~%"
-                                       which axis value))
+          ;; :axis instead of :hat. Stupid wrong docs.
+          (:joy-hat-motion-event (:which which :axis axis :value value)
+                                 (format t "JOY HAT: ~A ~A ~A~%"
+                                         which axis value))
 
 
-        (:idle ()
-               (step-game *game*)
-               (display *game*)
+          (:idle ()
+                 ;; The physics runs at 1/60th of a second time units.
+                 (let* ((dt (* 1/60 1000000)) ;; 1/60th of a sec in usecs.
+                        (new-time (local-time:now))
+                        (frame-time (timestamp-subtract new-time current-time)))
+                   ;; Set maximum frame time in case we slow down beyond it.
+                   (when (> frame-time dt)
+                     (setf frame-time dt))
 
-               ;; Start processing buffered OpenGL routines.
-               (gl:flush)
-               (sdl:update-display))))))
+                   ;;(format t "frame-time = ~A usec~%" frame-time)
+
+                   (setf current-time new-time)
+                   (incf dt-accum frame-time)
+
+                   ;; Consume the generated time in the renderer.
+                   (loop while (> dt-accum dt) do
+                        (step-game *game*)
+                        (decf dt-accum dt))
+
+                   ;; TODO: Need to account for temporal aliasing!
+                   ;; See Fix Your Timestep.
+                   ;; I'm currently unsure how to do the interpolation method
+                   ;; given how my state is represented and sitributed across
+                   ;; all of my objects. I'd also need to keep THREE entire
+                   ;; states available to perform the interpolation. Need to
+                   ;; think on it.
+
+                   (display *game*)
+
+                   ;; Start processing buffered OpenGL routines.
+                   (gl:flush)
+                   (sdl:update-display))))))))

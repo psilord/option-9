@@ -68,3 +68,31 @@
 
 (defmacro mihtequalp (&body keys/values)
   `(make-initialized-hash-table (:test #'equalp) ,@keys/values))
+
+
+(defun timestamp-subtract (x y)
+  "Perform (- X Y) with the LOCAL-TIME objects and return +/- usec of the
+difference.
+
+Inspired from: http://www.gnu.org/savannah-checkouts/gnu/libc/manual/html_node/Elapsed-Time.html"
+  (let* ((sx (local-time:timestamp-to-unix x))
+         (ux (truncate (local-time:nsec-of x) 1000)) ; convert nsec to usec
+         (sy (local-time:timestamp-to-unix y))
+         (uy (truncate (local-time:nsec-of y) 1000))) ; convert nsec to usec
+
+    (cond
+      ((< ux uy)
+       (let ((nsec (1+ (truncate (- uy ux) 1000000))))
+         (psetf uy (- uy (* nsec 1000000))
+                sy (+ sy nsec)))))
+
+    (cond
+      ((> (- ux uy) 1000000)
+       (let ((nsec (truncate (- ux uy) 1000000)))
+         (psetf uy (+ uy (* nsec 1000000))
+                sy (- sy nsec)))))
+
+    (let ((sr (- sx sy))
+          (ur (- ux uy)))
+      ;; Return the +/- difference in usec.
+      (+ (* sr 1000000) ur))))

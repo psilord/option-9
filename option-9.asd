@@ -27,7 +27,7 @@
   :license "Apache License, Version 2.0"
 
   :serial t
-  :depends-on (#:alexandria #:cl-opengl #:lispbuilder-sdl)
+  :depends-on (#:alexandria #:local-time #:cl-opengl #:lispbuilder-sdl)
   :components ((:file "package")
                (:file "classes")
                (:file "generic-functions")
