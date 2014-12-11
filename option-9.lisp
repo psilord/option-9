@@ -156,7 +156,9 @@
                              (:sdl-key-q ;; Quit game
                               (sdl:push-quit-event))
                              (:sdl-key-f ;; fps on/off
-                              (setf emit-fps-p (not emit-fps-p))
+                              (setf emit-fps-p (not emit-fps-p)
+                                    frame-count 0
+                                    frame-time-accum 0)
                               (format t "Turned fps monitoring ~:[off~;on~]~%"
                                       emit-fps-p))
                              (:sdl-key-z ;; TEST: left weapon port fire
