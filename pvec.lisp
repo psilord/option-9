@@ -393,10 +393,3 @@ the vector space defined by the :SPAN keyword. :SPAN may be one of:
   "Compute and return a new pvec with a randomized oriented and
   normalized vector in the specified SPAN."
   (pv-rand-dir-into (pvec) :span span))
-
-
-
-
-
-
-

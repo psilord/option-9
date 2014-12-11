@@ -690,13 +690,3 @@ The return values with respect to the basis location and orientation:
               (list :above))
              ((:yz)
               (list :left)))))))))
-
-
-
-
-
-
-
-
-
-
