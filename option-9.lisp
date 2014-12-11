@@ -126,43 +126,55 @@
       (gl:load-identity)
       ;; The world is (0,0) to (100,100)
       (gl:ortho 0 100 0 100 -1 1)
+      ;; And no camera!
+      (gl:matrix-mode :modelview)
+      (gl:load-identity)
 
       ;; nice antialiased lines, given the multisampling stuff.
       ;;(gl:enable :multisample)
 
       (initialize-joysticks)
 
-      (let ((current-time (local-time:now))
-            (dt-accum 0))
+
+      (let ((emit-fps-p nil)
+            (current-time (local-time:now))
+            (dt-accum 0)
+            (frame-count 0)
+            (frame-time-accum 0))
         (sdl:with-events ()
           (:quit-event () t)
           (:key-down-event (:key key)
                            ;; (format t "Key down: ~S~%" key)
                            (case key
-                             (:sdl-key-p (toggle-paused *game*))
-                             (:sdl-key-e
+                             (:sdl-key-p ;; Pause Game
+                              (toggle-paused *game*))
+                             (:sdl-key-e ;; Enter Common Lisp REPL
                               (format t "Pausing game....~%")
                               (toggle-paused *game*)
                               (text-console)
                               (format t "Unpause to keep playing!~%"))
-                             (:sdl-key-q
+                             (:sdl-key-q ;; Quit game
                               (sdl:push-quit-event))
-                             (:sdl-key-z
+                             (:sdl-key-f ;; fps on/off
+                              (setf emit-fps-p (not emit-fps-p))
+                              (format t "Turned fps monitoring ~:[off~;on~]~%"
+                                      emit-fps-p))
+                             (:sdl-key-z ;; TEST: left weapon port fire
                               (let ((player (car (entities-with-role
                                                   (scene-man *game*) :player))))
                                 (when player
                                   (shoot player :left-weapon-port))))
-                             (:sdl-key-d
+                             (:sdl-key-d ;; TEST: center weapon port fire
                               (let ((player (car (entities-with-role
                                                   (scene-man *game*) :player))))
                                 (when player
                                   (shoot player :center-weapon-port))))
-                             (:sdl-key-x
+                             (:sdl-key-x ;; TEST: rear weapon port fire
                               (let ((player (car (entities-with-role
                                                   (scene-man *game*) :player))))
                                 (when player
                                   (shoot player :rear-weapon-port))))
-                             (:sdl-key-c
+                             (:sdl-key-c ;; TEST: right weapon port fire
                               (let ((player (car (entities-with-role
                                                   (scene-man *game*) :player))))
                                 (when player
@@ -178,7 +190,7 @@
           (:key-up-event (:key key)
                          ;; (format t "Key up: ~S~%" key)
                          (case key
-                           (:sdl-key-space
+                           (:sdl-key-space ;; Fire front weapon port
                             (let ((player (car (entities-with-role
                                                 (scene-man *game*) :player))))
                               (when player
@@ -234,10 +246,10 @@
                    ;; Set maximum frame time in case we slow down beyond it.
                    (when (> frame-time dt)
                      (setf frame-time dt))
-
-                   ;;(format t "frame-time = ~A usec~%" frame-time)
-
                    (setf current-time new-time)
+
+
+                   ;; accumulate the time we just spent doing the last frame.
                    (incf dt-accum frame-time)
 
                    ;; Consume the generated time in the renderer.
@@ -245,10 +257,23 @@
                         (step-game *game*)
                         (decf dt-accum dt))
 
+
+                   ;; Keep track of & emit stuff for FPS
+                   (when emit-fps-p
+                     (incf frame-count)
+                     (incf frame-time-accum frame-time)
+                     (when (> frame-time-accum (* dt 60))
+                       (format t "frame-count = ~A frame-time-accum = ~A sec fps = ~A~%"
+                               frame-count
+                               (/ frame-time-accum 1000000.0)
+                               (/ frame-count (/ frame-time-accum 1000000.0)))
+                       (setf frame-count 0
+                             frame-time-accum 0)))
+
                    ;; TODO: Need to account for temporal aliasing!
                    ;; See Fix Your Timestep.
                    ;; I'm currently unsure how to do the interpolation method
-                   ;; given how my state is represented and sitributed across
+                   ;; given how my state is represented and distributed across
                    ;; all of my objects. I'd also need to keep THREE entire
                    ;; states available to perform the interpolation. Need to
                    ;; think on it.
