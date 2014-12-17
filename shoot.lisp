@@ -53,10 +53,10 @@
           (charge-percentage muzzle) 0.0)))
 
 
-;; The event API method for when the player ship shoots
 (defmethod start-charging ((ship player) port)
   (let* ((turret (turret ship port))
-         (muzzle (payload turret)))
-    (when muzzle
-      ;; Let the muzzle accumulate a charge....
-      (setf (chargingp muzzle) t))))
+         (payload (payload turret)))
+    (when payload
+      ;; Let the payload to accumulate a charge. Whatever it does with
+      ;; its charge is its own deal.
+      (setf (chargingp payload) t))))
