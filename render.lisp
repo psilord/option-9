@@ -1,6 +1,6 @@
 (in-package :option-9)
 
-;;;; XXX TODO Remove scale from all functions.
+(declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
 (defmethod render (ent)
   nil)

@@ -62,6 +62,25 @@ the FUNC to each frame as one walks towards the leaves."
     (when (plusp (ttl ent))
       (decf (ttl ent) *dt-us*)))
 
+  ;; If the charge is charging, then charge it at the rate desired.
+  (when (and (chargeablep ent) (chargingp ent))
+
+    ;; This interpolant is the amount of time to add that will get us
+    ;; to 1.0 in the charge-time required, but at our simulation
+    ;; frequency.
+    (incf (charge-percentage ent) (* (/ 1 (charge-time ent)) *dt-us*))
+    (when (>= (charge-percentage ent) 1.0)
+      (setf (charge-percentage ent) 1.0)))
+
+  ;; If the charge is decaying, then decay it at the rate desired.
+  (when (and (decayablep ent) (decayingp ent))
+    ;; This interpolant is the amount of time to add that will get us
+    ;; to 0.0 in the decay-time required, but at our simulation
+    ;; frequency.
+    (decf (charge-percentage ent) (* (/ 1 (decay-time ent)) *dt-us*))
+    (when (<= (charge-percentage ent) 0.0)
+      (setf (charge-percentage ent) 0.0)))
+
   ;; If it is invulnerable, decrement is usecs how long it has left to be so.
   (unless (null (inttl ent))
     (when (plusp (inttl ent))

@@ -146,6 +146,12 @@
           (:key-down-event (:key key)
                            ;; (format t "Key down: ~S~%" key)
                            (case key
+                             (:sdl-key-space
+                              ;; start charging
+                              (let ((player (car (entities-with-role
+                                                  (scene-man *game*) :player))))
+                                (start-charging player :front-weapon-port)
+                                ))
                              (:sdl-key-p ;; Pause Game
                               (toggle-paused *game*))
                              (:sdl-key-e ;; Enter Common Lisp REPL

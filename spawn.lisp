@@ -66,7 +66,7 @@ INITARGS."
 ;; a CATEGORY is really a developer defined thing just to separate different
 ;; spawn algorithms for various instances.
 (defgeneric spawn (spawn-class ioi/e loc/ent game
-                   &key spawn-context parent orphan-policy mutator
+                   &key spawn-context parent orphan-policy mutator extra-init
                      &allow-other-keys)
   (:documentation "TODO"))
 
@@ -205,6 +205,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                     (parent :universe)
                     (orphan-policy :destroy)
                     (mutator #'identity)
+                    extra-init
                     &allow-other-keys)
   (declare (ignorable loc/ent))
 
@@ -213,7 +214,8 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                         :orphan-policy ,orphan-policy
                         :roles (:player)
                         :flyingp t
-                        :dv ,(pvec 50d0 5d0 0d0))))
+                        :dv ,(pvec 50d0 5d0 0d0)
+                        ,@extra-init)))
 
     ;; This will be potentially realized later if the conditions are
     ;; still good for realization.
@@ -236,6 +238,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                     (parent :universe)
                     (orphan-policy :destroy)
                     (mutator #'identity)
+                    extra-init
                     &allow-other-keys)
   (let ((loc (resolve-spawn-location loc/ent)))
     (with-pvec-accessors (o loc)
@@ -244,7 +247,8 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                            :roles (:player-shot)
                            ;; Put it at the location and rotation of the
                            ;; turret.
-                           :local-basis ,(pm-copy (world-basis loc/ent)))))
+                           :local-basis ,(pm-copy (world-basis loc/ent))
+                           ,@extra-init)))
 
         (add-spawnable
          (make-spawnable spawn-class
@@ -266,6 +270,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                     (parent :universe)
                     (orphan-policy :destroy)
                     (mutator #'identity)
+                    extra-init
                     &allow-other-keys)
   (declare (ignorable loc/ent))
 
@@ -293,7 +298,8 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                                 ;; forward direction
                                 (random 1d0)
                                 ;; Stay in the plane.
-                                0d0))))
+                                0d0)
+                         ,@extra-init)))
 
     ;; This will be potentially realized later if the conditions are
     ;; still good for realization.
@@ -316,6 +322,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                     (parent :universe)
                     (orphan-policy :destroy)
                     (mutator #'identity)
+                    extra-init
                     &allow-other-keys)
   (let ((loc (resolve-spawn-location loc/ent)))
     ;; Start the shot at the location of the loc/ent that created
@@ -339,7 +346,8 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                                                 (type-of loc/ent) 'turret)
                                                (parent loc/ent)
                                                loc/ent)))
-                                       0d0))))
+                                       0d0)
+                           ,@extra-init)))
 
         (add-spawnable
          (make-spawnable spawn-class
@@ -364,6 +372,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                     (ttl-max 0 ttl-max-supplied-p)
                     (initial-velocity 0d0)
                     (velocity-factor 2d0)
+                    extra-init
                     &allow-other-keys)
   (let ((loc (resolve-spawn-location loc/ent)))
     (dotimes (p num-sparks)
@@ -376,7 +385,8 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                             :dtv ,(pv-scale-into
                                    (pv-rand-dir :span :xy)
                                    (+ initial-velocity
-                                      (random velocity-factor))))))
+                                      (random velocity-factor)))
+                            ,@extra-init)))
 
         (flet ((spark-mutator (spark)
                  ;; Complete the spark instantiation by updating the ttl.
@@ -405,13 +415,15 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                     (parent :universe)
                     (orphan-policy :destroy)
                     (mutator #'identity)
+                    extra-init
                     &allow-other-keys)
   (let* ((loc (resolve-spawn-location loc/ent))
          (initializer `(,(insts/equiv-choice ioi/e)
                          :orphan-policy ,orphan-policy
                          :roles (:player-powerup)
                          :flyingp t
-                         :dv ,(pv-copy loc))))
+                         :dv ,(pv-copy loc)
+                         ,@extra-init)))
     (add-spawnable
      (make-spawnable spawn-class
                      :ioi/e ioi/e
@@ -431,6 +443,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                     (parent :universe)
                     (orphan-policy :destroy)
                     (mutator #'identity)
+                    extra-init
                     &allow-other-keys)
   (let* ((loc (resolve-spawn-location loc/ent))
 
@@ -451,7 +464,8 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
          (initializer `(,the-mine-instance-name
                         :orphan-policy ,orphan-policy
                         :roles (:enemy-mine)
-                        :dv ,(pv-copy loc))))
+                        :dv ,(pv-copy loc)
+                        ,@extra-init)))
     (add-spawnable
      (make-spawnable spawn-class
                      :ioi/e ioi/e
@@ -472,13 +486,15 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                     (orphan-policy :destroy)
                     (mutator #'identity)
                     roles
+                    extra-init
                     &allow-other-keys)
 
   (let* ((loc (resolve-spawn-location loc/ent))
          (initializer `(,(insts/equiv-choice ioi/e)
                          :orphan-policy ,orphan-policy
                          :roles ,roles
-                         :dv ,(pv-copy loc))))
+                         :dv ,(pv-copy loc)
+                         ,@extra-init)))
     (add-spawnable
      (make-spawnable spawn-class
                      :ioi/e ioi/e
@@ -499,6 +515,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                     (orphan-policy :destroy)
                     (mutator #'identity)
                     (velocity-factor 50d0)
+                    extra-init
                     &allow-other-keys)
 
 
@@ -511,7 +528,8 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                          :drv ,(pvec 0d0 0d0 (/ pi (+ 64d0 (random 64d0))))
                          :dtv ,(pvec (* (random-delta) velocity-factor)
                                      (* (random-delta) velocity-factor)
-                                     0d0))))
+                                     0d0)
+                         ,@extra-init)))
 
     (add-spawnable
      (make-spawnable spawn-class

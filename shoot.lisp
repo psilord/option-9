@@ -4,7 +4,8 @@
 
 ;; The shoot verb has become odd. It really means to activate the
 ;; thing in the turret, so this verb probably has to change. I've introduce
-;; the verb fire which is specific to a muzzle.
+;; the verb fire which is specific to a muzzle. Also, there is a vague
+;; starting and stopping of the charge effects too.
 
 (defgeneric fire (ship spawn-class muzzle turret)
   (:documentation "Fire a muzzle"))
@@ -36,9 +37,26 @@
 
 (defmethod fire ((ship ship) spawn-class (muzzle muzzle) turret)
   (let ((shot-name (shot-instance-name muzzle)))
+
+    ;; Actually fire.
     (spawn spawn-class
            ;; Specialize the shot in the muzzle to be appropriate for the
            ;; ship firing it.
            (specialize-generic-instance-name
             (instance-name ship) shot-name)
-           turret (game-context ship))))
+           turret (game-context ship)
+           ;; And give the muzzle's charge to the thing I'm about to fire.
+           :extra-init `(:charge-percentage ,(charge-percentage muzzle)))
+
+    ;; Stop charging the muzzle and reset, because we've fired
+    (setf (chargingp muzzle) nil
+          (charge-percentage muzzle) 0.0)))
+
+
+;; The event API method for when the player ship shoots
+(defmethod start-charging ((ship player) port)
+  (let* ((turret (turret ship port))
+         (muzzle (payload turret)))
+    (when muzzle
+      ;; Let the muzzle accumulate a charge....
+      (setf (chargingp muzzle) t))))

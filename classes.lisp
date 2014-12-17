@@ -120,35 +120,45 @@ the class must be of type DRAWABLE or more specialized."))
              :initform nil
              :accessor ttl-max)
 
-   ;; TODO This part isn't done yet....
+   ;; A "charge" is a value that varies between 0.0 and 1.0 and it
+   ;; represents the "fullness" of the charge.
+   ;;
    ;; Should this object be subject to a charging effect?
+   (%chargeablep :initarg :chargeablep
+                 :initform nil
+                 :accessor chargeablep)
+   ;; Is this object currently charging?
    (%chargingp :initarg :chargingp
                :initform nil
                :accessor chargingp)
-   ;; Should this object be subject to a charge decaying effect?
+   ;; Should this object be subject to a decaying effect?
+   (%decayablep :initarg :decayablep
+                :initform nil
+                :accessor decayablep)
+   ;; Is this object currently decaying?
    (%decayingp :initarg :decayingp
                :initform nil
                :accessor decayingp)
-   ;; Total linear time to charge from a 0.0 to 1.0 charge in milliseconds.
+   ;; Total linear time to charge from a 0.0 charge to 1.0 charge in usecs.
    (%charge-time :initarg :charge-time
-                 :initform nil
+                 :initform 0 ;; must be correct when chargeablep
                  :accessor charge-time)
-   ;; Total linear time to decay from a 1.0 to 0.0 charge in milliseconds.
+   ;; Total linear time to decay from a 1.0 charge to 0.0 charge in usecs.
    (%decay-time :initarg :decay-time
-                :initform nil
+                :initform 0
                 :accessor decay-time)
    ;; The current percentage of charge for this object.
    ;; The min charge of anything is 0.0, the max charge is 1.0.
-   (%charged-percentage :initarg :charged-percentage
-                        :initform nil
-                        :accessor charged-percentage)
+   (%charge-percentage :initarg :charge-percentage
+                       :initform 0.0
+                       :accessor charge-percentage)
 
-   ;; invulnerability time to live, when > 0 is considered invulnerable
+   ;; invulnerability time to live in usecs, when > 0 is considered invulnerable
    (%inttl :initarg :inttl
            :initform 0
            :accessor inttl))
   (:documentation
-   "The Ephemeral Class. Used for things which need a temporal time limit"))
+   "The Temporal Class. Used for things which need to understand time."))
 
 ;; Used in the field class to trace vector streams
 (defclass location ()
