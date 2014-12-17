@@ -57,15 +57,15 @@ the FUNC to each frame as one walks towards the leaves."
   ;; Update the physical nature
   (update-local-basis ent)
 
-  ;; Update the temporal nature
+  ;; Update the temporal nature, all in usecs
   (unless (null (ttl ent))
-    (when (> (ttl ent) 0)
-      (decf (ttl ent))))
+    (when (plusp (ttl ent))
+      (decf (ttl ent) *dt-us*)))
 
-  ;; If it is invulnerable, decrement how long it has left to be so.
+  ;; If it is invulnerable, decrement is usecs how long it has left to be so.
   (unless (null (inttl ent))
-    (when (> (inttl ent) 0)
-      (decf (inttl ent)))))
+    (when (plusp (inttl ent))
+      (decf (inttl ent) *dt-us*))))
 
 ;; The player's world objects get bound to the edges of the screen
 ;;
@@ -91,7 +91,7 @@ the FUNC to each frame as one walks towards the leaves."
 ;; game world.
 (defmethod active-step-once :after ((ent drawable))
   (with-pvec-accessors (o (pm-get-trans (world-basis ent)))
-    (when (or (and (not (null (ttl ent))) (zerop (ttl ent)))
+    (when (or (and (not (null (ttl ent))) (<= (ttl ent) 0))
               (< ox -5d0) (> ox 105d0)
               (< oy -5d0) (> oy 105d0))
       (mark-stale ent))))

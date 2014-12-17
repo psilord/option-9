@@ -371,8 +371,9 @@
       :radius 1
       :points 1
       :damage-points 1
-      :ttl 45
-      :inttl 10
+      :ttl-min ,(in-usecs .25)
+      :ttl-max ,(in-usecs .75)
+      :inttl ,(in-usecs 1/6)
       :geometry :enemy-1/shrapnel-1))
 
     ((:instance :enemy-1/shrapnel-2)
@@ -381,8 +382,9 @@
       :radius 1
       :points 1
       :damage-points 1
-      :ttl 45
-      :inttl 10
+      :ttl-min ,(in-usecs .25)
+      :ttl-max ,(in-usecs .75)
+      :inttl ,(in-usecs 1/6)
       :geometry :enemy-1/shrapnel-2))
 
     ((:instance :enemy-1/shrapnel-3)
@@ -391,8 +393,9 @@
       :radius 1
       :points 1
       :damage-points 1
-      :ttl 45
-      :inttl 10
+      :ttl-min ,(in-usecs .25)
+      :ttl-max ,(in-usecs .75)
+      :inttl ,(in-usecs 1/6)
       :geometry :enemy-1/shrapnel-3))
 
     ((:instance :enemy-1-simple-shot)
@@ -434,8 +437,9 @@
       :radius 1
       :points 1
       :damage-points 1
-      :ttl 45
-      :inttl 10
+      :ttl-min ,(in-usecs .25)
+      :ttl-max ,(in-usecs .75)
+      :inttl ,(in-usecs 1/6)
       :geometry :enemy-2/shrapnel-1))
 
     ((:instance :enemy-2/shrapnel-2)
@@ -444,8 +448,9 @@
       :radius 1
       :points 1
       :damage-points 1
-      :ttl 45
-      :inttl 10
+      :ttl-min ,(in-usecs .25)
+      :ttl-max ,(in-usecs .75)
+      :inttl ,(in-usecs 1/6)
       :geometry :enemy-2/shrapnel-2))
 
     ((:instance :enemy-2/shrapnel-3)
@@ -454,8 +459,9 @@
       :radius 1
       :points 1
       :damage-points 1
-      :ttl 45
-      :inttl 10
+      :ttl-min ,(in-usecs .25)
+      :ttl-max ,(in-usecs .75)
+      :inttl ,(in-usecs 1/6)
       :geometry :enemy-2/shrapnel-3))
 
     ((:instance :enemy-2-simple-shot)
@@ -497,8 +503,9 @@
       :radius 1
       :points 50
       :damage-points 1
-      :ttl 60
-      :inttl 10
+      :ttl-min ,(in-usecs 1.0)
+      :ttl-max ,(in-usecs 1.5)
+      :inttl ,(in-usecs 1/6)
       :geometry :enemy-3/shrapnel-1))
 
     ((:instance :enemy-3/shrapnel-2)
@@ -507,8 +514,9 @@
       :radius 1
       :points 50
       :damage-points 1
-      :ttl 60
-      :inttl 10
+      :ttl-min ,(in-usecs 1.0)
+      :ttl-max ,(in-usecs 1.5)
+      :inttl ,(in-usecs 1/6)
       :geometry :enemy-3/shrapnel-2))
 
     ((:instance :enemy-3-simple-shot)
@@ -536,7 +544,8 @@
     ((:instance :powerup-shot-shield)
      (:class powerup)
      (:initargs
-      :ttl-max 240
+      :ttl-min ,(in-usecs 1.0)
+      :ttl-max ,(in-usecs 4.0)
       :radius 4
       ;; These are port-layout lists: port-name, turret-name, payload-name
       :powerup-turrets ((:shield-port nil :generic-shot-shield))
@@ -545,7 +554,8 @@
     ((:instance :powerup-ship-shield)
      (:class powerup)
      (:initargs
-      :ttl-max 240
+      :ttl-min ,(in-usecs 1.0)
+      :ttl-max ,(in-usecs 4.0)
       :radius 4
       :powerup-turrets ((:shield-port nil :generic-ship-shield))
       :geometry :powerup-ship-shield))
@@ -553,7 +563,8 @@
     ((:instance :powerup-hardnose)
      (:class powerup)
      (:initargs
-      :ttl-max 240
+      :ttl-min ,(in-usecs 1.0)
+      :ttl-max ,(in-usecs 4.0)
       :radius 4
       :powerup-turrets ((:front-weapon-port nil :generic-muzzle-hardnose-shot))
       :geometry :powerup-hardnose))
@@ -561,7 +572,8 @@
     ((:instance :powerup-super-shot)
      (:class powerup)
      (:initargs
-      :ttl-max 240
+      :ttl-min ,(in-usecs 1.0)
+      :ttl-max ,(in-usecs 4.0)
       :radius 4
       :powerup-turrets ((:front-weapon-port nil :generic-muzzle-super-shot))
       :geometry :powerup-super-shot))
@@ -569,7 +581,8 @@
     ((:instance :powerup-tesla-gun)
      (:class powerup)
      (:initargs
-      :ttl-max 240
+      :ttl-min ,(in-usecs 1.0)
+      :ttl-max ,(in-usecs 4.0)
       :radius 5
       :powerup-turrets ((:passive-weapon-port nil :generic-tesla-gun))
       :geometry :powerup-tesla-gun))
@@ -577,7 +590,8 @@
     ((:instance :powerup-health)
      (:class powerup)
      (:initargs
-      :ttl-max 240
+      :ttl-min ,(in-usecs 1.0)
+      :ttl-max ,(in-usecs 4.0)
       :radius 4
       :health-level 20
       :geometry :powerup-health))
@@ -596,7 +610,7 @@
       :charge -1
       :initial-sparks 300
       :additional-sparks 100
-      :inttl 10
+      :inttl ,(in-usecs 1/6)
       :flyingp t
       :geometry :proximity-mine))
 
@@ -610,7 +624,7 @@
       :charge -1
       :initial-sparks 300
       :additional-sparks 100
-      :inttl 10
+      :inttl ,(in-usecs 1/6)
       :flyingp t
       :geometry :field-mine))
 
@@ -675,17 +689,17 @@
     ((:instance :spark-1)
      (:class spark)
      (:initargs
-      :ttl-max 30
+      :ttl-max ,(in-usecs .5)
       :geometry :spark-1))
 
     ((:instance :spark-2)
      (:class spark)
      (:initargs
-      :ttl-max 30
+      :ttl-max ,(in-usecs .5)
       :geometry :spark-2))
 
     ((:instance :spark-3)
      (:class spark)
      (:initargs
-      :ttl-max 30
+      :ttl-max ,(in-usecs .5)
       :geometry :spark-3))))

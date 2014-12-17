@@ -178,4 +178,4 @@
 
 ;; Used to give things temporary invulnerability.
 (defmethod vulnerable ((ent entity))
-  (or (null (inttl ent)) (zerop (inttl ent))))
+  (or (null (inttl ent)) (<= (inttl ent) 0)))

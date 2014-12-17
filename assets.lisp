@@ -10,18 +10,12 @@
 ;; method, then assign a random ttl based upon the ttl-max.
 (defmethod make-instance-finish :after ((s temporal))
   (when (not (null (ttl-max s)))
-    (setf (ttl s) (random (ttl-max s))))
+    (setf (ttl s) (+ (ttl-min s) (random (- (ttl-max s) (ttl-min s))))))
   s)
 
 (defmethod make-instance-finish :after ((e entity))
   (setf (hit-points e) (max-hit-points e))
   e)
-
-;; A powerup's ttl is the random amount up to ttl-max PLUS a constant second
-(defmethod make-instance-finish :after ((p powerup))
-  (when (ttl p)
-    (incf (ttl p) 60))
-  p)
 
 (defmethod make-instance-finish :after ((ent tesla-field))
   (setf (power-range ent) (power-range ent))

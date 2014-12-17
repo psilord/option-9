@@ -2,6 +2,15 @@
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
+(defun lerp (a b interp)
+  "Perform a mathematically stable linear interpolation from A to B by INTERP."
+  (+ (* (- 1.0 interp) a) (* interp b)))
+
+(defun in-usecs (seconds)
+  "Convert a floating point value denoting SECONDS into an equivalent
+integer of usecs and return it."
+  (truncate (* seconds 1000000)))
+
 (defmethod distance ((a frame) (b frame) &key (sqrt t))
   (let ((ao (pm-get-trans (world-basis a)))
         (bo (pm-get-trans (world-basis b))))

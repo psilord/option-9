@@ -242,33 +242,36 @@
 
           (:idle ()
                  ;; The physics runs at 1/60th of a second time units.
-                 (let* ((dt (* 1/60 1000000)) ;; 1/60th of a sec in usecs.
-                        (new-time (local-time:now))
+                 (let* ((new-time (local-time:now))
                         (frame-time (timestamp-subtract new-time current-time)))
-                   ;; Set maximum frame time in case we slow down beyond it.
-                   (when (> frame-time dt)
-                     (setf frame-time dt))
-                   (setf current-time new-time)
 
+                   ;; Set maximum frame time in case we slow down beyond it.
+                   (when (> frame-time *dt-us*)
+                     (setf frame-time *dt-us*))
+                   (setf current-time new-time)
 
                    ;; accumulate the time we just spent doing the last frame.
                    (incf dt-accum frame-time)
 
                    ;; Consume the generated time in the renderer.
-                   (loop while (> dt-accum dt) do
+                   (loop while (> dt-accum *dt-us*) do
                         (step-game *game*)
-                        (decf dt-accum dt))
+                        (decf dt-accum *dt-us*))
 
 
-                   ;; Keep track of & emit stuff for FPS
+                   ;; Keep track of & emit stuff for FPS.
+                   ;;
+                   ;; TODO: Should change this to keep track of
+                   ;; average usecs per frame instead.
                    (when emit-fps-p
                      (incf frame-count)
                      (incf frame-time-accum frame-time)
-                     (when (> frame-time-accum (* dt 60))
+                     (when (> frame-time-accum (in-usecs 1.0)) ;; every second..
                        (format t "frame-count = ~A frame-time-accum = ~A sec fps = ~A~%"
                                frame-count
                                (/ frame-time-accum 1000000.0)
                                (/ frame-count (/ frame-time-accum 1000000.0)))
+                       (finish-output)
                        (setf frame-count 0
                              frame-time-accum 0)))
 

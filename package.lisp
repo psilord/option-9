@@ -20,15 +20,23 @@
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
-(defvar *game*)
-(defvar *assets*)
-(defvar *id*)
+(defparameter *game* nil)
+(defparameter *assets* nil)
+(defparameter *id* nil)
+
+;;; Timestep simulation variables.
+;; simulation frequency in Hertz
+(defparameter *dt-hz* 60)
+;; a single unit of time in seconds
+(defparameter *dt* (/ 1 *dt-hz*))
+;; a single unit of time in usecs.
+(defparameter *dt-us* (* *dt* 1000000))
+
 
 (defun new-id ()
   (let ((id *id*))
     (incf *id*)
     id))
-
 
 ;; lifted from Graham's ANSI Common Lisp book
 (defmacro with-type (type expr)
@@ -49,5 +57,3 @@
 
 (defmacro as-double-float (expr)
   `(with-type double-float ,expr))
-
-

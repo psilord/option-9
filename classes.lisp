@@ -108,14 +108,41 @@ the class must be of type DRAWABLE or more specialized."))
   (:documentation "The Entity Class"))
 
 (defclass temporal ()
-  ;; temporal simulation variables
-  (;; Time To Live
+  ;; temporal simulation variables, all times are in usecs.
+  (;; Time To Live until something happens.
    (%ttl :initarg :ttl
          :initform nil
          :accessor ttl)
+   (%ttl-min :initarg :ttl-min
+             :initform 0
+             :accessor ttl-min)
    (%ttl-max :initarg :ttl-max
              :initform nil
              :accessor ttl-max)
+
+   ;; TODO This part isn't done yet....
+   ;; Should this object be subject to a charging effect?
+   (%chargingp :initarg :chargingp
+               :initform nil
+               :accessor chargingp)
+   ;; Should this object be subject to a charge decaying effect?
+   (%decayingp :initarg :decayingp
+               :initform nil
+               :accessor decayingp)
+   ;; Total linear time to charge from a 0.0 to 1.0 charge in milliseconds.
+   (%charge-time :initarg :charge-time
+                 :initform nil
+                 :accessor charge-time)
+   ;; Total linear time to decay from a 1.0 to 0.0 charge in milliseconds.
+   (%decay-time :initarg :decay-time
+                :initform nil
+                :accessor decay-time)
+   ;; The current percentage of charge for this object.
+   ;; The min charge of anything is 0.0, the max charge is 1.0.
+   (%charged-percentage :initarg :charged-percentage
+                        :initform nil
+                        :accessor charged-percentage)
+
    ;; invulnerability time to live, when > 0 is considered invulnerable
    (%inttl :initarg :inttl
            :initform 0
