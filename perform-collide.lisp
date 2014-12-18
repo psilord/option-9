@@ -7,6 +7,43 @@
 (defmethod perform-collide ((collider collidable) (collidee collidable))
   (damage collider collidee))
 
+(defmethod perform-collide :after ((collider shot) (collidee collidable))
+  ;; Depending on the charge shoot 1-5 shots in random directions
+  (when (> (charge-percentage collider) .25)
+    ;; TODO: Sadly, I would need the MOP to do this elegantly or use
+    ;; an :append method for each class in the hierarchy to rebuild
+    ;; the initialization list using the current values in the object.
+    ;; This should assure I get a deep copy.
+    (loop repeat (lerp 0 5 (charge-percentage collider) :truncp t) do
+         (spawn 'sp-realize
+                (instance-name collider)
+                (world-basis collider)
+                (game-context collider)
+                :parent :universe
+                :orphan-policy :destroy
+                :extra-init (list
+                             ;; I should have a powerup such that the
+                             ;; charge of a shot can propogate to
+                             ;; here, causing a fission-type reaction
+                             ;; as each charged shot hits other stuff
+                             ;; too. This is a cool effect!
+
+                             ;; :charge-percentage 1.0
+
+                             :flyingp (flyingp collider)
+                             :local-basis (pm-copy (local-basis collider))
+                             :world-basis (pm-copy (world-basis collider))
+                             :roles (copy-seq (roles collider))
+                             :dfv (pv-copy (dfv collider))
+                             :drv (pv-copy (drv collider))
+                             ;; and it goes in a random direction.
+                             :dr (pvec 0d0 0d0 (random (* 2d0 pi)))
+                             :dtv (pv-copy (dtv collider))
+                             :dv (pv-copy (dv collider))
+                             :rotatingp (rotatingp collider)
+                             :local-basis (local-basis collider)
+                             :world-basis (world-basis collider))))))
+
 ;; Here we handle the processing of a something hitting a ship which might
 ;; or might not have a shield.
 (defmethod perform-collide :around ((collider collidable)
@@ -42,10 +79,6 @@
   (when (not (stalep collidee))
 
     (mark-stale collidee)
-
-    ;; TODO convert generic payload to specialized one based upon
-    ;; instance name of the collider. This is done for the active
-    ;; stuff, but do it for everything.
 
     ;; process all turret powerups contained by this powerup.
     (dolist (pup (powerup-turrets collidee))
@@ -131,6 +164,25 @@
           ;; ensure the ship's port containes the computed turret
           (setf (turret collider port-name) replacement-turret))))
 
+    ;; TODO, If the powerup affects weapon charging, do the effect here.
+    (dolist (ceff (charging-effects collidee))
+      (destructuring-bind (port-name mode) ceff
+        (let ((payload (payload (turret collider port-name))))
+          (when payload
+            ;; When getting the same charging/decaying powerup, we make it
+            ;; twice as fast in an increase-power kind of way. TODO: Consider
+            ;; using an increase-charge or increase-decay verb.
+            (cond
+              ((eq mode :charging)
+               (setf (chargeablep payload) t)
+               (if (null (charge-time payload))
+                   (setf (charge-time payload) (in-usecs 2.0))
+                   (setf (charge-time payload) (/ (charge-time payload) 2.0))))
+              ((eq mode :decaying)
+               (setf (decayablep payload) t)
+               (if (null (decay-time payload))
+                   (setf (decay-time payload) (in-usecs 2.0))
+                   (setf (decay-time payload) (/ (decay-time payload) 2.0)))))))))
 
 
     ;; If the powerup has a health level, apply it to the player.

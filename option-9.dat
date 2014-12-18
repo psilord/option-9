@@ -62,7 +62,8 @@
                        :powerup-shot-shield
                        :powerup-ship-shield
                        :powerup-tesla-gun
-                       :powerup-health)))
+                       :powerup-health
+                       :powerup-charge)))
 
    ;; These map generic instance names to specialized instance names
    ;; based upon the context in which they exist.  Asset translation
@@ -595,6 +596,15 @@
       :radius 4
       :health-level 20
       :geometry :powerup-health))
+
+    ((:instance :powerup-charge)
+     (:class powerup)
+     (:initargs
+      :ttl-min ,(in-usecs 1.0)
+      :ttl-max ,(in-usecs 4.0)
+      :radius 4
+      :charge-effects ((:front-weapon-port :charging))
+      :geometry :powerup-charge))
 
     ;; ;;;;;;;;;;;;;
     ;; Mines

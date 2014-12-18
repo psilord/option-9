@@ -141,7 +141,7 @@ the class must be of type DRAWABLE or more specialized."))
                :accessor decayingp)
    ;; Total linear time to charge from a 0.0 charge to 1.0 charge in usecs.
    (%charge-time :initarg :charge-time
-                 :initform 0 ;; must be correct when chargeablep
+                 :initform (in-usecs 2.0) ;; must be correct when chargeablep
                  :accessor charge-time)
    ;; Total linear time to decay from a 1.0 charge to 0.0 charge in usecs.
    (%decay-time :initarg :decay-time
@@ -299,6 +299,15 @@ vector at that position"))
     ;; already in the previous turret.
     :initform nil
     :accessor powerup-turrets)
+
+   (%charging-effects
+    :initarg :charge-effects
+    ;; Tell the payload found in the turret at :port-name that it is charging
+    ;; or decaying and how long it is taking to do it. If we pick up more
+    ;; powerups we either divide or multiply the charging-time by something.
+    ;; ((:port-name :charging/:decaying) ...)
+    :initform nil
+    :accessor charging-effects)
 
    (%health-level :initarg :health-level
                   :initform 0

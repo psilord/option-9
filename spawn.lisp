@@ -44,6 +44,10 @@
 ;; I'll leave it here.
 (defclass sp-alphanum (spawnable) ())
 
+;; Sometimes the initialization parameters of an object are fully realized and
+;; I just want to spawn it with no changes.
+(defclass sp-realize (spawnable) ())
+
 ;; Hrm, I might need to reify that concept even more and have a spawn
 ;; queue into which things get pushed, and then after the frame is
 ;; completed, they get inserted into the scene tree. Very tricky,
@@ -195,6 +199,34 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
 
 
     (values T :spawned)))
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Just spawn a fully realized thing without serious modification
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmethod spawn ((spawn-class (eql 'sp-realize)) ioi/e location game
+                  &key spawn-context
+                    (parent :universe)
+                    (orphan-policy :destroy)
+                    (mutator #'identity)
+                    extra-init
+                    &allow-other-keys)
+
+  (let ((initializer `(,(insts/equiv-choice ioi/e)
+                        :orphan-policy ,orphan-policy
+                        ,@extra-init)))
+
+    ;; This will be potentially realized later if the conditions are
+    ;; still good for realization.
+    (add-spawnable
+     (make-spawnable 'sp-realize
+                     :ioi/e ioi/e
+                     :spawn-context spawn-context
+                     :initializer initializer
+                     :parent parent
+                     :mutator mutator
+                     :game game)
+     game)))
+
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spawning Player 1

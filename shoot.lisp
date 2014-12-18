@@ -45,7 +45,7 @@
            (specialize-generic-instance-name
             (instance-name ship) shot-name)
            turret (game-context ship)
-           ;; And give the muzzle's charge to the thing I'm about to fire.
+           ;; And transfer the muzzle's charge to the thing I'm about to fire.
            :extra-init `(:charge-percentage ,(charge-percentage muzzle)))
 
     ;; Stop charging the muzzle and reset, because we've fired
@@ -56,7 +56,15 @@
 (defmethod start-charging ((ship player) port)
   (let* ((turret (turret ship port))
          (payload (payload turret)))
-    (when payload
+    (when (and payload (chargeablep payload))
       ;; Let the payload to accumulate a charge. Whatever it does with
       ;; its charge is its own deal.
       (setf (chargingp payload) t))))
+
+
+(defmethod stop-charging ((ship player) port)
+  (let* ((turret (turret ship port))
+         (payload (payload turret)))
+    (when (and payload (chargeablep payload))
+      ;; The charge stops accumulating.
+      (setf (chargingp payload) nil))))

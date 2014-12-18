@@ -2,9 +2,11 @@
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
-(defun lerp (a b interp)
-  "Perform a mathematically stable linear interpolation from A to B by INTERP."
-  (+ (* (- 1.0 interp) a) (* interp b)))
+(defun lerp (a b interp &key truncp)
+  "Perform a mathematically stable linear interpolation from A to B by INTERP.
+The keyword argument TRUNCP indicates if the result should be TRUNCATed or not."
+  (let ((result (+ (* (- 1.0 interp) a) (* interp b))))
+    (if truncp (truncate result) result)))
 
 (defun in-usecs (seconds)
   "Convert a floating point value denoting SECONDS into an equivalent
@@ -105,3 +107,27 @@ Inspired from: http://www.gnu.org/savannah-checkouts/gnu/libc/manual/html_node/E
           (ur (- ux uy)))
       ;; Return the +/- difference in usec.
       (+ (* sr 1000000) ur))))
+
+;; TODO: This math utility needs a better home and memory optimization.
+(defun dist-line-point (s e p)
+  "Find the shortest distance from point P to the infinite line
+defined by the start point S to the end point E. S, E, P are all
+pvectors which happen to be used as points."
+
+  ;; See this page:
+  ;; http://geomalgorithms.com/a02-_lines.html#Distance-to-Infinite-Line
+  ;; This implements the d(P, L) equation.
+
+  (let* (;; Compute the vector l from the two points: l = e - s
+         (l (pv-sub e s))
+         ;; Compute the vector w from the line starting from s and ending at p
+         (w (pv-sub p s))
+         ;; Compute the cross product of l and w
+         (lw-cross (pv-cross l w))
+         ;; Get the magnitude of lw-cross
+         (lw-cross-mag (pv-mag lw-cross))
+         ;; Then compute the magnitiude of l
+         (l-mag (pv-mag l)))
+
+    ;; Now, compute the distance and return it
+    (/ lw-cross-mag l-mag)))

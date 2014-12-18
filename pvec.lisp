@@ -209,6 +209,7 @@ defaults to T."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   (with-multiple-pvec-accessors ((r pvd) (a pva) (b pvb))
     (psetf rx (as-double-float (- (* ay bz) (* by az)))
+           ;; Ensure that the negation is meaningful and should be there...
            ry (as-double-float (- (- (* ax bz) (* bx az))))
            rz (as-double-float (- (* ax by) (* bx ay)))))
   pvd)

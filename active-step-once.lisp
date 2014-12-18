@@ -105,6 +105,17 @@ the FUNC to each frame as one walks towards the leaves."
       (when (> lx 96d0) (setf nx 96d0)))
     (pm-set-trans-into (local-basis ent) new-loc)))
 
+
+;; Show that a shot has been significantly charged by having it leave a trail.
+(defmethod active-step-once :after ((shot shot))
+  (when (> (charge-percentage shot) .25)
+    (spawn 'sp-sparks
+           :insts/sparks shot (game-context shot)
+           :velocity-factor .1d0
+           :ttl-max (in-usecs .2)
+           :num-sparks 1)))
+
+
 ;; When the ttl for any drawable hits zero or its world coordinates
 ;; leave the arena region, it goes stale and will be removed from the
 ;; game world.
