@@ -164,7 +164,8 @@
           ;; ensure the ship's port containes the computed turret
           (setf (turret collider port-name) replacement-turret))))
 
-    ;; TODO, If the powerup affects weapon charging, do the effect here.
+    ;; TODO, If the powerup affects payload charging in a turret, do
+    ;; the effect here.
     (dolist (ceff (charging-effects collidee))
       (destructuring-bind (port-name mode) ceff
         (let ((payload (payload (turret collider port-name))))
