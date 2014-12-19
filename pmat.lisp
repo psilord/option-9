@@ -117,25 +117,41 @@
   "Perform matrix multiply of MAT0 * MAT1 and store into RESULT."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-multiple-pmat-accessors ((r result) (a mat0) (b mat1))
-    (psetf r00 (+ (* a00 b00) (* a01 b10) (* a02 b20) (* a03 b30))
-           r10 (+ (* a10 b00) (* a11 b10) (* a12 b20) (* a13 b30))
-           r20 (+ (* a20 b00) (* a21 b10) (* a22 b20) (* a23 b30))
-           r30 (+ (* a30 b00) (* a31 b10) (* a32 b20) (* a33 b30))
+    (psetf r00 (as-double-float
+                (+ (* a00 b00) (* a01 b10) (* a02 b20) (* a03 b30)))
+           r10 (as-double-float
+                (+ (* a10 b00) (* a11 b10) (* a12 b20) (* a13 b30)))
+           r20 (as-double-float
+                (+ (* a20 b00) (* a21 b10) (* a22 b20) (* a23 b30)))
+           r30 (as-double-float
+                (+ (* a30 b00) (* a31 b10) (* a32 b20) (* a33 b30)))
 
-           r01 (+ (* a00 b01) (* a01 b11) (* a02 b21) (* a03 b31))
-           r11 (+ (* a10 b01) (* a11 b11) (* a12 b21) (* a13 b31))
-           r21 (+ (* a20 b01) (* a21 b11) (* a22 b21) (* a23 b31))
-           r31 (+ (* a30 b01) (* a31 b11) (* a32 b21) (* a33 b31))
+           r01 (as-double-float
+                (+ (* a00 b01) (* a01 b11) (* a02 b21) (* a03 b31)))
+           r11 (as-double-float
+                (+ (* a10 b01) (* a11 b11) (* a12 b21) (* a13 b31)))
+           r21 (as-double-float
+                (+ (* a20 b01) (* a21 b11) (* a22 b21) (* a23 b31)))
+           r31 (as-double-float
+                (+ (* a30 b01) (* a31 b11) (* a32 b21) (* a33 b31)))
 
-           r02 (+ (* a00 b02) (* a01 b12) (* a02 b22) (* a03 b32))
-           r12 (+ (* a10 b02) (* a11 b12) (* a12 b22) (* a13 b32))
-           r22 (+ (* a20 b02) (* a21 b12) (* a22 b22) (* a23 b32))
-           r32 (+ (* a30 b02) (* a31 b12) (* a32 b22) (* a33 b32))
+           r02 (as-double-float
+                (+ (* a00 b02) (* a01 b12) (* a02 b22) (* a03 b32)))
+           r12 (as-double-float
+                (+ (* a10 b02) (* a11 b12) (* a12 b22) (* a13 b32)))
+           r22 (as-double-float
+                (+ (* a20 b02) (* a21 b12) (* a22 b22) (* a23 b32)))
+           r32 (as-double-float
+                (+ (* a30 b02) (* a31 b12) (* a32 b22) (* a33 b32)))
 
-           r03 (+ (* a00 b03) (* a01 b13) (* a02 b23) (* a03 b33))
-           r13 (+ (* a10 b03) (* a11 b13) (* a12 b23) (* a13 b33))
-           r23 (+ (* a20 b03) (* a21 b13) (* a22 b23) (* a23 b33))
-           r33 (+ (* a30 b03) (* a31 b13) (* a32 b23) (* a33 b33))))
+           r03 (as-double-float
+                (+ (* a00 b03) (* a01 b13) (* a02 b23) (* a03 b33)))
+           r13 (as-double-float
+                (+ (* a10 b03) (* a11 b13) (* a12 b23) (* a13 b33)))
+           r23 (as-double-float
+                (+ (* a20 b03) (* a21 b13) (* a22 b23) (* a23 b33)))
+           r33 (as-double-float
+                (+ (* a30 b03) (* a31 b13) (* a32 b23) (* a33 b33)))))
   result)
 
 (declaim (ftype (function (pmat pmat) pmat) pm-mul))
