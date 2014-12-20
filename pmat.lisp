@@ -452,9 +452,12 @@ TRANSFORMED-POINT which is then returned."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-multiple-pvec-accessors ((tp transformed-point) (p point))
     (with-pmat-accessors (b basis)
-      (psetf tpx (+ (* b00 px) (* b01 py) (* b02 pz) (* b03 1d0))
-             tpy (+ (* b10 px) (* b11 py) (* b12 pz) (* b13 1d0))
-             tpz (+ (* b20 px) (* b21 py) (* b22 pz) (* b23 1d0)))))
+      (psetf tpx (as-double-float
+                  (+ (* b00 px) (* b01 py) (* b02 pz) (* b03 1d0)))
+             tpy (as-double-float
+                  (+ (* b10 px) (* b11 py) (* b12 pz) (* b13 1d0)))
+             tpz (as-double-float
+                  (+ (* b20 px) (* b21 py) (* b22 pz) (* b23 1d0))))))
   transformed-point)
 
 (declaim (ftype (function (pmat pvec) pvec) pm-apply))
