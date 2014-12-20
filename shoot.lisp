@@ -52,6 +52,26 @@
     (setf (chargingp muzzle) nil
           (charge-percentage muzzle) 0.0)))
 
+(defmethod fire ((ship ship) spawn-class (muzzle mine-muzzle) turret)
+  (let ((shot-name (shot-instance-name muzzle)))
+
+    ;; Actually fire
+    (cond
+      ((plusp (mine-count muzzle))
+       (spawn spawn-class
+              ;; Specialize the shot in the muzzle to be appropriate for the
+              ;; ship firing it.
+              (specialize-generic-instance-name
+               (instance-name ship) shot-name)
+              turret (game-context ship)
+              ;; And transfer the muzzle's charge to the thing I'm about to fire.
+              :extra-init `(:charge-percentage ,(charge-percentage muzzle)))
+       (decf (mine-count muzzle)))
+      ((zerop (mine-count muzzle))
+       ;; TODO do some visual effect, noise that you're out of mines
+       nil))))
+
+
 
 (defmethod start-charging ((ship player) port)
   (let* ((turret (turret ship port))

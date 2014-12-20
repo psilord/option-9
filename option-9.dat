@@ -26,7 +26,8 @@
      ;; these roles for consistency.
      (:player ; player ships
       :player-powerup ; any kind of power up with which a player can collide.
-      :player-shot ; any kind of a shot from a player
+      :player-shot ; any kind of a shot from the players
+      :player-mine ; any kind of mine from the players
       :enemy-mine ; any kind of a mine from an enemy
       :enemy-shot ; any kind of a shot from an enemy
       :enemy ; any kind of an enemy ship
@@ -41,7 +42,7 @@
    ;; roles must be defined in :defined-roles and that is validated by
    ;; the dat file loader. They are processed in left to right order.
    (((:player) (:player-powerup))
-    ((:player-shot) (:shrapnel :enemy-mine :enemy-shot :enemy))
+    ((:player-shot :player-mine) (:shrapnel :enemy-mine :enemy-shot :enemy))
     ((:shrapnel) (:enemy-mine :enemy-shot :enemy))
     ((:shrapnel :enemy-mine :enemy-shot :enemy) (:player)))
 
@@ -63,7 +64,8 @@
                        :powerup-ship-shield
                        :powerup-tesla-gun
                        :powerup-health
-                       :powerup-charge)))
+                       :powerup-charge
+                       :powerup-proximity-mine)))
 
    ;; These map generic instance names to specialized instance names
    ;; based upon the context in which they exist.  Asset translation
@@ -89,6 +91,7 @@
       (:generic-muzzle-simple-shot   (:generic-muzzle-simple-shot))
       (:generic-muzzle-hardnose-shot (:generic-muzzle-hardnose-shot))
       (:generic-muzzle-super-shot    (:generic-muzzle-super-shot))
+      (:generic-muzzle-mine-dropper  (:generic-muzzle-mine-dropper))
       ;; Active weapon shots
       (:generic-simple-shot      (:player-1-simple-shot))
       (:generic-hardnose-shot    (:player-1-hardnose-shot))
@@ -99,7 +102,7 @@
       (:generic-shot-shield      (:player-1-shot-shield))
       (:generic-ship-shield      (:player-1-ship-shield))
       ;; Mines
-      (:generic-proximity-mine   (:proximity-mine))
+      (:generic-proximity-mine   (:proximity-mine-2))
       (:generic-field-mine       (:field-mine))))
 
     (:enemy-1 ;; instance name for a real instance in the game
@@ -110,6 +113,7 @@
       (:generic-muzzle-simple-shot   (:generic-muzzle-simple-shot))
       (:generic-muzzle-hardnose-shot (:generic-muzzle-hardnose-shot))
       (:generic-muzzle-super-shot    (:generic-muzzle-super-shot))
+      (:generic-muzzle-mine-dropper  (:generic-muzzle-mine-dropper))
       ;; Active weapon shots
       (:generic-simple-shot      (:enemy-1-simple-shot))
       (:generic-hardnose-shot    (:enemy-1-hardnose-shot))
@@ -120,7 +124,7 @@
       (:generic-shot-shield      (:enemy-1-shot-shield))
       (:generic-ship-shield      (:enemy-1-ship-shield))
       ;; Mines
-      (:generic-proximity-mine   (:proximity-mine))
+      (:generic-proximity-mine   (:proximity-mine-1))
       (:generic-field-mine       (:field-mine))))
 
     (:enemy-2 ;; instance name for a real instance in the game
@@ -131,6 +135,7 @@
       (:generic-muzzle-simple-shot   (:generic-muzzle-simple-shot))
       (:generic-muzzle-hardnose-shot (:generic-muzzle-hardnose-shot))
       (:generic-muzzle-super-shot    (:generic-muzzle-super-shot))
+      (:generic-muzzle-mine-dropper  (:generic-muzzle-mine-dropper))
       ;; Active weapon shots
       (:generic-simple-shot      (:enemy-2-simple-shot))
       (:generic-hardnose-shot    (:enemy-2-hardnose-shot))
@@ -141,7 +146,7 @@
       (:generic-shot-shield      (:enemy-2-shot-shield))
       (:generic-ship-shield      (:enemy-2-ship-shield))
       ;; Mines
-      (:generic-proximity-mine   (:proximity-mine))
+      (:generic-proximity-mine   (:proximity-mine-1))
       (:generic-field-mine       (:field-mine))))
 
     (:enemy-3 ;; instance name for a real instance in the game
@@ -152,6 +157,7 @@
       (:generic-muzzle-simple-shot   (:generic-muzzle-simple-shot))
       (:generic-muzzle-hardnose-shot (:generic-muzzle-hardnose-shot))
       (:generic-muzzle-super-shot    (:generic-muzzle-super-shot))
+      (:generic-muzzle-mine-dropper  (:generic-muzzle-mine-dropper))
       ;; Active weapon shots
       (:generic-simple-shot      (:enemy-3-simple-shot))
       (:generic-hardnose-shot    (:enemy-3-hardnose-shot))
@@ -162,7 +168,7 @@
       (:generic-shot-shield      (:enemy-3-shot-shield))
       (:generic-ship-shield      (:enemy-3-ship-shield))
       ;; Mines
-      (:generic-proximity-mine   (:proximity-mine))
+      (:generic-proximity-mine   (:proximity-mine-1))
       (:generic-field-mine       (:field-mine)))))
 
 
@@ -258,6 +264,12 @@
      (:initargs
       :shot-instance-name :generic-super-shot))
 
+    ((:instance :generic-muzzle-mine-dropper)
+     (:class mine-muzzle)
+     (:initargs
+      :mine-count 5 ;; TODO: Decide if powerups replace or fill this.
+      :shot-instance-name :generic-proximity-mine))
+
     ;; ;;;;;;;;;;;;;
     ;; Player 1
     ;; ;;;;;;;;;;;;;
@@ -287,7 +299,7 @@
        (:passive-weapon-port :generic-one-shot-turret nil)
        (:front-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot)
        (:left-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot)
-       (:center-weapon-port :generic-one-shot-turret nil)
+       (:center-weapon-port :generic-one-shot-turret :generic-muzzle-mine-dropper)
        (:right-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot)
        (:rear-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot))
       :geometry :player-1-ship))
@@ -606,11 +618,20 @@
       :charge-effects ((:front-weapon-port :charging))
       :geometry :powerup-charge))
 
+    ((:instance :powerup-proximity-mine)
+     (:class powerup)
+     (:initargs
+      :ttl-min ,(in-usecs 1.0)
+      :ttl-max ,(in-usecs 4.0)
+      :radius 4
+      :powerup-turrets ((:center-weapon-port nil :generic-muzzle-mine-dropper))
+      :geometry :powerup-proximity-mine))
+
     ;; ;;;;;;;;;;;;;
     ;; Mines
     ;; ;;;;;;;;;;;;;
 
-    ((:instance :proximity-mine)
+    ((:instance :proximity-mine-1)
      (:class proximity-mine)
      (:initargs
       :radius 10
@@ -622,7 +643,21 @@
       :additional-sparks 100
       :inttl ,(in-usecs 1/6)
       :flyingp t
-      :geometry :proximity-mine))
+      :geometry :proximity-mine-1))
+
+    ((:instance :proximity-mine-2)
+     (:class proximity-mine)
+     (:initargs
+      :radius 10
+      :points 100
+      :max-hit-points 100
+      :damage-points 200
+      :charge 0
+      :initial-sparks 300
+      :additional-sparks 100
+      :inttl ,(in-usecs 1/6)
+      :flyingp t
+      :geometry :proximity-mine-2))
 
     ((:instance :field-mine)
      (:class field-mine)

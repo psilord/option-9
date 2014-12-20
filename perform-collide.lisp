@@ -185,7 +185,6 @@
                    (setf (decay-time payload) (in-usecs 2.0))
                    (setf (decay-time payload) (/ (decay-time payload) 2.0)))))))))
 
-
     ;; If the powerup has a health level, apply it to the player.
     (incf (hit-points collider) (powerup-health-level collidee))
     (when (> (hit-points collider) (max-hit-points collider))

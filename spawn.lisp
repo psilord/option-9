@@ -32,6 +32,7 @@
 (defclass sp-ship (spawnable) ())
 (defclass sp-player (sp-ship) ())
 (defclass sp-player-shot (spawnable) ())
+(defclass sp-player-mine (spawnable) ())
 (defclass sp-player-powerup (spawnable) ())
 (defclass sp-enemy (sp-ship) ())
 (defclass sp-enemy-shot (spawnable) ())
@@ -292,6 +293,35 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                          :game game)
          game)))))
 
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Spawning a Player Mine
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmethod spawn ((spawn-class (eql 'sp-player-mine)) ioi/e loc/ent game
+                  &key
+                    spawn-context
+                    (parent :universe)
+                    (orphan-policy :destroy)
+                    (mutator #'identity)
+                    extra-init
+                    &allow-other-keys)
+  (let* ((loc (resolve-spawn-location loc/ent))
+         (the-mine-instance-name
+          (specialize-generic-instance-name (instance-name loc/ent) ioi/e))
+
+         (initializer `(,the-mine-instance-name
+                        :orphan-policy ,orphan-policy
+                        :roles (:player-mine)
+                        :dv ,(pv-copy loc)
+                        ,@extra-init)))
+    (add-spawnable
+     (make-spawnable spawn-class
+                     :ioi/e ioi/e
+                     :spawn-context spawn-context
+                     :initializer initializer
+                     :parent parent
+                     :mutator mutator
+                     :game game)
+     game)))
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spawning an Enemy

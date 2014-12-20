@@ -35,50 +35,46 @@
                 (with-pvec-accessors (w vertex)
                   (gl:vertex wx wy wz)))))))
 
+      (gl:pop-matrix)))
+
+  (when (hudp ent)
+    ;; If the hit-points is not equal to the maximum hit points, then
+    ;; render the health bar
+    (when (/= (hit-points ent) (max-hit-points ent))
+
+      ;; TODO: Hrm, this hud is in the world coordinates. I'm suspicious
+      ;; that this is the right coordinate system for this task..
+      (gl:matrix-mode :modelview)
+      (gl:push-matrix)
+      (gl:load-identity)
+
+      (with-pvec-accessors (o (pm-get-trans (world-basis ent)))
+        (gl:line-width 4.0)
+        (gl:with-primitive :lines
+          (let* ((per (/ (hit-points ent) (max-hit-points ent)))
+                 (invper (- 1.0 per)))
+            (gl:color 1 1 1)
+            ;; start life bar
+            (gl:vertex (+ ox -4)
+                       (+ oy 5)
+                       0d0)
+            ;; End life bar
+            (gl:vertex (+ ox (- 4 (* 8 invper)))
+                       (+ oy 5)
+                       0d0)
+
+            ;; start filler
+            (gl:color .2 .2 .2)
+            (gl:vertex (+ ox (- 4 (* 8 invper)))
+                       (+ oy 5)
+                       0d0)
+
+            (gl:vertex (+ ox 4)
+                       (+ oy 5)
+                       0d0)))
+        (gl:line-width 1.0))
+
       (gl:pop-matrix))))
-
-
-;; Ships have various other things which need to be rendered as well. So
-;; do them...
-(defmethod render :after ((s ship))
-
-  ;; If the hit-points is not equal to the maximum hit points, then
-  ;; render the health bar
-  (when (/= (hit-points s) (max-hit-points s))
-
-    ;; TODO: Hrm, this hud is in the world coordinates. I'm suspicious
-    ;; that this is the right coordinate system for this task..
-    (gl:matrix-mode :modelview)
-    (gl:push-matrix)
-    (gl:load-identity)
-
-    (with-pvec-accessors (o (pm-get-trans (world-basis s)))
-      (gl:line-width 4.0)
-      (gl:with-primitive :lines
-        (let* ((per (/ (hit-points s) (max-hit-points s)))
-               (invper (- 1.0 per)))
-          (gl:color 1 1 1)
-          ;; start life bar
-          (gl:vertex (+ ox -4)
-                     (+ oy 5)
-                     0d0)
-          ;; End life bar
-          (gl:vertex (+ ox (- 4 (* 8 invper)))
-                     (+ oy 5)
-                     0d0)
-
-          ;; start filler
-          (gl:color .2 .2 .2)
-          (gl:vertex (+ ox (- 4 (* 8 invper)))
-                     (+ oy 5)
-                     0d0)
-
-          (gl:vertex (+ ox 4)
-                     (+ oy 5)
-                     0d0)))
-      (gl:line-width 1.0))
-
-    (gl:pop-matrix)))
 
 ;; Draw the field lines before any actual geometry of the weapon. We
 ;; do this by walking the entity-contacts hash table which lets us

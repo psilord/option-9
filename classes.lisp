@@ -104,7 +104,11 @@ the class must be of type DRAWABLE or more specialized."))
                     :accessor initial-sparks)
    (%additional-sparks :initarg :additional-sparks
                        :initform 50
-                       :accessor additional-sparks))
+                       :accessor additional-sparks)
+   ;; Should I draw a hud around the entity on the screen?
+   (%hudp :initarg :hudp
+          :initform nil
+          :accessor hudp))
   (:documentation "The Entity Class"))
 
 (defclass temporal ()
@@ -362,6 +366,7 @@ vector at that position"))
              :initform (make-hash-table)
              :accessor turrets))
 
+  (:default-initargs :hudp t)
   (:documentation "The Ship Class"))
 
 (defclass player (ship)
@@ -412,6 +417,13 @@ vector at that position"))
   ()
   (:documentation "Muzzles which hold super shots only"))
 
+(defclass mine-muzzle (muzzle)
+  (;; How many mines can this muzzle drop before being empty.
+   (%mine-count :initarg :mine-count
+                :initform 5
+                :accessor mine-count))
+  (:documentation "Muzzles which hold super shots only"))
+
 
 (defclass shot (weapon)
   ()
@@ -431,6 +443,7 @@ vector at that position"))
 
 (defclass mine (weapon)
   ()
+  (:default-initargs :hudp t)
   (:documentation "The base mine class"))
 
 (defclass proximity-mine (mine)
