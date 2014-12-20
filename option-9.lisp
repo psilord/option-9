@@ -12,6 +12,11 @@
 ;; or implied. See the License for the specific language governing
 ;; permissions and limitations under the License.
 
+;; Plot, to be shown to the player at start of game: "Supreme
+;; Commander Snarkill of the Snarlian Empire owes you 9 bucks and has
+;; refused to pay. The only response to this affront is total
+;; annihilation of the Snarlian Empire. You commence now."
+
 (in-package #:option-9)
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
