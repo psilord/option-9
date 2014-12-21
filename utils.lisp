@@ -139,6 +139,6 @@ pvectors which happen to be used as points."
      (list 0))
     (t
      (nreverse
-      (loop with num = int until (zerop num) appending
-           (list (multiple-value-bind (q r) (floor num 10)
-                   (setf num q) r)))))))
+      (loop with num = int until (zerop num) collecting
+           (multiple-value-bind (q r) (floor num 10)
+             (setf num q) r))))))
