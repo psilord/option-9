@@ -91,8 +91,11 @@
                 :digit-7
                 :digit-8
                 :digit-9))
-          (score-ints (integer->list (score game)))
-          (highscore-ints (integer->list (highscore game))))
+          (score-ints (nreverse (integer->list (score game))))
+          (highscore-ints (nreverse (integer->list (highscore game)))))
+
+      (format t "score: ~A~%" score-ints)
+      (format t "highscore: ~A~%" highscore-ints)
 
       ;; realize the score board
       (dolist (digit (entities-with-role (scene-man game) :score-board))
@@ -101,7 +104,7 @@
       (let ((xstart 85)
             (xstep -2)
             (ci 0))
-        (dotimes (v (length score-ints))
+        (dolist (v score-ints)
           (spawn 'sp-alphanum
                  (aref db v)
                  (pvec (coerce (+ xstart (* xstep ci)) 'double-float)
@@ -118,7 +121,7 @@
       (let ((xstart 15)
             (xstep -2)
             (ci 0))
-        (dotimes (v (length highscore-ints))
+        (dolist (v highscore-ints)
           (spawn 'sp-alphanum
                  (aref db v)
                  (pvec (coerce (+ xstart (* xstep ci)) 'double-float)
