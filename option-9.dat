@@ -267,7 +267,8 @@
     ((:instance :generic-muzzle-mine-dropper)
      (:class mine-muzzle)
      (:initargs
-      :mine-count 5 ;; TODO: Decide if powerups replace or fill this.
+      :mine-count 0 ;; TODO: Decide if powerups replace or fill
+                    ;; this. Currently it fills.
       :shot-instance-name :generic-proximity-mine))
 
     ;; ;;;;;;;;;;;;;
