@@ -81,30 +81,29 @@
 
 (defun realize-score-boards (game)
   (when (modified-score-p game) ;; don't redraw unless required.
-    (let ((db `((#\0 . :digit-0)
-                (#\1 . :digit-1)
-                (#\2 . :digit-2)
-                (#\3 . :digit-3)
-                (#\4 . :digit-4)
-                (#\5 . :digit-5)
-                (#\6 . :digit-6)
-                (#\7 . :digit-7)
-                (#\8 . :digit-8)
-                (#\9 . :digit-9)))
-          (score-chars (reverse (map 'list #'identity
-                                     (format nil "~D" (score game)))))
-          (highscore-chars (reverse (map 'list #'identity
-                                         (format nil "~D" (highscore game))))))
+    (let ((db #(:digit-0
+                :digit-1
+                :digit-2
+                :digit-3
+                :digit-4
+                :digit-5
+                :digit-6
+                :digit-7
+                :digit-8
+                :digit-9))
+          (score-ints (integer->list (score game)))
+          (highscore-ints (integer->list (highscore game))))
 
       ;; realize the score board
       (dolist (digit (entities-with-role (scene-man game) :score-board))
         (remove-from-scene (scene-man game) digit))
+
       (let ((xstart 85)
             (xstep -2)
             (ci 0))
-        (dolist (c score-chars)
+        (dotimes (v (length score-ints))
           (spawn 'sp-alphanum
-                 (cdr (assoc c db))
+                 (aref db v)
                  (pvec (coerce (+ xstart (* xstep ci)) 'double-float)
                        98d0
                        0d0)
@@ -115,12 +114,13 @@
       ;; realize the highscore board
       (dolist (digit (entities-with-role (scene-man game) :high-score-board))
         (remove-from-scene (scene-man game) digit))
+
       (let ((xstart 15)
             (xstep -2)
             (ci 0))
-        (dolist (c highscore-chars)
+        (dotimes (v (length highscore-ints))
           (spawn 'sp-alphanum
-                 (cdr (assoc c db))
+                 (aref db v)
                  (pvec (coerce (+ xstart (* xstep ci)) 'double-float)
                        98d0
                        0d0)

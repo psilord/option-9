@@ -131,3 +131,14 @@ pvectors which happen to be used as points."
 
     ;; Now, compute the distance and return it
     (/ lw-cross-mag l-mag)))
+
+(defun integer->list (int)
+  "Explode a 0 or positive integer into a list of integers and return it."
+  (cond
+    ((zerop int)
+     (list 0))
+    (t
+     (nreverse
+      (loop with num = int until (zerop num) appending
+           (list (multiple-value-bind (q r) (floor num 10)
+                   (setf num q) r)))))))
