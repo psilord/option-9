@@ -94,9 +94,6 @@
           (score-ints (nreverse (integer->list (score game))))
           (highscore-ints (nreverse (integer->list (highscore game)))))
 
-      (format t "score: ~A~%" score-ints)
-      (format t "highscore: ~A~%" highscore-ints)
-
       ;; realize the score board
       (dolist (digit (entities-with-role (scene-man game) :score-board))
         (remove-from-scene (scene-man game) digit))
