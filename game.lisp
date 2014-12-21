@@ -79,56 +79,57 @@
 
 
 
+;; TODO: Condense this into a higher order function loop with flet and lambdas.
+;; Get rid of the INTEGER->LIST call and just do it raw.
 (defun realize-score-boards (game)
   (when (modified-score-p game) ;; don't redraw unless required.
-    (let ((db #(:digit-0
-                :digit-1
-                :digit-2
-                :digit-3
-                :digit-4
-                :digit-5
-                :digit-6
-                :digit-7
-                :digit-8
-                :digit-9))
-          (score-ints (nreverse (integer->list (score game))))
-          (highscore-ints (nreverse (integer->list (highscore game)))))
+    (let ((db #(:digit-0 :digit-1 :digit-2 :digit-3 :digit-4 :digit-5
+                :digit-6 :digit-7 :digit-8 :digit-9)))
+      (flet ((update-score (xstart ystart the-score role)
+               ;; First, remove from the scene the current score.
+               (dolist (digit (entities-with-role (scene-man game) role))
+                 (remove-from-scene (scene-man game) digit))
 
-      ;; realize the score board
-      (dolist (digit (entities-with-role (scene-man game) :score-board))
-        (remove-from-scene (scene-man game) digit))
+               ;; Then add the new score into the scene.
+               (let ((xstart xstart)
+                     (xstep -2)
+                     (ci 0))
+                 (cond
+                   ((zerop the-score)
+                    (spawn 'sp-alphanum
+                           :digit-0
+                           (pvec
+                            (coerce (+ xstart (* xstep ci))
+                                    'double-float)
+                            ystart
+                            0d0)
+                           game
+                           :roles `(,role)))
+                   (t
+                    ;; Strip off the ones place each iteration and
+                    ;; write the number from right to left.
+                    (loop with num = the-score until (zerop num) do
+                         (multiple-value-bind (q r) (floor num 10)
+                           (spawn 'sp-alphanum
+                                  (aref db r)
+                                  (pvec (coerce (+ xstart (* xstep ci))
+                                                'double-float)
+                                        ystart
+                                        0d0)
+                                  game
+                                  :roles `(,role))
+                           (incf ci)
 
-      (let ((xstart 85)
-            (xstep -2)
-            (ci 0))
-        (dolist (v score-ints)
-          (spawn 'sp-alphanum
-                 (aref db v)
-                 (pvec (coerce (+ xstart (* xstep ci)) 'double-float)
-                       98d0
-                       0d0)
-                 game
-                 :roles '(:score-board))
-          (incf ci)))
+                           (setf num q) r)))))))
 
-      ;; realize the highscore board
-      (dolist (digit (entities-with-role (scene-man game) :high-score-board))
-        (remove-from-scene (scene-man game) digit))
 
-      (let ((xstart 15)
-            (xstep -2)
-            (ci 0))
-        (dolist (v highscore-ints)
-          (spawn 'sp-alphanum
-                 (aref db v)
-                 (pvec (coerce (+ xstart (* xstep ci)) 'double-float)
-                       98d0
-                       0d0)
-                 game
-                 :roles '(:high-score-board))
-          (incf ci))))
+        ;; realize the score board
+        (update-score 85 98d0 (score game) :score-board)
 
-    (setf (modified-score-p game) nil)))
+        ;; realize the high score board
+        (update-score 15 98d0 (highscore game) :high-score-board)
+
+        (setf (modified-score-p game) nil)))))
 
 
 (defun reset-score-to-zero (game)
