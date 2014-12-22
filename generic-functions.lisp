@@ -16,11 +16,6 @@
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
-(defgeneric make-instance-finish (object)
-  (:documentation
-   "Sometimes a class constructor needs a little extra class specific
-work to finish its construction."))
-
 (defgeneric sparks (entity)
   (:documentation
    "How many sparks the entity produces when it dies"))

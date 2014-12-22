@@ -448,25 +448,18 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                                    (pv-rand-dir :span :xy)
                                    (+ initial-velocity
                                       (random velocity-factor)))
+                            ,@(when ttl-max-supplied-p (list :ttl-max ttl-max))
                             ,@extra-init)))
 
-        (flet ((spark-mutator (spark)
-                 ;; Complete the spark instantiation by updating the ttl.
-                 (when ttl-max-supplied-p
-                   (setf (ttl-max spark) ttl-max))
-                 (make-instance-finish spark)))
-
-          (add-spawnable
-           (make-spawnable spawn-class
-                           :ioi/e ioi/e
-                           :spawn-context spawn-context
-                           :initializer initializer
-                           :parent parent
-                           :mutator #'(lambda (s) ;; compose with supplied one.
-                                        (funcall mutator
-                                                 (spark-mutator s)))
-                           :game game)
-           game))))))
+        (add-spawnable
+         (make-spawnable spawn-class
+                         :ioi/e ioi/e
+                         :spawn-context spawn-context
+                         :initializer initializer
+                         :parent parent
+                         :mutator mutator
+                         :game game)
+         game)))))
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spawning a Powerup

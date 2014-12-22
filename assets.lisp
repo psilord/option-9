@@ -2,22 +2,18 @@
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
-;; In general, we don't do anything special to any object that we create.
-(defmethod make-instance-finish (nothing-to-do)
-  nothing-to-do)
-
 ;; If any random entity sets a ttl-max and nothing more specific changes this
 ;; method, then assign a random ttl based upon the ttl-max.
-(defmethod make-instance-finish :after ((s temporal))
+(defmethod initialize-instance :after ((s temporal) &key)
   (when (not (null (ttl-max s)))
     (setf (ttl s) (+ (ttl-min s) (random (- (ttl-max s) (ttl-min s))))))
   s)
 
-(defmethod make-instance-finish :after ((e entity))
+(defmethod initialize-instance :after ((e entity) &key)
   (setf (hit-points e) (max-hit-points e))
   e)
 
-(defmethod make-instance-finish :after ((ent tesla-field))
+(defmethod initialize-instance :after ((ent tesla-field) &key)
   (setf (power-range ent) (power-range ent))
   (setf (power-lines ent) (power-lines ent))
   ent)
@@ -75,11 +71,10 @@
                 (setf (cadr ?geometry)
                       (apply #'make-instance 'geometry (cadr ?geometry))))))
 
-        (make-instance-finish
-         ;; The values of the override arguments are accepted
-         ;; first when in a left to right ordering in the
-         ;; argument list in concordance with the ANSI spec.
-         (apply #'make-instance cls :game-context *game* full-args))))))
+        ;; The values of the override arguments are accepted
+        ;; first when in a left to right ordering in the
+        ;; argument list in concordance with the ANSI spec.
+        (apply #'make-instance cls :game-context *game* full-args)))))
 
 (defun weighted-choice (choices)
   "Given a list of probabilistic CHOICES like:
