@@ -1,0 +1,89 @@
+An incomplete, unsorted, and overly concise bag of stuff that describes
+what is in option-9, and what I'd like to be there.
+
+Plot
+- This should stay small and ridiculous.
+- "Supreme Commander Snarkill of the Snarlian Empire owes you
+  9 bucks and has refused to pay. The only response to this affront is
+  total annihilation of the Snarlian Empire. It commences immediately."
+
+Levels [to be implemented]
+- Line drawn, or stippled, to preserve the visual style.
+- Going from entering an Empire's military borders to the Citadel itself.
+- 9 levels with 9 bosses
+  - Straw man partitions of the levels...
+  - Level 1: Front Lines
+  - Level 2: Supply Lines
+  - Level 3: Main Encampment
+  - Level 4: Asteroid Field
+  - Level 5: Warp Gate
+  - Level 6: Snarlian Homeworld
+  - Level 7: Royal City
+  - Level 8: Elite Guard
+  - Level 9: Citadel 
+
+Sound [to be implemented]
+- Music
+- Effects
+
+Shields
+- Current shields
+  - Shot shield (protect only against shots hitting you)
+  - Ship shield (protect against shots and ships hitting you)
+- To be implemented
+  - Reflect or bend shots away from ship.
+  - Multiplayer shield which is stronger the longer players stay together.
+  - Pick up shrapnel and use it as a physical shield rotating around player.
+
+Weapons
+  - Shots (discrete objects flung from a muzzle)
+    - Current Shots
+      - Varieties
+        - Simple Shot (slow, low damage)
+        - Hard Shot (faster, kills bullets and keeps going, stopped by
+          ships)
+        - Super Shot (Fastest, kill bullets and other ships, keeps going)
+      - Can be charged OR rapid fire[tbi], but not at the same time.
+    - To be implemented
+      - Missles that can upgrade to target enemies.
+
+  - Mines
+    - Current Mines
+      - Proximity
+      - Field
+    - To be implemented
+      - Fence mine (need X layed mines that then connect to provide a fence)
+
+  - Passive
+    - Current Passive Weapons
+      - Tesla Gun
+    - To be implemented
+      - Slow time/movement/thinking/etc for other ships/etc in a radius.
+
+  - Beam Weapons (to be implemented)
+
+Powerups & related
+- A shot can be charged and charged faster
+- Get more health
+- Get any described weapon and/or increase current one's power.
+- Get any described shield and/or increase current one's power.
+
+UI
+- Stack-like event handler [Mick]
+- Quake-like console [Mick]
+- Splash screen
+- map controls to actions screen
+- tutorial mode?
+- demo mode?
+- high score screen?
+- load/save game at either level boundaries or checkpoints in levels.
+- possible inventory screen: select stored powerups (analogous to potions?)
+
+Technical stuff
+- Level layout & editing
+- Collision detection with level elements
+- Recast of matrix lib interface to be more conventional [in progress].
+- Inspection of the powerup code and DSL to see if it can be made better.
+
+
+
