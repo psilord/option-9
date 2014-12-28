@@ -44,18 +44,19 @@
       (:orientation ,(pm-eye)))
 
      (:front-weapon-port
-      (:orientation ,(pm-translate-into (pm-eye) (pvec 0d0 4d0 0d0))))
+      (:orientation ,(pm-trfm-translate-into (pm-eye) (pvec 0d0 4d0 0d0))))
      (:left-weapon-port
-      (:orientation ,(pm-translate-into (pm-eye) (pvec -3d0 2d0 0d0))))
+      (:orientation ,(pm-trfm-translate-into (pm-eye) (pvec -3d0 2d0 0d0))))
      (:center-weapon-port
       (:orientation ,(pm-eye)))
      (:right-weapon-port
-      (:orientation ,(pm-translate-into (pm-eye) (pvec 3d0 2d0 0d0))))
+      (:orientation ,(pm-trfm-translate-into (pm-eye) (pvec 3d0 2d0 0d0))))
      (:rear-weapon-port
       ;; Turn so the pos :y axis of the turret points down the
       ;; negative :y of the ship.
-      (:orientation ,(pm-translate-into
-                      (pm-rotate-basis-into (pm-eye) (pvec 0d0 0d0 pi))
+      (:orientation ,(pm-trfm-translate-into
+                      (pm-trfm-local-axis-rotate-into
+                       (pm-eye) (pvec 0d0 0d0 pi))
                       (pvec 0d0 -3d0 0d0)))))))
 
 

@@ -1,5 +1,11 @@
 (in-package :option-9)
 
+;; This matrix library contains function to operate on both 4x4
+;; matricies and also "transformation matricies" which are 3x3
+;; rotation matricies embedded into the upper left hand corner of a 4x
+;; matrix incuding a 4x1 matrix representing the translation in the
+;; 4th column of the 4x4 matrix.
+
 #-option-9-optimize-pmat
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
@@ -72,15 +78,21 @@
             m20 m21 m22 m23
             m30 m31 m32 m33))))))
 
+(defun pm-test-into (mat)
+  "Construct a test pattern into the 4x4 matrix MAT."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (with-multiple-pmat-accessors ((m mat))
+    (psetf m00 1d0 m01 2d0 m02 3d0 m03 4d0
+           m10 5d0 m11 6d0 m12 7d0 m13 8d0
+           m20 9d0 m21 10d0 m22 11d0 m23 12d0
+           m30 13d0 m31 14d0 m32 15d0 m33 16d0))
+  mat)
+
 (defun pm-test ()
+  "Return a newly allocated 4x4 matrix that contains a test pattern."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (let ((result (pmat)))
-    (with-multiple-pmat-accessors ((r result))
-      (psetf r00 1d0 r01 2d0 r02 3d0 r03 4d0
-             r10 5d0 r11 6d0 r12 7d0 r13 8d0
-             r20 9d0 r21 10d0 r22 11d0 r23 12d0
-             r30 13d0 r31 14d0 r32 15d0 r33 16d0))
-    result))
+    (pm-test-into result)))
 
 (declaim (ftype (function (pmat) pmat) pm-eye-into))
 (defun pm-eye-into (mat)
@@ -97,14 +109,6 @@
 (defun pm-eye ()
   "Return a newly allocated identity matrix."
   (pm-eye-into (pmat)))
-
-(defun junk ()
-  (declare (optimize (safety 0)))
-  (let ((f (make-array 4 :element-type 'double-float
-                       :initial-contents '(0d0 0d0 0d0 0d0))))
-    (declare ((simple-array double-float (4)) f))
-    (psetf (aref f 0) 1d0 (aref f 1) 1d0 (aref f 2) 1d0 (aref f 3) 1d0)))
-
 
 ;; NOTE: This looks scary in that I might be modifying RESULT while
 ;; still reading from it. Not so. The semantics of PSETF are that all
@@ -180,7 +184,7 @@
 (declaim (ftype (function (pmat) pmat) pm-transpose))
 (declaim (inline pm-transpose))
 (defun pm-transpose (mat)
-  "Transpose the MAT in place and return it."
+  "Transpose the 4x4 MAT in place and return it."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-pmat-accessors (m mat)
     (rotatef m10 m01)
@@ -191,33 +195,35 @@
     (rotatef m32 m23))
   mat)
 
-(declaim (ftype (function (pmat) pmat) pm-invert-rot-into))
-(declaim (inline om-invert-rot-into))
-(defun pm-invert-rot-into (rot)
-  "Invert the rotation matrix ROT and return it."
+(declaim (ftype (function (pmat) pmat) pm-trfm-invert-into))
+(declaim (inline pm-trfm-invert-into))
+(defun pm-trfm-invert-into (mat)
+  "Invert a transformation matrix. This means transpose the 3x3
+rotation matrix contained in the upper left hand of the transformation
+matrix and negate the 4x1 translation column in the 4th column of the
+transformation matrix MAT. Return the modified MAT."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-pmat-accessors (r rot)
+  (with-pmat-accessors (m mat)
     ;; Transpose the upper left square 3x3 portion of the rotation matrix
-    (rotatef r10 r01)
-    (rotatef r20 r02)
-    (rotatef r21 r12)
+    (rotatef m10 m01)
+    (rotatef m20 m02)
+    (rotatef m21 m12)
     ;; Negate the translation
-    (psetf r03 (as-double-float (* r03 -1d0))
-           r13 (as-double-float (* r13 -1d0))
-           r23 (as-double-float (* r23 -1d0))))
-  rot)
+    (psetf m03 (as-double-float (* m03 -1d0))
+           m13 (as-double-float (* m13 -1d0))
+           m23 (as-double-float (* m23 -1d0))))
+  mat)
 
-(declaim (ftype (function (pmat) pmat) pm-invert-rot))
-(defun pm-invert-rot (rot)
-  "Allocate a new matrix that will be the inversion of the ROT matrix and
-return it."
+(declaim (ftype (function (pmat) pmat) pm-trfm-invert))
+(defun pm-trfm-invert (trfm)
+  "Invert the transformation matrix TRFM."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-invert-rot-into (pm-copy rot)))
+  (pm-trfm-invert-into (pm-copy trfm)))
 
 (declaim (inline pm-convert-to-opengl-into))
 (defun pm-convert-to-opengl-into (ogl mat)
   "Convert the MAT matrix into OGL, which is a column-major OpenGL
-matrix represented as a (simple-array souble-float (16)), and then
+matrix represented as a (simple-array double-float (16)), and then
 return OGL."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (declare ((simple-array double-float (16)) ogl))
@@ -287,29 +293,31 @@ return it."
   (declare ((simple-array double-float (16)) ogl))
   (pm-convert-from-opengl-into (pmat) ogl))
 
-(declaim (ftype (function (pmat pvec) pmat) pm-set-trans-into))
-(declaim (inline pm-set-trans-into))
-(defun pm-set-trans-into (mat trans)
-  "Set the translation vector in the pvec TRANS into MAT and return MAT."
+(declaim (ftype (function (pmat pvec) pmat) pm-trfm-set-trans-into))
+(declaim (inline pm-trfm-set-trans-into))
+(defun pm-trfm-set-trans-into (trfm trans)
+  "Set the translation vector in the pvec TRANS into the translation
+column in the transformation matrix MAT and return MAT."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-pmat-accessors (m mat)
+  (with-pmat-accessors (m trfm)
     (with-pvec-accessors (v trans)
       (psetf m03 vx
              m13 vy
              m23 vz)))
-  mat)
+  trfm)
 
-(declaim (ftype (function (pvec) pmat) pm-set-trans))
-(defun pm-set-trans (trans)
-  "Allocate and return a new identity matrix with TRANS as its translation."
+(declaim (ftype (function (pvec) pmat) pm-trfm-set-trans))
+(defun pm-trfm-set-trans (trans)
+  "Allocate and return a new identity transformation matrix with TRANS
+as its translation."
+
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-set-trans-into (pm-eye) trans))
+  (pm-trfm-set-trans-into (pm-eye) trans))
 
-
-(declaim (ftype (function (pvec pmat) pvec) pm-get-trans-into))
-(defun pm-get-trans-into (trans mat)
-  "Get the translation column from MAT and put into the pvec TRANS. Return
-TRANS."
+(declaim (ftype (function (pvec pmat) pvec) pm-trfm-get-trans-into))
+(defun pm-trfm-get-trans-into (trans mat)
+  "Get the translation column from the transformation matrix MAT and
+put into the pvec TRANS. Return TRANS."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-pmat-accessors (m mat)
     (with-pvec-accessors (v trans)
@@ -318,14 +326,15 @@ TRANS."
              vz m23)))
   trans)
 
-(declaim (ftype (function (pmat) pvec) pm-get-trans))
-(defun pm-get-trans (mat)
-  "Return the translation column of the MAT as a newly allocated PVEC and
-return it."
+(declaim (ftype (function (pmat) pvec) pm-trfm-get-trans))
+(defun pm-trfm-get-trans (mat)
+  "Return the translation column of the transformation matrix MAT as a
+newly allocated PVEC and return it."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-get-trans-into (pvec) mat))
+  (pm-trfm-get-trans-into (pvec) mat))
 
-(defun pm-get-raw-axes-into (xdir ydir zdir mat &key (multiple-value t))
+
+(defun pm-trfm-get-raw-axes-into (xdir ydir zdir mat &key (multiple-value t))
   "Retrieve the raw direction vectors into XDIR, YDIR, and ZDIR, from MAT.
 If the keyword :MULTIPLE-VALUE is T (the default), then return values
 of XDIR, YDIR, and ZDIR. Otherwise return a list of them in the same
@@ -340,18 +349,19 @@ ordering."
       (values xdir ydir zdir)
       (list xdir ydir zdir)))
 
-(defun pm-get-raw-axes (mat &key (multiple-value t))
+(defun pm-trfm-get-raw-axes (mat &key (multiple-value t))
   "Allocate new direction vectors for the X, Y and Z directions from MAT
 and return them as VALUES when :MULTIPLE-VALUE is T (the default). Otherwise
 return them as a list in the same order."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-get-raw-axes-into (pvec) (pvec) (pvec)
-                        mat :multiple-value multiple-value))
+  (pm-trfm-get-raw-axes-into (pvec) (pvec) (pvec)
+                             mat :multiple-value multiple-value))
 
-(declaim (ftype (function (pmat pvec pvec pvec) pmat) pm-set-raw-axes-into))
-(defun pm-set-raw-axes-into (mat xdir ydir zdir)
-  "Assign the supplied direction vectors XDIR YDIR ZDIR into MAT and
-return MAT."
+
+(declaim (ftype (function (pmat pvec pvec pvec) pmat)
+                pm-trfm-set-raw-axes-into))
+(defun pm-trfm-set-raw-axes-into (mat xdir ydir zdir)
+  "Assign the supplied direction vectors XDIR YDIR ZDIR into the transformation MAT and return MAT."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-pmat-accessors (m mat)
     (with-multiple-pvec-accessors ((x xdir) (y ydir) (z zdir))
@@ -368,20 +378,20 @@ return MAT."
              m22 zz)))
   mat)
 
-(declaim (ftype (function (pvec pvec pvec) pmat) pm-set-raw-axes))
-(defun pm-set-raw-axes (xdir ydir zdir)
-  "Allocate an identity matrix and then set the raw axes supplied as the
-rotation components in the matrix. Return the matrix."
+(declaim (ftype (function (pvec pvec pvec) pmat) pm-trfm-set-raw-axes))
+(defun pm-trfm-set-raw-axes (xdir ydir zdir)
+  "Allocate an identity transformation matrix and then set the raw
+axes supplied as XDIR YDIR ZDIR into the rotation components of the
+matrix. Return the transformation matrix."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-set-raw-axes-into (pmat) xdir ydir zdir))
+  (pm-trfm-set-raw-axes-into (pmat) xdir ydir zdir))
 
-(declaim (ftype (function (pmat pvec) pmat) pm-fly-into))
-(defun pm-fly-into (mat fly-vec)
+(declaim (ftype (function (pmat pvec) pmat) pm-trfm-fly-into))
+(defun pm-trfm-fly-into (mat fly-vec)
   "Add each component of the FLY-VEC to the translation portion of the
-basis MAT in the direction of the respective basis direction and write
-back into MAT. The effect is to translate the basis in the direction
-of the fly-vec. Return MAT."
-
+transformation matrix MAT in the direction of the respective basis
+direction in the rotation submatrix and write back into MAT.  Return
+MAT."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-pvec-accessors (f fly-vec)
     (with-pmat-accessors (m mat)
@@ -402,15 +412,20 @@ of the fly-vec. Return MAT."
                m23 (as-double-float (+ m23 (* m22 fz)))))))
   mat)
 
-(declaim (ftype (function (pmat pvec) pmat) pm-fly))
-(defun pm-fly (mat fly-vec)
-  "Return a newly allocated matrix in which FLY-VEC has been applied to MAT."
+(declaim (ftype (function (pmat pvec) pmat) pm-trfm-fly))
+(defun pm-trfm-fly (mat fly-vec)
+  "Copy the transformation matrix MAT and add each component of the
+FLY-VEC to the translation portion of the transformation matrix MAT in
+the direction of the respective basis direction in the rotation
+submatrix and write back into MAT. Return the copy."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-fly-into (pm-copy mat) fly-vec))
+  (pm-trfm-fly-into (pm-copy mat) fly-vec))
 
-(declaim (ftype (function (pmat pvec) pmat) pm-translate-into))
-(defun pm-translate-into (pmat pvec)
-  "Add PVEC to the translation column in PMAT. Return PMAT."
+
+(declaim (ftype (function (pmat pvec) pmat) pm-trfm-translate-into))
+(defun pm-trfm-translate-into (pmat pvec)
+  "Add PVEC to the translation column in the transformation matrix PMAT.
+Return PMAT."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-pmat-accessors (p pmat)
     (with-pvec-accessors (v pvec)
@@ -419,17 +434,18 @@ of the fly-vec. Return MAT."
              p23 (as-double-float (+ p23 vz)))))
   pmat)
 
-(declaim (ftype (function (pmat pvec) pmat) pm-translate))
-(defun pm-translate (pmat pvec)
-  "Return a newly allocated matrix that has PVEC added to the translation
-column in PMAT."
+(declaim (ftype (function (pmat pvec) pmat) pm-trfm-translate))
+(defun pm-trfm-translate (pmat pvec)
+  "Return a copy of the transformation matrix PMAT with the translation stored
+in PVEC added to the translation column."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-translate-into (pm-copy pmat) pvec))
+  (pm-trfm-translate-into (pm-copy pmat) pvec))
 
-(declaim (ftype (function (pvec pmat keyword) pvec) pm-get-dir-into))
-(defun pm-get-dir-into (pv mat dir)
+(declaim (ftype (function (pvec pmat keyword) pvec) pm-trfm-get-dir-into))
+(defun pm-trfm-get-dir-into (pv mat dir)
   "Select the DIR (one of :X, :Y, or :Z) direction vector from the
-rotation matrix MAT and store into PV. Return PV."
+rotation submatrix encoded into the transformation matrix MAT and
+store into PV. Return PV."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-pmat-accessors (m mat)
     (with-pvec-accessors (p pv)
@@ -438,39 +454,41 @@ rotation matrix MAT and store into PV. Return PV."
              pz (ecase dir ((:x) m20) ((:y) m21) ((:z) m22)))))
   pv)
 
-(declaim (ftype (function (pmat keyword) pvec) pm-get-dir))
-(defun pm-get-dir (mat dir)
+(declaim (ftype (function (pmat keyword) pvec) pm-trfm-get-dir))
+(defun pm-trfm-get-dir (mat dir)
   "Allocate and return a new pvec into which is stored the DIR (one
 of :X, :Y, or :Z) direction vector from the rotation matrix MAT."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-get-dir-into (pvec) mat dir))
+  (pm-trfm-get-dir-into (pvec) mat dir))
 
-(declaim (ftype (function (pvec pmat pvec) pvec) pm-apply-into))
-(defun pm-apply-into (transformed-point basis point)
-  "Multiply the BASIS against the POINT and store the result into
-TRANSFORMED-POINT which is then returned."
+(declaim (ftype (function (pvec pmat pvec) pvec) pm-trfm-apply-into))
+(declaim (inline pm-trfm-apply-into))
+(defun pm-trfm-apply-into (transformed-point mat point)
+  "Multiply the transformation matrix MAT against the POINT and store
+the result into TRANSFORMED-POINT which is then returned."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-multiple-pvec-accessors ((tp transformed-point) (p point))
-    (with-pmat-accessors (b basis)
+    (with-pmat-accessors (m mat)
       (psetf tpx (as-double-float
-                  (+ (* b00 px) (* b01 py) (* b02 pz) (* b03 1d0)))
+                  (+ (* m00 px) (* m01 py) (* m02 pz) (* m03 1d0)))
              tpy (as-double-float
-                  (+ (* b10 px) (* b11 py) (* b12 pz) (* b13 1d0)))
+                  (+ (* m10 px) (* m11 py) (* m12 pz) (* m13 1d0)))
              tpz (as-double-float
-                  (+ (* b20 px) (* b21 py) (* b22 pz) (* b23 1d0))))))
+                  (+ (* m20 px) (* m21 py) (* m22 pz) (* m23 1d0))))))
   transformed-point)
 
-(declaim (ftype (function (pmat pvec) pvec) pm-apply))
-(defun pm-apply (basis point)
-  "Multiply the BASIS against the POINT and return the transformed
-point in a newly allocated pvec."
+(declaim (ftype (function (pmat pvec) pvec) pm-trfm-apply))
+(defun pm-trfm-apply (basis point)
+  "Multiply the transformation matrix MAT against the POINT and return
+the transformed point in a newly allocated pvec."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-apply-into (pvec) basis point))
+  (pm-trfm-apply-into (pvec) basis point))
+
 
 (declaim (ftype (function (pmat pmat) pmat) pm-copy-rotation-into))
 (defun pm-copy-rotation-into (dst src)
-  "Copy just the 3x3 rotation vectors of the SRC pmat into the DST
-pmat then return DST."
+  "Copy just the 3x3 rotation submatrix from the SRC transformation matrix
+into the DST transformation matrix then return DST."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-multiple-pmat-accessors ((d dst) (s src))
     (psetf d00 s00 d01 s01 d02 s02
@@ -481,9 +499,10 @@ pmat then return DST."
 (declaim (ftype (function (pmat) pmat) pm-copy-rotation))
 (defun pm-copy-rotation (src)
   "Allocate and return an identity matrix into which just the 3X3 rotation
-components of the SRC matrix have been stored."
+submatrix of the SRC transformation matrix has been stored."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (pm-copy-rotation-into (pm-eye) src))
+
 
 (declaim (ftype (function (pmat) pmat) pm-stabilize-into))
 (defun pm-stabilize-into (mat)
@@ -522,13 +541,14 @@ from MAT."
   (pm-stabilize-into (pm-copy mat)))
 
 (declaim (ftype (function (pmat pvec &key (:stabilize t)) pmat)
-                pm-rotate-basis-into))
-(defun pm-rotate-basis-into (basis rotation-vec &key (stabilize t))
-  "In place rotate the basis matrix as a relative rotation (AKA the
-local axis rotation) as specified by the ROTATION-VEC. The
-ROTATION-VEC defines the relative rotation for each axis. The rotation
-is stabilized if keyword argument :STABILIZED is T (the default) but
-not re-orthogonalized. Return BASIS as the result."
+                pm-trfm-local-axis-rotate-into))
+(defun pm-trfm-local-axis-rotate-into (trfm rotation-vec &key (stabilize t))
+  "In place rotate the transformation matrix TRFM as a relative
+rotation (AKA the local axis rotation) as specified by the
+ROTATION-VEC. The ROTATION-VEC defines the relative rotation around
+each axis in the rotation submatrix. The rotation is stabilized if
+keyword argument :STABILIZED is T (the default) but not
+re-orthogonalized. Return TRFM as the result."
 
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (let ((result (pmat))
@@ -551,8 +571,8 @@ not re-orthogonalized. Return BASIS as the result."
                         (let ((,sin-sym (sin ,axis))
                               (,cos-sym (cos ,axis)))
                           ,@body)
-                        (pm-mul-into result basis rot)
-                        (pm-copy-rotation-into basis result))))
+                        (pm-mul-into result trfm rot)
+                        (pm-copy-rotation-into trfm result))))
 
           ;; These rotations must be done in this order.  Also, this
           ;; is a right handed system.
@@ -584,28 +604,38 @@ not re-orthogonalized. Return BASIS as the result."
                                 rt12 0d0
                                 rt22 (as-double-float cval)))))))
   (if stabilize
-      (pm-stabilize-into basis)
-      basis))
+      (pm-stabilize-into trfm)
+      trfm))
 
 (declaim (ftype (function (pmat pvec &key (:stabilize t)) pmat)
-                pm-rotate-basis))
-(defun pm-rotate-basis (basis rotation-vec &key (stabilize t))
-  "Return a newly allocated matrix which is the basis with the
-relative rotations in ROTATION-VEC applied to it. If the keyword
-argument :STABILIZE is T (the default), the returned matrix is
-stabilized, but not re-orthogonalized."
+                pm-trfm-local-axis-rotate))
+(defun pm-trfm-local-axis-rotate (trfm rotation-vec &key (stabilize t))
+  "Return a newly allocated transformation matrix which was the
+relative rotation (AKA the local axis rotation) as specified by the
+ROTATION-VEC as applied to TRFM. The ROTATION-VEC defines the relative
+rotation around each axis in the rotation submatrix. The rotation is
+stabilized if keyword argument :STABILIZED is T (the default) but not
+re-orthogonalized."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-rotate-basis-into (pm-copy basis) rotation-vec :stabilize stabilize))
+  (pm-trfm-local-axis-rotate-into (pm-copy trfm) rotation-vec
+                                  :stabilize stabilize))
+
+
+;; TODO: Add pm-trfm-rotate-into (which is like gl:rotate) and pm-trfm-rotate
+
 
 (declaim (ftype (function (pmat pmat keyword keyword) pmat)
                 pm-create-view-into))
-(defun pm-create-view-into (camera basis at-dir up-dir)
-  "Camera is the basis into which the computed view matrix will be
-stored. AT-DIR represents the :x, :y, or :z axis in the basis that
-will be used at the 'look at' direction. UP-DIR represents the :x, :y,
-or :z axis that will be used as the 'up' direction in the basis."
+(defun pm-create-view-into (view camera at-dir up-dir)
+  "VIEW is a transformation matrix into which the computed view
+transformation matrix derived from the transformation matrix CAMERA
+will be stored. AT-DIR represents the :x, :y, or :z axis in the CAMERA
+rotation submatrix that will be used at the 'look at'
+direction. UP-DIR represents the :x, :y, or :z axis that will be used
+as the 'up' direction in the rotation submatrix."
+
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (multiple-value-bind (xv yv zv) (pm-get-raw-axes basis)
+  (multiple-value-bind (xv yv zv) (pm-trfm-get-raw-axes camera)
     (let* ((nn (ecase at-dir ((:x) xv) ((:y) yv) ((:z) zv)))
            (vv (ecase up-dir ((:x) xv) ((:y) yv) ((:z) zv)))
            ;; Create the u v n of the new view matrix
@@ -613,18 +643,20 @@ or :z axis that will be used as the 'up' direction in the basis."
            (u (pv-normalize-into (pv-cross vv nn)))
            (v (pv-cross n u))
            ;; create an inverted camera rotation
-           (tmp-rot (pm-invert-rot-into (pm-set-raw-axes u v n)))
+           (tmp-rot (pm-trfm-invert-into (pm-trfm-set-raw-axes u v n)))
            ;; create an inverted translation matrix
-           (tmp-trans (pm-set-trans (pv-negate-into (pm-get-trans basis)))))
+           (tmp-trans (pm-trfm-set-trans
+                       (pv-negate-into (pm-trfm-get-trans camera)))))
       ;; Create the actual inverted view matrix.
-      (pm-mul-into camera tmp-rot tmp-trans))))
+      (pm-mul-into view tmp-rot tmp-trans))))
 
 (declaim (ftype (function (pmat keyword keyword) pmat) pm-create-view))
-(defun pm-create-view (basis at-dir up-dir)
-  "Allocate and return a camera basis into which the inverted view of
-the BASIS is stored."
+(defun pm-create-view (camera at-dir up-dir)
+  "Allocate and return a transformation matrix into which the inverted view of
+the camera is stored."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-create-view-into (pm-eye) basis at-dir up-dir))
+  (pm-create-view-into (pm-eye) camera at-dir up-dir))
+
 
 ;; XXX This might be wrong, check very carefully.
 (defun pm-plane-eqn (basis plane &key (multiple-value :t))
@@ -637,14 +669,14 @@ as a list."
   #+(and :option-9-optimize-pvec :sbcl)
   (declare (sb-ext:muffle-conditions sb-ext:compiler-note))
   (with-pmat-accessors (b basis)
-    (let* ((p0 (pm-get-trans basis))
+    (let* ((p0 (pm-trfm-get-trans basis))
            ;; All axes are chosen such that their cross leads to a
            ;; vector pointing in the positive direction of the third
            ;; axis.
            (choice-a (ecase plane ((:xy) :x) ((:xz) :z) ((:yz) :y)))
            (choice-b (ecase plane ((:xy) :y) ((:xz) :x) ((:yz) :z)))
-           (axis-a (pm-get-dir basis choice-a))
-           (axis-b (pm-get-dir basis choice-b))
+           (axis-a (pm-trfm-get-dir basis choice-a))
+           (axis-b (pm-trfm-get-dir basis choice-b))
            ;; These are actual points.
            (p1 (pv-add p0 axis-a))
            (p2 (pv-add p0 axis-b))

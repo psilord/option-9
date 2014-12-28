@@ -28,28 +28,28 @@ the FUNC to each frame as one walks towards the leaves."
 (defmethod update-local-basis ((f frame))
 
   ;; Add in a one time displacement not related to flying, if any
-  (pm-translate-into (local-basis f) (dv f))
+  (pm-trfm-translate-into (local-basis f) (dv f))
   ;; Zero it, so if no other displacements are added, we add nothing.
   (pv-clear-into (dv f))
 
   ;; Rotate the one time rotation not related to rotatingp, if any.
-  (pm-rotate-basis-into (local-basis f) (dr f))
+  (pm-trfm-local-axis-rotate-into (local-basis f) (dr f))
   ;; Then zero it
   (pv-clear-into (dr f))
 
   ;; Add in the incremental translation not related to the basis
   ;; directions vector and do the decay of it
   (unless (pv-zero-p (dtv f))
-    (pm-translate-into (local-basis f) (dtv f))
+    (pm-trfm-translate-into (local-basis f) (dtv f))
     (dtv-decay f))
 
   ;; perform the incremental flying vector.
   (when (flyingp f)
-    (pm-fly-into (local-basis f) (dfv f)))
+    (pm-trfm-fly-into (local-basis f) (dfv f)))
 
   ;; perform the incremental rotation vector.
   (when (rotatingp f)
-    (pm-rotate-basis-into (local-basis f) (drv f))))
+    (pm-trfm-local-axis-rotate-into (local-basis f) (drv f))))
 
 ;; Perform one physical and temporal step in the simulation
 (defmethod active-step-once ((ent frame))
@@ -96,14 +96,14 @@ the FUNC to each frame as one walks towards the leaves."
 ;; transforming it back to local axis space, and then applying the
 ;; correction to the local axis space.
 (defmethod active-step-once :after ((ent player))
-  (let* ((loc (pm-get-trans (local-basis ent)))
+  (let* ((loc (pm-trfm-get-trans (local-basis ent)))
          (new-loc (pv-copy loc)))
     (with-multiple-pvec-accessors ((l loc) (n new-loc))
       (when (< ly 3d0) (setf ny 3d0))
       (when (> ly 95d0) (setf ny 95d0))
       (when (< lx 4d0) (setf nx 4d0))
       (when (> lx 96d0) (setf nx 96d0)))
-    (pm-set-trans-into (local-basis ent) new-loc)))
+    (pm-trfm-set-trans-into (local-basis ent) new-loc)))
 
 
 ;; Show that a shot has been significantly charged by having it leave a trail.
@@ -120,7 +120,7 @@ the FUNC to each frame as one walks towards the leaves."
 ;; leave the arena region, it goes stale and will be removed from the
 ;; game world.
 (defmethod active-step-once :after ((ent drawable))
-  (with-pvec-accessors (o (pm-get-trans (world-basis ent)))
+  (with-pvec-accessors (o (pm-trfm-get-trans (world-basis ent)))
     (when (or (and (not (null (ttl ent))) (<= (ttl ent) 0))
               (< ox -5d0) (> ox 105d0)
               (< oy -5d0) (> oy 105d0))

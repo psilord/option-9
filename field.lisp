@@ -10,7 +10,7 @@
       (values (sqrt ndist) ndist))))
 
 (defun unit-vector (from tx ty)
-  (with-pvec-accessors (o (pm-get-trans (world-basis from)))
+  (with-pvec-accessors (o (pm-trfm-get-trans (world-basis from)))
     (multiple-value-bind (dist ndist)
         (euclidean-distance ox oy tx ty)
       (values (/ (- tx ox) dist)
@@ -31,7 +31,7 @@
       ;; Since this is so expensive, ensure to only do it for things that
       ;; are actually alive at the computation of this field.
       (when (alivep q)
-        (with-pvec-accessors (o (pm-get-trans (world-basis q)))
+        (with-pvec-accessors (o (pm-trfm-get-trans (world-basis q)))
           (if (< (euclidean-distance ox oy tx ty)
                  (radius q))
               (return-from e-field (values :collision 0 0 q))
@@ -137,7 +137,7 @@
 ;; which is not q1 or we go out of bounds.
 (defmethod trace-field-line ((f field) path-num tx ty q1 charges)
   (labels ((determine-field-line-direction (vx vy dx dy q)
-             (with-pvec-accessors (qo (pm-get-trans (world-basis q)))
+             (with-pvec-accessors (qo (pm-trfm-get-trans (world-basis q)))
                (multiple-value-bind (dx dy)
                    (e-field-direction dx dy)
                  ;; than vx vy is by itself, return -1, otherwise 1
@@ -279,7 +279,7 @@
              (values (+ x (* (+ (radius q1) .1) (sin (* path-num delta))))
                      (+ y (* (+ (radius q1) .1) (cos (* path-num delta)))))))
       (dotimes (path-num num-paths)
-        (with-pvec-accessors (o (pm-get-trans (world-basis q1)))
+        (with-pvec-accessors (o (pm-trfm-get-trans (world-basis q1)))
           (multiple-value-bind (nx ny)
               (start-point ox oy path-num)
             (trace-field-line f path-num nx ny q1 charges)))))))

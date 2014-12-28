@@ -111,7 +111,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
   loc/ent)
 
 (defmethod resolve-spawn-location ((loc/ent entity))
-  (pm-get-trans (world-basis loc/ent)))
+  (pm-trfm-get-trans (world-basis loc/ent)))
 
 ;; While this could be defined for each spawn-class, we just do the
 ;; same behavior for everything unless we find a reason to do
