@@ -28,7 +28,7 @@ the FUNC to each frame as one walks towards the leaves."
 (defmethod update-local-basis ((f frame))
 
   ;; Add in a one time displacement not related to flying, if any
-  (pm-trfm-translate-into (local-basis f) (dv f))
+  (pm-trfm-displace-into (local-basis f) (dv f))
   ;; Zero it, so if no other displacements are added, we add nothing.
   (pv-clear-into (dv f))
 
@@ -37,10 +37,10 @@ the FUNC to each frame as one walks towards the leaves."
   ;; Then zero it
   (pv-clear-into (dr f))
 
-  ;; Add in the incremental translation not related to the basis
+  ;; Add in the incremental displacement not related to the basis
   ;; directions vector and do the decay of it
   (unless (pv-zero-p (dtv f))
-    (pm-trfm-translate-into (local-basis f) (dtv f))
+    (pm-trfm-displace-into (local-basis f) (dtv f))
     (dtv-decay f))
 
   ;; perform the incremental flying vector.

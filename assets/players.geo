@@ -36,16 +36,16 @@
       (:orientation ,(pm-eye)))
 
      (:front-weapon-port
-      (:orientation ,(pm-trfm-translate-into (pm-eye) (pvec 0d0 4d0 0d0))))
+      (:orientation ,(pm-trfm-displace-into (pm-eye) (pvec 0d0 4d0 0d0))))
      (:left-weapon-port
-      (:orientation ,(pm-trfm-translate-into (pm-eye) (pvec -3d0 3d0 0d0))))
+      (:orientation ,(pm-trfm-displace-into (pm-eye) (pvec -3d0 3d0 0d0))))
      (:center-weapon-port
       (:orientation ,(pm-eye)))
      (:right-weapon-port
-      (:orientation ,(pm-trfm-translate-into (pm-eye) (pvec 3d0 3d0 0d0))))
+      (:orientation ,(pm-trfm-displace-into (pm-eye) (pvec 3d0 3d0 0d0))))
      (:rear-weapon-port
       ;; Turn so the :y axis points down the negative :y of the ship.
-      (:orientation ,(pm-trfm-translate-into
+      (:orientation ,(pm-trfm-displace-into
                       (pm-trfm-local-axis-rotate-into
                        (pm-eye) (pvec 0d0 0d0 pi))
                       (pvec 0d0 -1d0 0d0)))))
