@@ -51,7 +51,7 @@
       ;; Turn so the pos :y axis of the turret points down the
       ;; negative :y of the ship.
       (:orientation ,(pm-trfm-displace-into
-                      (pm-trfm-local-axis-rotate-into
+                      (pm-trfm-local-axis-rotate
                        (pm-eye) (pvec 0d0 0d0 pi))
                       (pvec 0d0 -2d0 0d0)))))))
 

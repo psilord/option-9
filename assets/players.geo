@@ -46,7 +46,7 @@
      (:rear-weapon-port
       ;; Turn so the :y axis points down the negative :y of the ship.
       (:orientation ,(pm-trfm-displace-into
-                      (pm-trfm-local-axis-rotate-into
+                      (pm-trfm-local-axis-rotate
                        (pm-eye) (pvec 0d0 0d0 pi))
                       (pvec 0d0 -1d0 0d0)))))
     ))

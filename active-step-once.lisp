@@ -33,7 +33,7 @@ the FUNC to each frame as one walks towards the leaves."
   (pv-clear-into (dv f))
 
   ;; Rotate the one time rotation not related to rotatingp, if any.
-  (pm-trfm-local-axis-rotate-into (local-basis f) (dr f))
+  (pm-trfm-local-axis-rotate-into (local-basis f) (local-basis f) (dr f))
   ;; Then zero it
   (pv-clear-into (dr f))
 
@@ -49,7 +49,7 @@ the FUNC to each frame as one walks towards the leaves."
 
   ;; perform the incremental rotation vector.
   (when (rotatingp f)
-    (pm-trfm-local-axis-rotate-into (local-basis f) (drv f))))
+    (pm-trfm-local-axis-rotate-into (local-basis f) (local-basis f) (drv f))))
 
 ;; Perform one physical and temporal step in the simulation
 (defmethod active-step-once ((ent frame))
