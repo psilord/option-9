@@ -2,11 +2,10 @@
 
 ;;; NOTE: TODO: Change all long function names (and docstrings) to
 ;;; match the commented names by the short names. Also, make the last
-;;; few functions starting with pm-trfm-displace-into conform to the
-;;; short names.  Probably get rid of the displace function since I
-;;; think it is illegal now. Change all references to this API to use
-;;; the correct (once they are written) long or short function names
-;;; as appropriate.  Do the same type of nomenclature change to the
+;;; few functions starting with pm-create-view-into conform to the new
+;;; naming method. Change all references to this API to use the
+;;; correct (once they are written) long or short function names as
+;;; appropriate.  Do the same type of nomenclature change to the
 ;;; pvec.lisp library too.
 
 
@@ -1165,33 +1164,6 @@ re-orthogonalized."
 (defun mlar (trfm rotation-vec &key (stabilize t)) ;; matrix-local-axis-rotate
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (pm-trfm-local-axis-rotate trfm rotation-vec :stabilize stabilize))
-
-;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;; This is a sketchy function and maybe shouldn't exist.
-
-(declaim (ftype (function (pmat pvec) pmat) pm-trfm-displace-into))
-(defun pm-trfm-displace-into (pmat pvec)
-  "Add PVEC to the translation column in the transformation matrix PMAT.
-Return PMAT. This is a translation in the intertial frame of the transformation
-matrix PMAT."
-  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-pmat-accessors (p pmat)
-    (with-pvec-accessors (v pvec)
-      (psetf p03 (as-double-float (+ p03 vx))
-             p13 (as-double-float (+ p13 vy))
-             p23 (as-double-float (+ p23 vz)))))
-  pmat)
-
-;;; ;;;;;;;;
-
-(declaim (ftype (function (pmat pvec) pmat) pm-trfm-displace))
-(defun pm-trfm-displace (pmat pvec)
-  "Return a copy of the transformation matrix PMAT with the translation stored
-in PVEC added to the translation column. This is a translation in the intertial
-frame of the transformation matrix PMAT."
-  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-trfm-displace-into (pm-copy pmat) pvec))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

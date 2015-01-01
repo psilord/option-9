@@ -26,30 +26,33 @@ the FUNC to each frame as one walks towards the leaves."
 ;; XXX Transform each one of these operations into VERBS, it'll make clipping
 ;; and other effects much easier.
 (defmethod update-local-basis ((f frame))
+  ;; TODO, add some local matricies here for memory storage
+  ;; optimization with MTR.
 
-  ;; Add in a one time displacement not related to flying, if any
-  (pm-trfm-displace-into (local-basis f) (dv f))
+  ;; Translate the current frame in the direction of DV.
+  (mmi (local-basis f) (mtr (dv f)) (local-basis f))
+
   ;; Zero it, so if no other displacements are added, we add nothing.
   (pv-clear-into (dv f))
 
-  ;; Rotate the one time rotation not related to rotatingp, if any.
-  (pm-trfm-local-axis-rotate-into (local-basis f) (local-basis f) (dr f))
+  ;; Rotate the one time local axis rotation not related to rotatingp, if any.
+  (mlari (local-basis f) (local-basis f) (dr f))
   ;; Then zero it
   (pv-clear-into (dr f))
 
   ;; Add in the incremental displacement not related to the basis
   ;; directions vector and do the decay of it
   (unless (pv-zero-p (dtv f))
-    (pm-trfm-displace-into (local-basis f) (dtv f))
+    (mmi (local-basis f) (mtr (dtv f)) (local-basis f))
     (dtv-decay f))
 
   ;; perform the incremental flying vector.
   (when (flyingp f)
     (pm-trfm-fly-into (local-basis f) (dfv f)))
 
-  ;; perform the incremental rotation vector.
+  ;; perform the incremental local axis rotation vector.
   (when (rotatingp f)
-    (pm-trfm-local-axis-rotate-into (local-basis f) (local-basis f) (drv f))))
+    (mlari (local-basis f) (local-basis f) (drv f))))
 
 ;; Perform one physical and temporal step in the simulation
 (defmethod active-step-once ((ent frame))
