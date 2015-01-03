@@ -20,8 +20,8 @@ the FUNC to each frame as one walks towards the leaves."
   ;; changes, because since everything is a child of it, it would be
   ;; meaningless.
   (if (parent f)
-      (pm-mul-into (world-basis f) (world-basis (parent f)) (local-basis f))
-      (pm-copy-into (world-basis f) (local-basis f))))
+      (mmi (world-basis f) (world-basis (parent f)) (local-basis f))
+      (mcpi (world-basis f) (local-basis f))))
 
 ;; XXX Transform each one of these operations into VERBS, it'll make clipping
 ;; and other effects much easier.
@@ -31,7 +31,6 @@ the FUNC to each frame as one walks towards the leaves."
 
   ;; Translate the current frame in the direction of DV.
   (mmi (local-basis f) (mtr (dv f)) (local-basis f))
-
   ;; Zero it, so if no other displacements are added, we add nothing.
   (pv-clear-into (dv f))
 
@@ -48,7 +47,7 @@ the FUNC to each frame as one walks towards the leaves."
 
   ;; perform the incremental flying vector.
   (when (flyingp f)
-    (pm-trfm-fly-into (local-basis f) (dfv f)))
+    (mfi (local-basis f) (dfv f)))
 
   ;; perform the incremental local axis rotation vector.
   (when (rotatingp f)
@@ -106,7 +105,7 @@ the FUNC to each frame as one walks towards the leaves."
       (when (> ly 95d0) (setf ny 95d0))
       (when (< lx 4d0) (setf nx 4d0))
       (when (> lx 96d0) (setf nx 96d0)))
-    (pm-trfm-set-trans-into (local-basis ent) new-loc)))
+    (mtrsi (local-basis ent) new-loc)))
 
 
 ;; Show that a shot has been significantly charged by having it leave a trail.
