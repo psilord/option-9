@@ -24,10 +24,10 @@
                  ((-3d0 -1d0 0d0) (1 1 1))))
     :ports
     ((:shield-port
-      (:orientation ,(pm-eye)))
+      (:orientation ,(mi)))
 
      (:passive-weapon-port
-      (:orientation ,(pm-eye)))
+      (:orientation ,(mi)))
 
      (:front-weapon-port
       (:orientation ,(mtr (pvec 0d0 3d0 0d0))))

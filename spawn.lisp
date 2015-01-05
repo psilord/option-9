@@ -178,7 +178,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
 
                  :port port
 
-                 :local-basis (pm-copy port-frame))))
+                 :local-basis (matrix-copy port-frame))))
 
           ;; Add each turret to the scene tree with the entity as the parent.
           ;; I've forgotten a bit how this works, ah well, I'll remember soon
@@ -280,7 +280,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                            :roles (:player-shot)
                            ;; Put it at the location and rotation of the
                            ;; turret.
-                           :local-basis ,(pm-copy (world-basis loc/ent))
+                           :local-basis ,(matrix-copy (world-basis loc/ent))
                            ,@extra-init)))
 
         (add-spawnable
@@ -393,7 +393,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
       (let ((initializer `(,ioi/e
                            :orphan-policy ,orphan-policy
                            :roles (:enemy-shot)
-                           :local-basis ,(pm-copy (world-basis loc/ent))
+                           :local-basis ,(matrix-copy (world-basis loc/ent))
                            :dfv ,(pvec 0d0
                                        (+ .5d0 (random .5d0)
                                           (dfvy

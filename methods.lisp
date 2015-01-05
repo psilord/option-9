@@ -172,9 +172,8 @@
     (pv-clear-into (dtv f))))
 
 (defmethod at-location ((destination frame) (source frame))
-  (pm-copy-into (local-basis destination) (local-basis source))
-  (pm-copy-into (world-basis destination) (world-basis source)))
-
+  (matrix-copy-into (local-basis destination) (local-basis source))
+  (matrix-copy-into (world-basis destination) (world-basis source)))
 
 ;; Used to give things temporary invulnerability.
 (defmethod vulnerable ((ent entity))

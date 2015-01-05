@@ -227,14 +227,14 @@ vector at that position"))
    ;; This represents the rigid-body motion (aka the relative motion)
    ;; of the object.
    (%local-basis :initarg :local-basis
-                 :initform (pm-eye)
+                 :initform (matrix-identity)
                  :accessor local-basis)
    ;; The basis which will transform object geometry into world space.
    ;; It is totally reinitialized every frame--prolly could be
    ;; optimized later to only be updated if it needs to be, but that's
    ;; for later if need be.
    (%world-basis :initarg :world-basis
-                 :initform (pm-eye)
+                 :initform (matrix-identity)
                  :accessor world-basis)
    ;; Parent frame of this frame. NIL means this is the root.
    (%parent :initarg :parent

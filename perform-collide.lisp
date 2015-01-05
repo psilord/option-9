@@ -31,8 +31,8 @@
                              ;; :charge-percentage 1.0
 
                              :flyingp (flyingp collider)
-                             :local-basis (pm-copy (local-basis collider))
-                             :world-basis (pm-copy (world-basis collider))
+                             :local-basis (matrix-copy (local-basis collider))
+                             :world-basis (matrix-copy (world-basis collider))
                              :roles (copy-seq (roles collider))
                              :dfv (pv-copy (dfv collider))
                              :drv (pv-copy (drv collider))
