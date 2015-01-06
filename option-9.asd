@@ -20,6 +20,14 @@
 ;; (pushnew :option-9-optimize-pvec *features*)
 ;; (pushnew :option-9-optimize-pmat *features*)
 
+;; The defauls on SBCL are sometimes not good enough to expand the
+;; optimization macro passes in certain files. So fix it here and apply
+;; to each file as needed.
+(defun using-better-limits (thunk)
+  (let (#+sbcl (sb-ext::*inline-expansion-limit* 1024) )
+    #+sbcl (format t "; Setting higher SBCL limits to compile this file...~%")
+    (funcall thunk)))
+
 (defsystem #:option-9
   :description "A simple game"
   :version "0.1"
@@ -32,7 +40,7 @@
                (:file "classes")
                (:file "generic-functions")
                (:file "pvec")
-               (:file "pmat")
+               (:file "pmat" :around-compile using-better-limits)
                (:file "utils")
                (:file "field")
                (:file "methods")
