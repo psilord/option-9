@@ -14,8 +14,8 @@
   ;; but we only want to do this once.
   (let ((chance (random 1.0)))
     (cond
-      ((< chance .25)
+      ((< chance .50)
        (spawn 'sp-player-powerup :insts/powerups ent (game-context ent)))
-      ((and (>= chance .25) (< chance .50))
+      ((and (>= chance .50) (< chance .75))
        (spawn 'sp-enemy-mine :insts/mines ent (game-context ent))))))
 
