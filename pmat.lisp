@@ -590,6 +590,9 @@ matricies."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; TODO: In order to compile this with optimizations on, I need to:
+;; (setf *inline-expansion-limit* 1024) somehow only for this function,
+;; maybe EVAL-WHEN?
 (declaim (ftype (function (pmat pmat) (values pmat t)) matrix-invert-into))
 (defun matrix-invert-into (dst src)
   "Invert an arbitrary 4x4 matrix in SRC and put the result into DST.
@@ -616,7 +619,7 @@ matrix and NIL if it couldn't happen."
       #+option-9-optimize-pmat (declare (type double-float det-s))
 
       ;; Bail of the inversion doesn't exist.
-      (when (< det-s *pvec-tol*)
+      (when (< (as-double-float det-s) (as-double-float *pvec-tol*))
         (matrix-identity-into dst)
         (return-from matrix-invert-into (values dst NIL)))
 
@@ -1414,7 +1417,7 @@ The return values with respect to the basis location and orientation:
         ;; "LEFT" is considered down the positive X axis when :YZ
         ;; "ABOVE" is considered down the positive Y axis when :XZ
         (cond
-          ((< (the double-float (abs side))
+          ((< (as-double-float (abs side))
               (as-double-float *pvec-tol*))
            (ecase plane
              ((:xy)
