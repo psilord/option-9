@@ -489,9 +489,9 @@ in each axis denoted by PVEC. Similar to glScale()."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declaim (ftype (function (pmat pvec) pmat) pm-tfm-translate-into))
-(declaim (inline pm-trfm-translate-into))
-(defun pm-trfm-translate-into (mat pvec)
+(declaim (ftype (function (pmat pvec) pmat) matrix-translate-into))
+(declaim (inline matrix-translate-into))
+(defun matrix-translate-into (mat pvec)
   "Store a transformation matrix into MAT that translates the
 coordinate system by the respective PVEC amounts. Return MAT. Similar
 to glTranslate()"
@@ -507,40 +507,43 @@ to glTranslate()"
 (declaim (ftype (function (pmat pvec) pmat) mtri))
 (declaim (inline mtri))
 (defun mtri (mat pvec) ;; matrix-translate-into
-  "Shortname for PM-TRFM-TRANSLATE-INTO."
+  "Shortname for MATRIX-TRANSLATE-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-trfm-translate-into mat pvec))
+  (matrix-translate-into mat pvec))
 
 ;;; ;;;;;;;;
 
-(declaim (ftype (function (pvec) pmat) pm-trfm-translate))
-(defun pm-trfm-translate (pvec)
+(declaim (ftype (function (pvec) pmat) matrix-translate))
+(defun matrix-translate (pvec)
   "Return a newly allocated transformation matrix that translates the
 coordinate system by the respective PVEC amounts. Similar
 to glTranslate()"
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-trfm-translate-into (matrix-identity) pvec))
+  (matrix-translate-into (matrix-identity) pvec))
 
 (declaim (ftype (function (pvec) pmat) mtr))
 (declaim (inline mtr))
 (defun mtr (pvec) ;; matrix-translate
-  "Shortname for PM-TRFM-TRANSLATE."
+  "Shortname for MATRIX-TRANSLATE."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-trfm-translate pvec))
+  (matrix-translate pvec))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO, also implement a invert of a regular 4x4 matrix.
-
 ;; WARNING: This is special to orthonormal basis transformation matricies.
-(declaim (ftype (function (pmat pmat) pmat) pm-trfm-invert-into))
-(declaim (inline pm-trfm-invert-into))
-(defun pm-trfm-invert-into (result mat)
-  "Invert a transformation matrix MAT and store into RESULT. RESULT
-can be EQ with MAT. This means 1) store the transpose the 3x3 rotation
-matrix contained in the upper left hand of the transformation matrix,
-2) store the application of the inverted rotation to the negation of
-the 4x1 translation column.  Return the stabilized RESULT."
+(declaim (ftype (function (pmat pmat) pmat) matrix-invert-trfm-into))
+(declaim (inline matrix-invert-trfm-into))
+(defun matrix-invert-trfm-into (result mat)
+  "Invert (specifically an) orthonormal transformation matrix (with a
+rotation operator in the upper left 3x3 matrix and a translation
+vector in the 4x1 column on the right) MAT and store into
+RESULT. RESULT can be EQ with MAT. This means 1) store the transpose
+the 3x3 rotation matrix contained in the upper left hand of the
+transformation matrix, 2) store the application of the inverted
+rotation to the negation of the 4x1 translation column.  Return the
+stabilized RESULT. This function will not invert arbitrary 4x4
+matricies."
+
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (unless (eq result mat)
     (matrix-copy-into result mat))
@@ -566,24 +569,165 @@ the 4x1 translation column.  Return the stabilized RESULT."
 (declaim (ftype (function (pmat pmat) pmat) minvti))
 (declaim (inline minvti))
 (defun minvti (result mat) ;; matrix-invert-transform-into
-  "Shortname for PM-TRFM-INVERT-INTO."
+  "Shortname for MATRIX-INVERT-TRFM-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-trfm-invert-into result mat))
+  (matrix-invert-trfm-into result mat))
 
 ;;; ;;;;;;;;
 
-(declaim (ftype (function (pmat) pmat) pm-trfm-invert))
-(defun pm-trfm-invert (mat)
+(declaim (ftype (function (pmat) pmat) matrix-invert-trfm))
+(defun matrix-invert-trfm (mat)
   "Invert the transformation matrix MAT."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-trfm-invert-into (mi) mat))
+  (matrix-invert-trfm-into (mi) mat))
 
 (declaim (ftype (function (pmat) pmat) minvt))
 (declaim (inline minvt))
 (defun minvt (mat) ;; matrix-invert-transform
-  "Shortname for PM-TRFM-INVERT."
+  "Shortname for MATRIX-INVERT-TRFM."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-trfm-invert mat))
+  (matrix-invert-trfm mat))
+
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(declaim (ftype (function (pmat pmat) (values pmat t)) matrix-invert-into))
+(defun matrix-invert-into (dst src)
+  "Invert an arbitrary 4x4 matrix in SRC and put the result into DST.
+Return the values of DST and T if the inversion happened, or an identity
+matrix and NIL if it couldn't happen."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+
+  ;; Hrm, I hope the compiler optimizes this nicely.
+  ;; Gotten from:
+  ;; http://www.cg.info.hiroshima-cu.ac.jp/~miyazaki/knowledge/teche23.html
+  (with-pmat-accessors (s src)
+    (let ((det-s
+           (as-double-float
+            (- (+ (* s00 s11 s22 s33) (* s00 s12 s23 s31) (* s00 s13 s21 s32)
+                  (* s01 s10 s23 s32) (* s01 s12 s20 s33) (* s01 s13 s22 s30)
+                  (* s02 s10 s21 s33) (* s02 s11 s23 s30) (* s02 s13 s20 s31)
+                  (* s03 s10 s22 s31) (* s03 s11 s20 s32) (* s03 s12 s21 s30))
+
+               (* s00 s11 s23 s32) (* s00 s12 s21 s33) (* s00 s13 s22 s31)
+               (* s01 s10 s22 s33) (* s01 s12 s23 s30) (* s01 s13 s20 s32)
+               (* s02 s10 s23 s31) (* s02 s11 s20 s33) (* s02 s13 s21 s30)
+               (* s03 s10 s21 s32) (* s03 s11 s22 s30) (* s03 s12 s20 s31)))))
+
+      #+option-9-optimize-pmat (declare (type double-float det-s))
+
+      ;; Bail of the inversion doesn't exist.
+      (when (< det-s *pvec-tol*)
+        (matrix-identity-into dst)
+        (return-from matrix-invert-into (values dst NIL)))
+
+      ;; The determinent exists, so compute the inverse into dst.
+      (with-pmat-accessors (d dst)
+        (psetf d00 (as-double-float
+                    (/ (- (+ (* s11 s22 s33) (* s12 s23 s31) (* s13 s21 s32))
+                          (* s11 s23 s32) (* s12 s21 s33) (* s13 s22 s31))
+                       det-s))
+
+               d01 (as-double-float
+                    (/ (- (+ (* s01 s23 s32) (* s02 s21 s33) (* s03 s22 s31))
+                          (* s01 s22 s33) (* s02 s23 s31) (* s03 s21 s32))
+                       det-s))
+
+               d02 (as-double-float
+                    (/ (- (+ (* s01 s12 s33) (* s02 s13 s31) (* s03 s11 s32))
+                          (* s01 s13 s32) (* s02 s11 s33) (* s03 s12 s31))
+                       det-s))
+
+               d03 (as-double-float
+                    (/ (- (+ (* s01 s13 s22) (* s02 s11 s23) (* s03 s12 s21))
+                          (* s01 s12 s23) (* s02 s13 s21) (* s03 s11 s22))
+                       det-s))
+
+               d10 (as-double-float
+                    (/ (- (+ (* s10 s23 s32) (* s12 s20 s33) (* s13 s22 s30))
+                          (* s10 s22 s33) (* s12 s23 s30) (* s13 s20 s32))
+                       det-s))
+
+               d11 (as-double-float
+                    (/ (- (+ (* s00 s22 s33) (* s02 s23 s30) (* s03 s20 s32))
+                          (* s00 s23 s32) (* s02 s20 s33) (* s03 s22 s30))
+                       det-s))
+
+               d12 (as-double-float
+                    (/ (- (+ (* s00 s13 s32) (* s02 s10 s33) (* s03 s12 s30))
+                          (* s00 s12 s33) (* s02 s13 s30) (* s03 s10 s32))
+                       det-s))
+
+               d13 (as-double-float
+                    (/ (- (+ (* s00 s12 s23) (* s02 s13 s20) (* s03 s10 s22))
+                          (* s00 s13 s22) (* s02 s10 s23) (* s03 s12 s20))
+                       det-s))
+
+               d20 (as-double-float
+                    (/ (- (+ (* s10 s21 s33) (* s11 s23 s30) (* s13 s20 s31))
+                          (* s10 s23 s31) (* s11 s20 s33) (* s13 s21 s30))
+                       det-s))
+
+               d21 (as-double-float
+                    (/ (- (+ (* s00 s23 s31) (* s01 s20 s33) (* s03 s21 s30))
+                          (* s00 s21 s33) (* s01 s23 s30) (* s03 s20 s31))
+                       det-s))
+
+               d22 (as-double-float
+                    (/ (- (+ (* s00 s11 s33) (* s01 s13 s30) (* s03 s10 s31))
+                          (* s00 s13 s31) (* s01 s10 s33) (* s03 s11 s30))
+                       det-s))
+
+               d23 (as-double-float
+                    (/ (- (+ (* s00 s13 s21) (* s01 s10 s23) (* s03 s11 s20))
+                          (* s00 s11 s23) (* s01 s13 s20) (* s03 s10 s21))
+                       det-s))
+
+               d30 (as-double-float
+                    (/ (- (+ (* s10 s22 s31) (* s11 s20 s32) (* s12 s21 s30))
+                          (* s10 s21 s32) (* s11 s22 s30) (* s12 s20 s31))
+                       det-s))
+
+               d31 (as-double-float
+                    (/ (- (+ (* s00 s21 s32) (* s01 s22 s30) (* s02 s20 s31))
+                          (* s00 s22 s31) (* s01 s20 s32) (* s02 s21 s30))
+                       det-s))
+
+               d32 (as-double-float
+                    (/ (- (+ (* s00 s12 s31) (* s01 s10 s32) (* s02 s11 s30))
+                          (* s00 s11 s32) (* s01 s12 s30) (* s02 s10 s31))
+                       det-s))
+
+               d33 (as-double-float
+                    (/ (- (+ (* s00 s11 s22) (* s01 s12 s20) (* s02 s10 s21))
+                          (* s00 s12 s21) (* s01 s10 s22) (* s02 s11 s20))
+                       det-s))))
+
+      (values (matrix-stabilize-into dst dst) t))))
+
+(declaim (ftype (function (pmat pmat) (values pmat t)) minvi))
+(declaim (inline minvi))
+(defun minvi (dst src) ;; matrix-invert-into
+  "Shortname for MATRIX-INVERT-INTO."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (matrix-invert-into dst src))
+
+;;; ;;;;;;;;
+
+(declaim (ftype (function (pmat) (values pmat t)) matrix-invert))
+(defun matrix-invert (mat)
+  "Allocate a new matrix and place into it the inverse of the arbitrary
+4x4 matrix MAT. Return the values of a stabilized inverted matrix and T if
+the inversion was possible, or an identity matrix and NIL if it wasn't
+ possible."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (matrix-invert-into (mi) mat))
+
+(declaim (ftype (function (pmat) (values pmat t)) minv))
+(declaim (inline minv))
+(defun minv (mat) ;; matrix-invert
+  "Shortname for MATRIX-INVERT."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (matrix-invert mat))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1192,7 +1336,7 @@ as the 'up' direction in the rotation submatrix."
            (u (pv-normalize-into (pv-cross vv nn)))
            (v (pv-cross n u))
            ;; create an inverted camera rotation
-           (tmp-rot (pm-trfm-invert-into (mi) (pm-trfm-set-raw-axes u v n)))
+           (tmp-rot (matrix-invert-trfm-into (mi) (pm-trfm-set-raw-axes u v n)))
            ;; create an inverted translation matrix
            (tmp-trans (pm-trfm-set-trans
                        (pv-negate-into (pm-trfm-get-trans camera)))))
