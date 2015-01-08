@@ -802,7 +802,7 @@ simple-array double-float (16) suitable for OpenGL and return it."
 (declaim (ftype (function (pmat (simple-array double-float (16))) pmat)
                 matrix-convert-from-opengl-into))
 (declaim (inline matrix-convert-from-opengl-into))
-(defun pm-convert-from-opengl-into (mat ogl)
+(defun matrix-convert-from-opengl-into (mat ogl)
   "Convert the OGL OpenGL matrix, which is a (simple-arry
 double-float (16)), into the MAT format and return MAT."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
