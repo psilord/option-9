@@ -855,9 +855,9 @@ return it."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declaim (ftype (function (pmat pvec) pmat) pm-trfm-set-trans-into))
-(declaim (inline pm-trfm-set-trans-into))
-(defun pm-trfm-set-trans-into (trfm trans)
+(declaim (ftype (function (pmat pvec) pmat) matrix-set-trans-into))
+(declaim (inline matrix-set-trans-into))
+(defun matrix-set-trans-into (trfm trans)
   "Set the translation vector in the pvec TRANS into the translation
 column in the transformation matrix MAT and return MAT."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
@@ -871,26 +871,26 @@ column in the transformation matrix MAT and return MAT."
 (declaim (ftype (function (pmat pvec) pmat) mtrsi))
 (declaim (inline mtrsi))
 (defun mtrsi (mat trans) ;; matrix-translate-set-into
-  "Shortname for PM-TRFM-SET-TRANS-INTO."
+  "Shortname for MATRIX-SET-TRANS-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-trfm-set-trans-into mat trans))
+  (matrix-set-trans-into mat trans))
 
 ;;; ;;;;;;;;
 
-(declaim (ftype (function (pvec) pmat) pm-trfm-set-trans))
-(declaim (inline pm-trfm-set-trans))
-(defun pm-trfm-set-trans (trans)
+(declaim (ftype (function (pvec) pmat) matrix-set-trans))
+(declaim (inline matrix-set-trans))
+(defun matrix-set-trans (trans)
   "Allocate and return a new identity transformation matrix with TRANS
 as its translation."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-trfm-set-trans-into (matrix-identity) trans))
+  (matrix-set-trans-into (matrix-identity) trans))
 
-(declaim (ftype (function (pvec) pmat) pm-trfm-set-trans))
+(declaim (ftype (function (pvec) pmat) matrix-set-trans))
 (declaim (inline mtrs))
 (defun mtrs (trans) ;; matrix-translate-set
-  "Shortname for PM-TRFM-SET-TRANS."
+  "Shortname for MATRIX-SET-TRANS."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-trfm-set-trans trans))
+  (matrix-set-trans trans))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1339,10 +1339,11 @@ as the 'up' direction in the rotation submatrix."
            (u (pv-normalize-into (pv-cross vv nn)))
            (v (pv-cross n u))
            ;; create an inverted camera rotation
-           (tmp-rot (matrix-invert-trfm-into (mi) (pm-trfm-set-raw-axes u v n)))
+           (tmp-rot (matrix-invert-trfm (pm-trfm-set-raw-axes u v n)))
            ;; create an inverted translation matrix
-           (tmp-trans (pm-trfm-set-trans
-                       (pv-negate-into (pm-trfm-get-trans camera)))))
+           (tmp-trans (matrix-translate
+                       (pv-negate-into
+                        (pm-trfm-get-trans camera)))))
       ;; Create the actual inverted view matrix.
       (matrix-multiply-into view tmp-rot tmp-trans))))
 
