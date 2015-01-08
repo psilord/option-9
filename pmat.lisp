@@ -736,14 +736,14 @@ the inversion was possible, or an identity matrix and NIL if it wasn't
 
 (declaim (ftype (function ((simple-array double-float (16)) pmat)
                           (simple-array double-float (16)))
-                pm-convert-to-opengl-into))
-(declaim (inline pm-convert-to-opengl-into))
-(defun pm-convert-to-opengl-into (ogl mat)
+                matrix-convert-to-opengl-into))
+(declaim (inline matrix-convert-to-opengl-into))
+(defun matrix-convert-to-opengl-into (ogl mat)
   "Convert the MAT matrix into OGL, which is a column-major OpenGL
 matrix represented as a (simple-array double-float (16)), and then
 return OGL."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (declare ((simple-array double-float (16)) ogl))
+  (declare (type (simple-array double-float (16)) ogl))
   (with-pmat-accessors (m mat)
     (psetf (aref ogl 0) m00
            (aref ogl 1) m10
@@ -771,42 +771,42 @@ return OGL."
                 mctoi))
 (declaim (inline mctoi))
 (defun mctoi (ogl mat) ;; matrix-convert-to-opengl-into
-  "Shortname for PM-CONVERT-TO-OPENGL-INTO."
+  "Shortname for MATRIX-CONVERT-TO-OPENGL-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-convert-to-opengl-into ogl mat))
+  (matrix-convert-to-opengl-into ogl mat))
 
 ;;; ;;;;;;;;
 
 (declaim (ftype (function (pmat) (simple-array double-float (16)))
-                pm-convert-to-opengl))
-(declaim (inline pm-convert-to-opengl))
-(defun pm-convert-to-opengl (mat)
+                matrix-convert-to-opengl))
+(declaim (inline matrix-convert-to-opengl))
+(defun matrix-convert-to-opengl (mat)
   "Convert the MAT matrix into newly allocated column-major ordered
 simple-array double-float (16) suitable for OpenGL and return it."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (let ((ogl (make-array 16 :element-type 'double-float
                          :initial-element 0d0)))
-    (declare ((simple-array double-float (16)) ogl))
-    (pm-convert-to-opengl-into ogl mat)
+    (declare (type (simple-array double-float (16)) ogl))
+    (matrix-convert-to-opengl-into ogl mat)
     ogl))
 
 (declaim (ftype (function (pmat) (simple-array double-float (16))) mcto))
 (declaim (inline mcto))
 (defun mcto (mat) ;; matrix-convert-to-opengl
-  "Shortname for PM-CONVERT-TO-OPENGL."
+  "Shortname for MATRIX-CONVERT-TO-OPENGL."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-convert-to-opengl mat))
+  (matrix-convert-to-opengl mat))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (declaim (ftype (function (pmat (simple-array double-float (16))) pmat)
-                pm-convert-from-opengl-into))
-(declaim (inline pm-convert-from-opengl-into))
+                matrix-convert-from-opengl-into))
+(declaim (inline matrix-convert-from-opengl-into))
 (defun pm-convert-from-opengl-into (mat ogl)
   "Convert the OGL OpenGL matrix, which is a (simple-arry
 double-float (16)), into the MAT format and return MAT."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (declare ((simple-array double-float (16)) ogl))
+  (declare (type (simple-array double-float (16)) ogl))
   (with-pmat-accessors (m mat)
     (psetf m00 (aref ogl 0)
            m10 (aref ogl 1)
@@ -832,26 +832,26 @@ double-float (16)), into the MAT format and return MAT."
 (declaim (ftype (function (pmat (simple-array double-float (16))) pmat) mcfoi))
 (declaim (inline mcfoi))
 (defun mcfoi (mat ogl) ;; matrix-convert-from-opengl-into
-  "Shortname for PM-CONVERT-FROM-OPENGL-INTO."
+  "Shortname for MATRIX-CONVERT-FROM-OPENGL-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-convert-from-opengl-into mat ogl))
+  (matrix-convert-from-opengl-into mat ogl))
 
 ;;; ;;;;;;;;
 
 (declaim (ftype (function ((simple-array double-float (16))) pmat)
-                pm-convert-from-opengl))
-(declaim (inline pm-convert-from-opengl))
-(defun pm-convert-from-opengl (ogl)
+                matrix-convert-from-opengl))
+(declaim (inline matrix-convert-from-opengl))
+(defun matrix-convert-from-opengl (ogl)
   "Convert the OGL OpenGL matrix into a newly allocated MAT format and
 return it."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (declare ((simple-array double-float (16)) ogl))
-  (pm-convert-from-opengl-into (pmat) ogl))
+  (declare (type (simple-array double-float (16)) ogl))
+  (matrix-convert-from-opengl-into (pmat) ogl))
 
 (defun mcfo (ogl) ;; matrix-convert-from-opengl
-  "Shortname for PM-CONVERT-FROM-OPENGL."
+  "Shortname for MATRIX-CONVERT-FROM-OPENGL."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (pm-convert-from-opengl ogl))
+  (matrix-convert-from-opengl ogl))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

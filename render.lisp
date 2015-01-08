@@ -16,7 +16,7 @@
       ;; there already.
       (gl:push-matrix)
       ;; Then put the object into the camera's coordinate system.
-      (gl:mult-matrix (pm-convert-to-opengl (world-basis ent)))
+      (gl:mult-matrix (matrix-convert-to-opengl (world-basis ent)))
 
       ;; render a list of possibly differing primitives associated with
       ;; this shape. NOTE: this is realy simple, nothign like texturing
