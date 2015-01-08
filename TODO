@@ -84,6 +84,7 @@ Technical stuff
 - Collision detection with level elements
 - Recast of matrix lib interface to be more conventional [in progress].
 - Inspection of the powerup code and DSL to see if it can be made better.
+- Clean up definitions of generic functions, so they are all initialized.
 
 
 
