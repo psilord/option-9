@@ -67,16 +67,16 @@
 ;; Eval any typed in expressions in the option-9 package.
 (defun text-console ()
   (format t "Welcome to Text Console, (quit) exits the console!~%")
-   (let ((*package* (find-package 'option-9)))
-     ;; If the mouse cursor is not shown, show it when we enter the
-     ;; console.  Otherwise it freaks me out and I think my machine is
-     ;; hung.
-     (unwind-protect
-            (progn
-              (sdl2:show-cursor)
-              (repl))
-       (sdl2:hide-cursor))
-     (format t "Exiting Text Console.~%")))
+  (let ((*package* (find-package 'option-9)))
+    ;; If the mouse cursor is not shown, show it when we enter the
+    ;; console.  Otherwise it freaks me out and I think my machine is
+    ;; hung.
+    (unwind-protect
+         (progn
+           (sdl2:show-cursor)
+           (repl))
+      (sdl2:hide-cursor))
+    (format t "Exiting Text Console.~%")))
 
 
 #+ignore(defun option-9-profiled ()
@@ -86,21 +86,21 @@
                                                  :loop nil)
             (option-9)))
 
-(defun initialize-joysticks ())  
-  ;; (let ((num-sticks (sdl2:joystick-count)))
-  ;;   (cond
-  ;;     ((zerop num-sticks)
-  ;;      (format t "No joysticks available. Keyboard control only.~%"))
-  ;;     (t
-  ;;      (dotimes (controller-index num-sticks)
-  ;; 	 (when (sdl2:game-controller-p controller-index)
-  ;; 	   (let* ((controller-name (sdl2:game-controller-name-for-index controller-index))
-  ;; 		  (game-controller (sdl2:game-controller-open controller-index))
-  ;; 		  (joystick (sdl2:game-controller-get-joystick game-controller)))
-  ;; 	     (format t "Controller ~A: ~A, haptic=~A~%"
-  ;; 		     controller-index
-  ;; 		     controller-name
-  ;; 		     has-haptic)))))))
+(defun initialize-joysticks ())
+;; (let ((num-sticks (sdl2:joystick-count)))
+;;   (cond
+;;     ((zerop num-sticks)
+;;      (format t "No joysticks available. Keyboard control only.~%"))
+;;     (t
+;;      (dotimes (controller-index num-sticks)
+;;       (when (sdl2:game-controller-p controller-index)
+;;         (let* ((controller-name (sdl2:game-controller-name-for-index controller-index))
+;;                (game-controller (sdl2:game-controller-open controller-index))
+;;                (joystick (sdl2:game-controller-get-joystick game-controller)))
+;;           (format t "Controller ~A: ~A, haptic=~A~%"
+;;                   controller-index
+;;                   controller-name
+;;                   has-haptic)))))))
 
 (defun game-main ()
   (format t "Welcome to Option 9, Version 0.9!~%")
@@ -111,189 +111,188 @@
   (with-game-init ("option-9.dat")
     (sdl2:with-init (:everything)
       (sdl2:with-window (game-window :title "Option 9 Version 0.9" :w 700 :h 700 :flags '(:shown :opengl))
-	;; Set SDL GL attributes here...
-	(sdl2:gl-set-attr :doublebuffer 1)
-	(sdl2:gl-set-attr :depth-size 24)
-	;; for post processing smoothing of the lines and whantot.
-	;; set before I make the OpenGL context.
-	;;(sdl:set-gl-attribute :sdl-gl-multisamplebuffers 1)
-	;;(sdl:set-gl-attribute :sdl-gl-multisamplesamples 4)
-	(sdl2:with-gl-context (gl-context game-window)
-	  (sdl2:gl-make-current game-window gl-context)
-	  (sdl2:gl-set-swap-interval 0) ; Unlock framerate
-	  (sdl2:hide-cursor)
-	  (gl:clear-color 0 0 0 0)
-	  ;; Initialize viewing values.
-	  (gl:matrix-mode :projection)
-	  (gl:load-identity)
-	  ;; The world is (0,0) to (100,100)
-	  (gl:ortho 0 100 0 100 -1 1)
-	  ;; And no camera!
-	  (gl:matrix-mode :modelview)
-	  (gl:load-identity)
+        ;; Set SDL GL attributes here...
+        (sdl2:gl-set-attr :doublebuffer 1)
+        (sdl2:gl-set-attr :depth-size 24)
+        ;; for post processing smoothing of the lines and whantot.
+        ;; set before I make the OpenGL context.
+        ;;(sdl:set-gl-attribute :sdl-gl-multisamplebuffers 1)
+        ;;(sdl:set-gl-attribute :sdl-gl-multisamplesamples 4)
+        (sdl2:with-gl-context (gl-context game-window)
+          (sdl2:gl-make-current game-window gl-context)
+          (sdl2:gl-set-swap-interval 0) ; Unlock framerate
+          (sdl2:hide-cursor)
+          (gl:clear-color 0 0 0 0)
+          ;; Initialize viewing values.
+          (gl:matrix-mode :projection)
+          (gl:load-identity)
+          ;; The world is (0,0) to (100,100)
+          (gl:ortho 0 100 0 100 -1 1)
+          ;; And no camera!
+          (gl:matrix-mode :modelview)
+          (gl:load-identity)
 
-	  ;; nice antialiased lines, given the multisampling stuff.
-	  ;;(gl:enable :multisample)
+          ;; nice antialiased lines, given the multisampling stuff.
+          ;;(gl:enable :multisample)
 
-	  (initialize-joysticks)
+          (initialize-joysticks)
 
-	  (let ((emit-fps-p nil)
-		(current-time (local-time:now))
-		(dt-accum 0)
-		(frame-count 0)
-		(frame-time-accum 0))
-	    (sdl2:with-event-loop (:method :poll)
-	      (:quit () t)
-	      (:keydown (:keysym keysym)
-			(let ((scancode (sdl2:scancode-value keysym)))
-			  (cond
-			    ((sdl2:scancode= scancode :scancode-space)
-			     ;; start charging
-			     (let ((player (car (entities-with-role
-						 (scene-man *game*) :player))))
-			       (when player
-				 (start-charging player :front-weapon-port)
-				 )))
-			    ((sdl2:scancode= scancode :scancode-p) ; Pause Game
-			     (toggle-paused *game*))
-			    ((sdl2:scancode= scancode :scancode-e) ; Enter Common Lisp REPL
-			     (format t "Pausing game....~%")
-			     (toggle-paused *game*)
-			     (text-console)
-			     (format t "Unpause to keep playing!~%"))
-			    ((sdl2:scancode= scancode :scancode-q) ; Quit Game
-			     (sdl2:push-event :quit))
-			    ((sdl2:scancode= scancode :scancode-f) ; Toggle FPS
-			     (setf emit-fps-p (not emit-fps-p)
-				   frame-count 0
-				   frame-time-accum 0)
-			     (format t "Turned fps monitoring ~:[off~;on~]~%"
-				     emit-fps-p))
-			    ((sdl2:scancode= scancode :scancode-z) ;; TEST: left weapon port fire
-			     (let ((player (car (entities-with-role
-						 (scene-man *game*) :player))))
-			       (when player
-				 (shoot player :left-weapon-port))))
-			    ((sdl2:scancode= scancode :scancode-d) ;; TEST: center weapon port fire
-			     (let ((player (car (entities-with-role
-						 (scene-man *game*) :player))))
-			       (when player
-				 (shoot player :center-weapon-port))))
-			    ((sdl2:scancode= scancode :scancode-x) ;; TEST: rear weapon port fire
-			     (let ((player (car (entities-with-role
-						 (scene-man *game*) :player))))
-			       (when player
-				 (shoot player :rear-weapon-port))))
-			    ((sdl2:scancode= scancode :scancode-c) ;; TEST: right weapon port fire
-			     (let ((player (car (entities-with-role
-						 (scene-man *game*) :player))))
-			       (when player
-				 (shoot player :right-weapon-port))))
-			    ((sdl2:scancode= scancode :scancode-up)
-			     (move-player-keyboard *game* :begin :up))
-			    ((sdl2:scancode= scancode :scancode-down)
-			     (move-player-keyboard *game* :begin :down))
-			    ((sdl2:scancode= scancode :scancode-left)
-			     (move-player-keyboard *game* :begin :left))
-			    ((sdl2:scancode= scancode :scancode-right)
-			     (move-player-keyboard *game* :begin :right)))))
-	      (:keyup (:keysym keysym)
-		      (let ((scancode (sdl2:scancode-value keysym)))
-			;; (format t "Key up: ~S~%" key)
-			(cond
-			  ((sdl2:scancode= scancode :scancode-space)
-			   ;; Fire front weapon port
-			   (let ((player (car (entities-with-role
-					       (scene-man *game*) :player))))
-			     (when player
-			       (shoot player :front-weapon-port))))
-			  ((sdl2:scancode= scancode :scancode-up)
-			   (move-player-keyboard *game* :end :up))
-			  ((sdl2:scancode= scancode :scancode-down)
-			   (move-player-keyboard *game* :end :down))
-			  ((sdl2:scancode= scancode :scancode-left)
-			   (move-player-keyboard *game* :end :left))
-			  ((sdl2:scancode= scancode :scancode-right)
-			   (move-player-keyboard *game* :end :right)))))
+          (let ((emit-fps-p nil)
+                (current-time (local-time:now))
+                (dt-accum 0)
+                (frame-count 0)
+                (frame-time-accum 0))
+            (sdl2:with-event-loop (:method :poll)
+              (:quit () t)
+              (:keydown (:keysym keysym)
+                        (let ((scancode (sdl2:scancode-value keysym)))
+                          (cond
+                            ((sdl2:scancode= scancode :scancode-space)
+                             ;; start charging
+                             (let ((player (car (entities-with-role
+                                                 (scene-man *game*) :player))))
+                               (when player
+                                 (start-charging player :front-weapon-port)
+                                 )))
+                            ((sdl2:scancode= scancode :scancode-p) ; Pause Game
+                             (toggle-paused *game*))
+                            ((sdl2:scancode= scancode :scancode-e) ; Enter Common Lisp REPL
+                             (format t "Pausing game....~%")
+                             (toggle-paused *game*)
+                             (text-console)
+                             (format t "Unpause to keep playing!~%"))
+                            ((sdl2:scancode= scancode :scancode-q) ; Quit Game
+                             (sdl2:push-event :quit))
+                            ((sdl2:scancode= scancode :scancode-f) ; Toggle FPS
+                             (setf emit-fps-p (not emit-fps-p)
+                                   frame-count 0
+                                   frame-time-accum 0)
+                             (format t "Turned fps monitoring ~:[off~;on~]~%"
+                                     emit-fps-p))
+                            ((sdl2:scancode= scancode :scancode-z) ;; TEST: left weapon port fire
+                             (let ((player (car (entities-with-role
+                                                 (scene-man *game*) :player))))
+                               (when player
+                                 (shoot player :left-weapon-port))))
+                            ((sdl2:scancode= scancode :scancode-d) ;; TEST: center weapon port fire
+                             (let ((player (car (entities-with-role
+                                                 (scene-man *game*) :player))))
+                               (when player
+                                 (shoot player :center-weapon-port))))
+                            ((sdl2:scancode= scancode :scancode-x) ;; TEST: rear weapon port fire
+                             (let ((player (car (entities-with-role
+                                                 (scene-man *game*) :player))))
+                               (when player
+                                 (shoot player :rear-weapon-port))))
+                            ((sdl2:scancode= scancode :scancode-c) ;; TEST: right weapon port fire
+                             (let ((player (car (entities-with-role
+                                                 (scene-man *game*) :player))))
+                               (when player
+                                 (shoot player :right-weapon-port))))
+                            ((sdl2:scancode= scancode :scancode-up)
+                             (move-player-keyboard *game* :begin :up))
+                            ((sdl2:scancode= scancode :scancode-down)
+                             (move-player-keyboard *game* :begin :down))
+                            ((sdl2:scancode= scancode :scancode-left)
+                             (move-player-keyboard *game* :begin :left))
+                            ((sdl2:scancode= scancode :scancode-right)
+                             (move-player-keyboard *game* :begin :right)))))
+              (:keyup (:keysym keysym)
+                      (let ((scancode (sdl2:scancode-value keysym)))
+                        ;; (format t "Key up: ~S~%" key)
+                        (cond
+                          ((sdl2:scancode= scancode :scancode-space)
+                           ;; Fire front weapon port
+                           (let ((player (car (entities-with-role
+                                               (scene-man *game*) :player))))
+                             (when player
+                               (shoot player :front-weapon-port))))
+                          ((sdl2:scancode= scancode :scancode-up)
+                           (move-player-keyboard *game* :end :up))
+                          ((sdl2:scancode= scancode :scancode-down)
+                           (move-player-keyboard *game* :end :down))
+                          ((sdl2:scancode= scancode :scancode-left)
+                           (move-player-keyboard *game* :end :left))
+                          ((sdl2:scancode= scancode :scancode-right)
+                           (move-player-keyboard *game* :end :right)))))
 
-	      (:controlleraxismotion (:which controller-id :axis axis :value value)
-	       (when (and (or (= axis 0) (= axis 1)) nil)
-		 (let ((val (/ value 32768d0)))
-		   (if (or (> val 7d0)
-			   (< val -7d0))
-		       (move-player-joystick *game* axis val)
-		       (move-player-joystick *game* axis 0d0)))))
-	      
-	      (:controllerbuttondown (:which which :button button :state state)
-				     (format t "JOY BUTTON DN: ~A ~A ~A~%"
-					     which button state)
-				     (cond
-				       ((= button 0)
-					(let ((player (car (entities-with-role
-							    (scene-man *game*)
-							    :player))))
-					  (when player
-					    (shoot player :front-turret-port))))
-				       ((= button 6)
-					(sdl2:push-event :quit))))
+              (:controlleraxismotion (:which controller-id :axis axis :value value)
+                                     (when (and (or (= axis 0) (= axis 1)) nil)
+                                       (let ((val (/ value 32768d0)))
+                                         (if (or (> val 7d0)
+                                                 (< val -7d0))
+                                             (move-player-joystick *game* axis val)
+                                             (move-player-joystick *game* axis 0d0)))))
 
-	      (:controllerbuttonup (:which which :button button :state state)
-	      			    (format t "JOY BUTTON UP: ~A ~A ~A~%"
-	      				    which button state))
+              (:controllerbuttondown (:which which :button button :state state)
+                                     (format t "JOY BUTTON DN: ~A ~A ~A~%"
+                                             which button state)
+                                     (cond
+                                       ((= button 0)
+                                        (let ((player (car (entities-with-role
+                                                            (scene-man *game*)
+                                                            :player))))
+                                          (when player
+                                            (shoot player :front-turret-port))))
+                                       ((= button 6)
+                                        (sdl2:push-event :quit))))
 
-	      (:joyhatmotion (:which which :hat hat :value value)
-	      			     (format t "JOY HAT: ~A ~A ~A~%"
-	      				     which hat value))
+              (:controllerbuttonup (:which which :button button :state state)
+                                   (format t "JOY BUTTON UP: ~A ~A ~A~%"
+                                           which button state))
 
-	      (:idle ()
-		     ;; The physics runs at 1/60th of a second time units.
-		     (let* ((new-time (local-time:now))
-			    (frame-time (timestamp-subtract new-time current-time)))
+              (:joyhatmotion (:which which :hat hat :value value)
+                             (format t "JOY HAT: ~A ~A ~A~%"
+                                     which hat value))
 
-		       ;; Set maximum frame time in case we slow down beyond it.
-		       (when (> frame-time *dt-us*)
-			 (setf frame-time *dt-us*))
-		       (setf current-time new-time)
+              (:idle ()
+                     ;; The physics runs at 1/60th of a second time units.
+                     (let* ((new-time (local-time:now))
+                            (frame-time (timestamp-subtract new-time current-time)))
 
-		       ;; accumulate the time we just spent doing the last frame.
-		       (incf dt-accum frame-time)
+                       ;; Set maximum frame time in case we slow down beyond it.
+                       (when (> frame-time *dt-us*)
+                         (setf frame-time *dt-us*))
+                       (setf current-time new-time)
 
-		       ;; Consume the generated time in the renderer.
-		       (loop while (> dt-accum *dt-us*) do
-			    (step-game *game*)
-			    (decf dt-accum *dt-us*))
+                       ;; accumulate the time we just spent doing the last frame.
+                       (incf dt-accum frame-time)
+
+                       ;; Consume the generated time in the renderer.
+                       (loop while (> dt-accum *dt-us*) do
+                            (step-game *game*)
+                            (decf dt-accum *dt-us*))
 
 
-		       ;; Keep track of & emit stuff for FPS.
-		       ;;
-		       ;; TODO: Should change this to keep track of
-		       ;; average usecs per frame instead.
-		       (when emit-fps-p
-			 (incf frame-count)
-			 (incf frame-time-accum frame-time)
-			 (when (> frame-time-accum (in-usecs 1.0)) ;; every second..
-			   (format t "frame-count = ~A frame-time-accum = ~A sec fps = ~A~%"
-				   frame-count
-				   (/ frame-time-accum 1000000.0)
-				   (/ frame-count (/ frame-time-accum 1000000.0)))
-			   (finish-output)
-			   (setf frame-count 0
-				 frame-time-accum 0)))
+                       ;; Keep track of & emit stuff for FPS.
+                       ;;
+                       ;; TODO: Should change this to keep track of
+                       ;; average usecs per frame instead.
+                       (when emit-fps-p
+                         (incf frame-count)
+                         (incf frame-time-accum frame-time)
+                         (when (> frame-time-accum (in-usecs 1.0)) ;; every second..
+                           (format t "frame-count = ~A frame-time-accum = ~A sec fps = ~A~%"
+                                   frame-count
+                                   (/ frame-time-accum 1000000.0)
+                                   (/ frame-count (/ frame-time-accum 1000000.0)))
+                           (finish-output)
+                           (setf frame-count 0
+                                 frame-time-accum 0)))
 
-		       ;; TODO: Need to account for temporal aliasing!
-		       ;; See Fix Your Timestep.
-		       ;; I'm currently unsure how to do the interpolation method
-		       ;; given how my state is represented and distributed across
-		       ;; all of my objects. I'd also need to keep THREE entire
-		       ;; states available to perform the interpolation. Need to
-		       ;; think on it.
+                       ;; TODO: Need to account for temporal aliasing!
+                       ;; See Fix Your Timestep.
+                       ;; I'm currently unsure how to do the interpolation method
+                       ;; given how my state is represented and distributed across
+                       ;; all of my objects. I'd also need to keep THREE entire
+                       ;; states available to perform the interpolation. Need to
+                       ;; think on it.
 
-		       (display *game*)
+                       (display *game*)
 
-		       ;; Start processing buffered OpenGL routines.
-		       (gl:flush)
-		       (sdl2:gl-swap-window game-window))))))))))
+                       ;; Start processing buffered OpenGL routines.
+                       (gl:flush)
+                       (sdl2:gl-swap-window game-window))))))))))
 
 (defun option-9 ()
   (sdl2:make-this-thread-main #'game-main))
-
