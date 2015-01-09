@@ -98,7 +98,7 @@ the FUNC to each frame as one walks towards the leaves."
 ;; transforming it back to local axis space, and then applying the
 ;; correction to the local axis space.
 (defmethod active-step-once :after ((ent player))
-  (let* ((loc (pm-trfm-get-trans (local-basis ent)))
+  (let* ((loc (matrix-translate-get (local-basis ent)))
          (new-loc (pv-copy loc)))
     (with-multiple-pvec-accessors ((l loc) (n new-loc))
       (when (< ly 3d0) (setf ny 3d0))
@@ -122,7 +122,7 @@ the FUNC to each frame as one walks towards the leaves."
 ;; leave the arena region, it goes stale and will be removed from the
 ;; game world.
 (defmethod active-step-once :after ((ent drawable))
-  (with-pvec-accessors (o (pm-trfm-get-trans (world-basis ent)))
+  (with-pvec-accessors (o (matrix-translate-get (world-basis ent)))
     (when (or (and (not (null (ttl ent))) (<= (ttl ent) 0))
               (< ox -5d0) (> ox 105d0)
               (< oy -5d0) (> oy 105d0))

@@ -48,7 +48,7 @@
       (gl:push-matrix)
       (gl:load-identity)
 
-      (with-pvec-accessors (o (pm-trfm-get-trans (world-basis ent)))
+      (with-pvec-accessors (o (matrix-translate-get (world-basis ent)))
         (gl:line-width 4.0)
         (gl:with-primitive :lines
           (let* ((per (/ (hit-points ent) (max-hit-points ent)))
