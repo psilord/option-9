@@ -14,8 +14,8 @@ integer of usecs and return it."
   (truncate (* seconds 1000000)))
 
 (defmethod distance ((a frame) (b frame) &key (sqrt t))
-  (let ((ao (pm-trfm-get-trans (world-basis a)))
-        (bo (pm-trfm-get-trans (world-basis b))))
+  (let ((ao (matrix-translate-get (world-basis a)))
+        (bo (matrix-translate-get (world-basis b))))
     (pv-dist ao bo :sqrt sqrt)))
 
 (defun random-sign ()
