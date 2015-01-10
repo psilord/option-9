@@ -130,11 +130,10 @@
           ;; Initialize viewing values.
           (gl:matrix-mode :projection)
           (gl:load-identity)
-          ;; The world is (0,0) to (100,100)
+          ;; The world is (0,0) to (game-width,game-height)
           (gl:ortho 0 (* (game-width *game*) (window-aspect-ratio *game*))
                     0 (game-height *game*)
-                    -1
-                    1)
+                    -1 1)
           ;; And no camera!
           (gl:matrix-mode :modelview)
           (gl:load-identity)
