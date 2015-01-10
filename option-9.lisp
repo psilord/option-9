@@ -111,6 +111,10 @@
   (with-game-init ("option-9.dat" :window-width 700 :window-height 700
                                   :game-width 100 :game-height 100)
     (sdl2:with-init (:everything)
+      ;; for post processing smoothing of the lines and whantot.
+      ;; set before I make the window and OpenGL context.
+      ;;(sdl2:gl-set-attr :multisamplebuffers 1)
+      ;;(sdl2:gl-set-attr :multisamplesamples 4)
       (sdl2:with-window (game-window :title "Option 9 Version 0.9"
                                      :w (window-width *game*)
                                      :h (window-height *game*)
@@ -118,10 +122,6 @@
         ;; Set SDL GL attributes here...
         (sdl2:gl-set-attr :doublebuffer 1)
         (sdl2:gl-set-attr :depth-size 24)
-        ;; for post processing smoothing of the lines and whantot.
-        ;; set before I make the OpenGL context.
-        ;;(sdl:set-gl-attribute :sdl-gl-multisamplebuffers 1)
-        ;;(sdl:set-gl-attribute :sdl-gl-multisamplesamples 4)
         (sdl2:with-gl-context (gl-context game-window)
           (sdl2:gl-make-current game-window gl-context)
           (sdl2:gl-set-swap-interval 0) ; Unlock framerate
