@@ -1427,6 +1427,7 @@ re-orthogonalized."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; XXX This might be wrong, check very carefully.
 (declaim (ftype (function (pmat pmat keyword keyword) pmat)
                 matrix-create-view-into))
 (defun matrix-create-view-into (view camera at-dir up-dir)
@@ -1509,6 +1510,7 @@ default) or as a list."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; XXX This might be wrong, check very carefully.
 ;; TODO, spruce this up to emit quadrants too, eventually.
 (declaim (ftype (function (pmat pvec keyword) cons) pm-classify-point))
 (defun matrix-classify-point (basis point plane)
