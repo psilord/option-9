@@ -16,20 +16,32 @@
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
-(defun make-game (&key (width 1024) (height 768))
+(defun make-game (&key (window-width 1024) (window-height 768)
+                    (game-width 100) (game-height 100))
   (make-instance 'game
                  :scene-man (make-instance 'scene-manager)
-                 :width width
-                 :height height))
+                 :window-width window-width
+                 :window-height window-height
+                 :game-width game-width
+                 :game-height game-height))
 
-(defun aspect-ratio (game)
-  (/ (width game) (height game)))
+(defun window-aspect-ratio (game)
+  (/ (window-width game) (window-height game)))
 
-(defun per-width (game percentage)
-  (coerce (* (width game) percentage) 'double-float))
+(defun per-window-width (game percentage)
+  (coerce (* (window-width game) percentage) 'double-float))
 
-(defun per-height (game percentage)
-  (coerce (* (height game) percentage) 'double-float))
+(defun per-window-height (game percentage)
+  (coerce (* (window-height game) percentage) 'double-float))
+
+(defun game-aspect-ratio (game)
+  (/ (game-width game) (game-height game)))
+
+(defun per-game-width (game percentage)
+  (coerce (* (game-width game) percentage) 'double-float))
+
+(defun per-game-height (game percentage)
+  (coerce (* (game-height game) percentage) 'double-float))
 
 (defun add-spawnable (spawnable game)
   (push spawnable (spawnables game)))
@@ -42,11 +54,19 @@
       (setf (paused g) nil)
       (setf (paused g) t)))
 
-(defmacro with-game-init ((filename &key (width 1024) (height 768)) &body body)
+(defmacro with-game-init ((filename &key
+                                    (window-width 1024)
+                                    (window-height 768)
+                                    (game-width 100)
+                                    (game-height 100))
+                          &body body)
   ;; The let* is important to bind *id* before MAKE-GAME is called.
   `(let* ((*assets* (load-dat-file ,filename))
           (*id* 0)
-          (*game* (make-game :width ,width :height ,height)))
+          (*game* (make-game :window-width ,window-width
+                             :window-height ,window-height
+                             :game-width ,game-width
+                             :game-height ,game-height)))
      ,@body))
 
 (defun move-player-keyboard (game state dir)
