@@ -101,12 +101,15 @@ the FUNC to each frame as one walks towards the leaves."
   (let* ((loc (matrix-translate-get (local-basis ent)))
          (new-loc (pv-copy loc)))
     (with-multiple-pvec-accessors ((l loc) (n new-loc))
-      (when (< ly 3d0) (setf ny 3d0))
-      (when (> ly 95d0) (setf ny 95d0))
-      (when (< lx 4d0) (setf nx 4d0))
-      (when (> lx 96d0) (setf nx 96d0)))
-    (mtrsi (local-basis ent) new-loc)))
-
+      (let ((y-min 3d0)
+            (y-max 95d0)
+            (x-min 4d0)
+            (x-max 96d0))
+        (when (< ly y-min) (setf ny y-min))
+        (when (> ly y-max) (setf ny y-max))
+        (when (< lx x-min) (setf nx x-min))
+        (when (> lx x-max) (setf nx x-max)))
+      (mtrsi (local-basis ent) new-loc))))
 
 ;; Show that a shot has been significantly charged by having it leave a trail.
 (defmethod active-step-once :after ((shot shot))

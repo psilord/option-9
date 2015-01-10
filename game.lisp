@@ -25,6 +25,12 @@
 (defun aspect-ratio (game)
   (/ (width game) (height game)))
 
+(defun per-width (game percentage)
+  (coerce (* (width game) percentage) 'double-float))
+
+(defun per-height (game percentage)
+  (coerce (* (height game) percentage) 'double-float))
+
 (defun add-spawnable (spawnable game)
   (push spawnable (spawnables game)))
 
