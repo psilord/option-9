@@ -16,9 +16,14 @@
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
-(defun make-game ()
+(defun make-game (&key (width 1024) (height 768))
   (make-instance 'game
-                 :scene-man (make-instance 'scene-manager)))
+                 :scene-man (make-instance 'scene-manager)
+                 :width width
+                 :height height))
+
+(defun aspect-ratio (game)
+  (/ (width game) (height game)))
 
 (defun add-spawnable (spawnable game)
   (push spawnable (spawnables game)))
@@ -31,11 +36,11 @@
       (setf (paused g) nil)
       (setf (paused g) t)))
 
-(defmacro with-game-init ((filename) &body body)
+(defmacro with-game-init ((filename &key (width 1024) (height 768)) &body body)
   ;; The let* is important to bind *id* before MAKE-GAME is called.
   `(let* ((*assets* (load-dat-file ,filename))
           (*id* 0)
-          (*game* (make-game)))
+          (*game* (make-game :width ,width :height ,height)))
      ,@body))
 
 (defun move-player-keyboard (game state dir)

@@ -556,7 +556,15 @@ vector at that position"))
 ;; Each thing in the world is kept is its particular list. This makes it
 ;; easy to perform collision detection only as necessary.
 (defclass game ()
-  (;; Make the universe object which is the root of the scene tree.
+  (;; How big the game world is
+   (%width :initarg :width
+           :initform 1024
+           :accessor width)
+   (%height :initarg :height
+            :initform 768
+            :accessor height)
+
+   ;; Make the universe object which is the root of the scene tree.
    (%scene-man :initarg :scene-man
                :initform nil
                :accessor scene-man)

@@ -108,9 +108,12 @@
   (format t "Written by Peter Keller <psilord@cs.wisc.edu>~%")
   (format t "Ship Designs by Stephanie Keller <aset_isis@hotmail.com>~%")
 
-  (with-game-init ("option-9.dat")
+  (with-game-init ("option-9.dat" :width 700 :height 700)
     (sdl2:with-init (:everything)
-      (sdl2:with-window (game-window :title "Option 9 Version 0.9" :w 700 :h 700 :flags '(:shown :opengl))
+      (sdl2:with-window (game-window :title "Option 9 Version 0.9"
+                                     :w (width *game*)
+                                     :h (height *game*)
+                                     :flags '(:shown :opengl))
         ;; Set SDL GL attributes here...
         (sdl2:gl-set-attr :doublebuffer 1)
         (sdl2:gl-set-attr :depth-size 24)
@@ -127,7 +130,7 @@
           (gl:matrix-mode :projection)
           (gl:load-identity)
           ;; The world is (0,0) to (100,100)
-          (gl:ortho 0 100 0 100 -1 1)
+          (gl:ortho 0 (* 100 (aspect-ratio *game*)) 0 100 -1 1)
           ;; And no camera!
           (gl:matrix-mode :modelview)
           (gl:load-identity)
