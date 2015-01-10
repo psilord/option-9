@@ -1476,36 +1476,36 @@ the camera is stored."
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; XXX This might be wrong, check very carefully.
-(defun matrix-plane-eqn (basis plane &key (multiple-value :t))
+(defun matrix-plane-eqn (mat plane &key (multiple-value :t))
   "Compute the double-float A,B,C,D coeffs for the plane specified in
-PLANE, one of :XY, :XZ, or :YZ, and which passes through the
-translation point in the basis and return them in that order as
-multiple values if the keyword :MULTIPLE-VALUE is T (the default) or
-as a list."
+the transformation matrix MAT, one of :XY, :XZ, or :YZ, and which
+passes through the translation point in the basis and return them in
+that order as multiple values if the keyword :MULTIPLE-VALUE is T (the
+default) or as a list."
+
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   #+(and :option-9-optimize-pvec :sbcl)
   (declare (sb-ext:muffle-conditions sb-ext:compiler-note))
-  (with-pmat-accessors (b basis)
-    (let* ((p0 (matrix-translate-get basis))
-           ;; All axes are chosen such that their cross leads to a
-           ;; vector pointing in the positive direction of the third
-           ;; axis.
-           (choice-a (ecase plane ((:xy) :x) ((:xz) :z) ((:yz) :y)))
-           (choice-b (ecase plane ((:xy) :y) ((:xz) :x) ((:yz) :z)))
-           (axis-a (matrix-rotation-direction-get basis choice-a))
-           (axis-b (matrix-rotation-direction-get basis choice-b))
-           ;; These are actual points.
-           (p1 (pv-add p0 axis-a))
-           (p2 (pv-add p0 axis-b))
-           ;; Compute the vector we'll be crossing.
-           (vec-a (pv-vector p0 p1))
-           (vec-b (pv-vector p0 p2))
-           (norm (pv-stabilize-into (pv-cross vec-a vec-b)))
-           (d (pv-dot norm p0)))
-      (with-pvec-accessors (n norm)
-        (if multiple-value
-            (values nx ny nz d)
-            (list nx ny nz d))))))
+  (let* ((p0 (matrix-translate-get mat))
+         ;; All axes are chosen such that their cross leads to a
+         ;; vector pointing in the positive direction of the third
+         ;; axis.
+         (choice-a (ecase plane ((:xy) :x) ((:xz) :z) ((:yz) :y)))
+         (choice-b (ecase plane ((:xy) :y) ((:xz) :x) ((:yz) :z)))
+         (axis-a (matrix-rotation-direction-get mat choice-a))
+         (axis-b (matrix-rotation-direction-get mat choice-b))
+         ;; These are actual points.
+         (p1 (pv-add p0 axis-a))
+         (p2 (pv-add p0 axis-b))
+         ;; Compute the vector we'll be crossing.
+         (vec-a (pv-vector p0 p1))
+         (vec-b (pv-vector p0 p2))
+         (norm (pv-stabilize-into (pv-cross vec-a vec-b)))
+         (d (pv-dot norm p0)))
+    (with-pvec-accessors (n norm)
+      (if multiple-value
+          (values nx ny nz d)
+          (list nx ny nz d)))))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
