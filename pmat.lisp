@@ -102,25 +102,25 @@
 
 (declaim (ftype (function (pmat pmat) pmat) mcpi))
 (declaim (inline mcpi))
-(defun mcpi (result src) ;; matrix-copy-into
+(defun mcpi (dst src) ;; matrix-copy-into
   "Shortname for MATRIX-COPY-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-copy-into result src))
+  (matrix-copy-into dst src))
 
 ;;; ;;;;;;;;
 
 (declaim (ftype (function (pmat) pmat) matrix-copy))
-(defun matrix-copy (mat)
-  "Return a newly allocated pmat into which MAT was copied."
+(defun matrix-copy (src)
+  "Return a newly allocated pmat into which SRC was copied."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-copy-into (mi) mat))
+  (matrix-copy-into (mi) src))
 
 (declaim (ftype (function (pmat) pmat) mcp))
 (declaim (inline mcp))
-(defun mcp (mat) ;; matrix-copy
+(defun mcp (src) ;; matrix-copy
   "Shortname for MATRIX-COPY."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-copy mat))
+  (matrix-copy src))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -165,44 +165,44 @@ corresponding location in DST.  SRC and DST may be EQ. Return DST."
 ;;; ;;;;;;;;
 
 (declaim (ftype (function (pmat) pmat) matrix-stabilize))
-(defun matrix-stabilize (mat)
+(defun matrix-stabilize (src)
   "Return a newly allocated matrix that contains the stabilized values
-from MAT."
+from SRC."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (let ((m (matrix-copy mat)))
+  (let ((m (matrix-copy src)))
     (matrix-stabilize-into m m)))
 
 (declaim (ftype (function (pmat) pmat) mst))
 (declaim (inline mst))
-(defun mst (mat) ;; matrix-stabilize
+(defun mst (src) ;; matrix-stabilize
   "Shortname for MATRIX-STABILIZE."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-stabilize mat))
+  (matrix-stabilize src))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun matrix-test-into (mat)
-  "Construct a test pattern into the 4x4 matrix MAT."
+(defun matrix-test-into (dst)
+  "Construct a test pattern into the 4x4 matrix DST."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-multiple-pmat-accessors ((m mat))
-    (psetf m00 1d0 m01 2d0 m02 3d0 m03 4d0
-           m10 5d0 m11 6d0 m12 7d0 m13 8d0
-           m20 9d0 m21 10d0 m22 11d0 m23 12d0
-           m30 13d0 m31 14d0 m32 15d0 m33 16d0))
-  mat)
+  (with-multiple-pmat-accessors ((d dst))
+    (psetf d00 1d0 d01 2d0 d02 3d0 d03 4d0
+           d10 5d0 d11 6d0 d12 7d0 d13 8d0
+           d20 9d0 d21 10d0 d22 11d0 d23 12d0
+           d30 13d0 d31 14d0 d32 15d0 d33 16d0))
+  dst)
 
-(defun mtsti (mat) ;; matrix-test-into
+(defun mtsti (dst) ;; matrix-test-into
   "Shortname for MATRIX-TEST-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-test-into mat))
+  (matrix-test-into dst))
 
 ;;; ;;;;;;;;
 
 (defun matrix-test ()
   "Return a newly allocated 4x4 matrix that contains a test pattern."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (let ((result (pmat)))
-    (matrix-test-into result)))
+  (let ((dst (pmat)))
+    (matrix-test-into dst)))
 
 (defun mtst () ;; matrix-test
   "Shortname for MATRIX-TEST."
@@ -212,21 +212,21 @@ from MAT."
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (declaim (ftype (function (pmat) pmat) matrix-identity-into))
-(defun matrix-identity-into (mat)
-  "Fill the matrix MAT with an identity matrix."
+(defun matrix-identity-into (dst)
+  "Fill the matrix DST with an identity matrix."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-pmat-accessors (m mat)
-    (psetf m00 1.0d0 m01 0.0d0 m02 0.0d0 m03 0.0d0
-           m10 0.0d0 m11 1.0d0 m12 0.0d0 m13 0.0d0
-           m20 0.0d0 m21 0.0d0 m22 1.0d0 m23 0.0d0
-           m30 0.0d0 m31 0.0d0 m32 0.0d0 m33 1.0d0))
-  mat)
+  (with-pmat-accessors (d dst)
+    (psetf d00 1.0d0 d01 0.0d0 d02 0.0d0 d03 0.0d0
+           d10 0.0d0 d11 1.0d0 d12 0.0d0 d13 0.0d0
+           d20 0.0d0 d21 0.0d0 d22 1.0d0 d23 0.0d0
+           d30 0.0d0 d31 0.0d0 d32 0.0d0 d33 1.0d0))
+  dst)
 
 (declaim (ftype (function (pmat) pmat) mii))
 (declaim (inline mii))
-(defun mii (mat) ;; matrix-identity-into
+(defun mii (dst) ;; matrix-identity-into
   "Shortname for MATRIX-IDENTITY-INTO."
-  (matrix-identity-into mat))
+  (matrix-identity-into dst))
 
 ;;; ;;;;;;;;
 
@@ -294,53 +294,54 @@ from MAT."
 ;; finished being evaluated. Hence, I don't have to worry if result EQ
 ;; mat0 or mat1. It is the same for other uses of PSETF in this file.
 (declaim (ftype (function (pmat pmat pmat) pmat) matrix-multiply-into))
-(defun matrix-multiply-into (result mat0 mat1)
-  "Perform matrix multiply of MAT0 * MAT1 and store into RESULT."
+(defun matrix-multiply-into (dst mat0 mat1)
+  "Perform matrix multiply of MAT0 * MAT1 and store into DST. DST can
+be EQ to MAT0 or MAT1."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-multiple-pmat-accessors ((r result) (a mat0) (b mat1))
-    (psetf r00 (as-double-float
+  (with-multiple-pmat-accessors ((d dst) (a mat0) (b mat1))
+    (psetf d00 (as-double-float
                 (+ (* a00 b00) (* a01 b10) (* a02 b20) (* a03 b30)))
-           r10 (as-double-float
+           d10 (as-double-float
                 (+ (* a10 b00) (* a11 b10) (* a12 b20) (* a13 b30)))
-           r20 (as-double-float
+           d20 (as-double-float
                 (+ (* a20 b00) (* a21 b10) (* a22 b20) (* a23 b30)))
-           r30 (as-double-float
+           d30 (as-double-float
                 (+ (* a30 b00) (* a31 b10) (* a32 b20) (* a33 b30)))
 
-           r01 (as-double-float
+           d01 (as-double-float
                 (+ (* a00 b01) (* a01 b11) (* a02 b21) (* a03 b31)))
-           r11 (as-double-float
+           d11 (as-double-float
                 (+ (* a10 b01) (* a11 b11) (* a12 b21) (* a13 b31)))
-           r21 (as-double-float
+           d21 (as-double-float
                 (+ (* a20 b01) (* a21 b11) (* a22 b21) (* a23 b31)))
-           r31 (as-double-float
+           d31 (as-double-float
                 (+ (* a30 b01) (* a31 b11) (* a32 b21) (* a33 b31)))
 
-           r02 (as-double-float
+           d02 (as-double-float
                 (+ (* a00 b02) (* a01 b12) (* a02 b22) (* a03 b32)))
-           r12 (as-double-float
+           d12 (as-double-float
                 (+ (* a10 b02) (* a11 b12) (* a12 b22) (* a13 b32)))
-           r22 (as-double-float
+           d22 (as-double-float
                 (+ (* a20 b02) (* a21 b12) (* a22 b22) (* a23 b32)))
-           r32 (as-double-float
+           d32 (as-double-float
                 (+ (* a30 b02) (* a31 b12) (* a32 b22) (* a33 b32)))
 
-           r03 (as-double-float
+           d03 (as-double-float
                 (+ (* a00 b03) (* a01 b13) (* a02 b23) (* a03 b33)))
-           r13 (as-double-float
+           d13 (as-double-float
                 (+ (* a10 b03) (* a11 b13) (* a12 b23) (* a13 b33)))
-           r23 (as-double-float
+           d23 (as-double-float
                 (+ (* a20 b03) (* a21 b13) (* a22 b23) (* a23 b33)))
-           r33 (as-double-float
+           d33 (as-double-float
                 (+ (* a30 b03) (* a31 b13) (* a32 b23) (* a33 b33)))))
-  result)
+  dst)
 
 (declaim (ftype (function (pmat pmat pmat) pmat) mmi))
 (declaim (inline mmi))
-(defun mmi (result mat0 mat1) ;; matrix-multiply-into
+(defun mmi (dst mat0 mat1) ;; matrix-multiply-into
   "Shortname for MATRIX-MULTIPLY-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-multiply-into result mat0 mat1))
+  (matrix-multiply-into dst mat0 mat1))
 
 ;;; ;;;;;;;;
 
@@ -466,10 +467,10 @@ respective PVEC amounts. Return DST. Similar to glScale()."
 
 (declaim (ftype (function (pmat pvec) pmat) msci))
 (declaim (inline msci))
-(defun msci (mat pvec) ;; matrix-scale-into
+(defun msci (dst pvec) ;; matrix-scale-into
   "Shortname for MATRIX-SCALE-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-scale-into mat pvec))
+  (matrix-scale-into dst pvec))
 
 ;;; ;;;;;;;;
 
@@ -489,27 +490,80 @@ in each axis denoted by PVEC. Similar to glScale()."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declaim (ftype (function (pmat pmat double-float) pmat) matrix-scale-by-into))
+(declaim (inline matrix-scale-by-into))
+(defun matrix-scale-by-into (dst src scalar)
+  "Store a matrix into DST that is SRC scaled by the scalar
+SCALAR. Return DST. DST may be EQ to SRC."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (with-multiple-pmat-accessors ((d dst) (s src))
+    (psetf d00 (as-double-float (* s00 scalar))
+           d10 (as-double-float (* s10 scalar))
+           d20 (as-double-float (* s20 scalar))
+           d30 (as-double-float (* s30 scalar))
+
+           d01 (as-double-float (* s01 scalar))
+           d11 (as-double-float (* s11 scalar))
+           d21 (as-double-float (* s21 scalar))
+           d31 (as-double-float (* s31 scalar))
+
+           d02 (as-double-float (* s02 scalar))
+           d12 (as-double-float (* s12 scalar))
+           d22 (as-double-float (* s22 scalar))
+           d32 (as-double-float (* s32 scalar))
+
+           d03 (as-double-float (* s03 scalar))
+           d13 (as-double-float (* s13 scalar))
+           d23 (as-double-float (* s23 scalar))
+           d33 (as-double-float (* s33 scalar))))
+  dst)
+
+(declaim (ftype (function (pmat pmat double-float) pmat) mscbi))
+(declaim (inline msci))
+(defun mscbi (dst src scalar) ;; matrix-scale-by-into
+  "Shortname for MATRIX-SCALE-BY-INTO."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (matrix-scale-by-into dst src scalar))
+
+;;; ;;;;;;;;
+
+(declaim (ftype (function (pmat double-float) pmat) matrix-scale-by))
+(defun matrix-scale-by (src scalar)
+  "Return a newly allocated identity matrix into which is stored SRC
+which has been scaled by the scalar SCALAR."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (matrix-scale-by-into (pmat) src scalar))
+
+(declaim (ftype (function (pmat double-float) pmat) mscb))
+(declaim (inline mscb))
+(defun mscb (src scalar) ;; matrix-scale-by
+  "Shortname for MATRIX-SCALE-BY."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (matrix-scale-by src scalar))
+
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (declaim (ftype (function (pmat pvec) pmat) matrix-translate-into))
 (declaim (inline matrix-translate-into))
-(defun matrix-translate-into (mat pvec)
-  "Store a transformation matrix into MAT that translates the
-coordinate system by the respective PVEC amounts. Return MAT. Similar
+(defun matrix-translate-into (dst pvec)
+  "Store a transformation matrix into DST that translates the
+coordinate system by the respective PVEC amounts. Return DST. Similar
 to glTranslate()"
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-identity-into mat)
-  (with-pmat-accessors (m mat)
+  (matrix-identity-into dst)
+  (with-pmat-accessors (d dst)
     (with-pvec-accessors (p pvec)
-      (psetf m03 px
-             m13 py
-             m23 pz)))
-  mat)
+      (psetf d03 px
+             d13 py
+             d23 pz)))
+  dst)
 
 (declaim (ftype (function (pmat pvec) pmat) mtri))
 (declaim (inline mtri))
-(defun mtri (mat pvec) ;; matrix-translate-into
+(defun mtri (dst pvec) ;; matrix-translate-into
   "Shortname for MATRIX-TRANSLATE-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-translate-into mat pvec))
+  (matrix-translate-into dst pvec))
 
 ;;; ;;;;;;;;
 
@@ -533,60 +587,59 @@ to glTranslate()"
 ;; WARNING: This is special to orthonormal basis transformation matricies.
 (declaim (ftype (function (pmat pmat) pmat) matrix-invert-trfm-into))
 (declaim (inline matrix-invert-trfm-into))
-(defun matrix-invert-trfm-into (result mat)
+(defun matrix-invert-trfm-into (dst src)
   "Invert (specifically an) orthonormal transformation matrix (with a
 rotation operator in the upper left 3x3 matrix and a translation
-vector in the 4x1 column on the right) MAT and store into
-RESULT. RESULT can be EQ with MAT. This means 1) store the transpose
-the 3x3 rotation matrix contained in the upper left hand of the
-transformation matrix, 2) store the application of the inverted
-rotation to the negation of the 4x1 translation column.  Return the
-stabilized RESULT. This function will not invert arbitrary 4x4
-matricies."
+vector in the 4x1 column on the right) SRC and store into DST. DST can
+be EQ with SRC. This means 1) store the transpose the 3x3 rotation
+matrix contained in the upper left hand of the transformation matrix,
+2) store the application of the inverted rotation to the negation of
+the 4x1 translation column.  Return the stabilized DST. This function
+will not invert arbitrary 4x4 matricies."
 
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (unless (eq result mat)
-    (matrix-copy-into result mat))
+  (unless (eq dst src)
+    (matrix-copy-into dst src))
 
-  (with-pmat-accessors (r result)
+  (with-pmat-accessors (d dst)
     ;; Transpose the upper left square 3x3 portion of the rotation matrix
-    (rotatef r10 r01)
-    (rotatef r20 r02)
-    (rotatef r21 r12)
+    (rotatef d10 d01)
+    (rotatef d20 d02)
+    (rotatef d21 d12)
 
     ;; Invert the translation by applying the inverted rotation to the
     ;; negated translation
 
-    (psetf r03 (as-double-float
-                (+ (* r00 (- r03)) (* r01 (- r13)) (* r02 (- r23))))
-           r13 (as-double-float
-                (+ (* r10 (- r03)) (* r11 (- r13)) (* r12 (- r23))))
-           r23 (as-double-float
-                (+ (* r20 (- r03)) (* r21 (- r13)) (* r22 (- r23))))))
+    (psetf d03 (as-double-float
+                (+ (* d00 (- d03)) (* d01 (- d13)) (* d02 (- d23))))
+           d13 (as-double-float
+                (+ (* d10 (- d03)) (* d11 (- d13)) (* d12 (- d23))))
+           d23 (as-double-float
+                (+ (* d20 (- d03)) (* d21 (- d13)) (* d22 (- d23))))))
 
-  (matrix-stabilize result))
+  (matrix-stabilize dst))
 
 (declaim (ftype (function (pmat pmat) pmat) minvti))
 (declaim (inline minvti))
-(defun minvti (result mat) ;; matrix-invert-transform-into
+(defun minvti (dst src) ;; matrix-invert-transform-into
   "Shortname for MATRIX-INVERT-TRFM-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-invert-trfm-into result mat))
+  (matrix-invert-trfm-into dst src))
 
 ;;; ;;;;;;;;
 
 (declaim (ftype (function (pmat) pmat) matrix-invert-trfm))
-(defun matrix-invert-trfm (mat)
-  "Invert the transformation matrix MAT."
+(defun matrix-invert-trfm (src)
+  "Invert the transformation matrix SRC."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-invert-trfm-into (mi) mat))
+  (matrix-invert-trfm-into (pmat) src))
 
 (declaim (ftype (function (pmat) pmat) minvt))
 (declaim (inline minvt))
-(defun minvt (mat) ;; matrix-invert-transform
+(defun minvt (src) ;; matrix-invert-transform
   "Shortname for MATRIX-INVERT-TRFM."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-invert-trfm mat))
+  (matrix-invert-trfm src))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -717,20 +770,20 @@ matrix and NIL if it couldn't happen."
 ;;; ;;;;;;;;
 
 (declaim (ftype (function (pmat) (values pmat t)) matrix-invert))
-(defun matrix-invert (mat)
+(defun matrix-invert (src)
   "Allocate a new matrix and place into it the inverse of the arbitrary
-4x4 matrix MAT. Return the values of a stabilized inverted matrix and T if
+4x4 matrix SRC. Return the values of a stabilized inverted matrix and T if
 the inversion was possible, or an identity matrix and NIL if it wasn't
  possible."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-invert-into (mi) mat))
+  (matrix-invert-into (mi) src))
 
 (declaim (ftype (function (pmat) (values pmat t)) minv))
 (declaim (inline minv))
-(defun minv (mat) ;; matrix-invert
+(defun minv (src) ;; matrix-invert
   "Shortname for MATRIX-INVERT."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-invert mat))
+  (matrix-invert src))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -738,103 +791,104 @@ the inversion was possible, or an identity matrix and NIL if it wasn't
                           (simple-array double-float (16)))
                 matrix-convert-to-opengl-into))
 (declaim (inline matrix-convert-to-opengl-into))
-(defun matrix-convert-to-opengl-into (ogl mat)
+(defun matrix-convert-to-opengl-into (ogl src)
   "Convert the MAT matrix into OGL, which is a column-major OpenGL
 matrix represented as a (simple-array double-float (16)), and then
 return OGL."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (declare (type (simple-array double-float (16)) ogl))
-  (with-pmat-accessors (m mat)
-    (psetf (aref ogl 0) m00
-           (aref ogl 1) m10
-           (aref ogl 2) m20
-           (aref ogl 3) m30
+  (with-pmat-accessors (s src)
+    (psetf (aref ogl 0) s00
+           (aref ogl 1) s10
+           (aref ogl 2) s20
+           (aref ogl 3) s30
 
-           (aref ogl 4) m01
-           (aref ogl 5) m11
-           (aref ogl 6) m21
-           (aref ogl 7) m31
+           (aref ogl 4) s01
+           (aref ogl 5) s11
+           (aref ogl 6) s21
+           (aref ogl 7) s31
 
-           (aref ogl 8) m02
-           (aref ogl 9) m12
-           (aref ogl 10) m22
-           (aref ogl 11) m32
+           (aref ogl 8) s02
+           (aref ogl 9) s12
+           (aref ogl 10) s22
+           (aref ogl 11) s32
 
-           (aref ogl 12) m03
-           (aref ogl 13) m13
-           (aref ogl 14) m23
-           (aref ogl 15) m33))
+           (aref ogl 12) s03
+           (aref ogl 13) s13
+           (aref ogl 14) s23
+           (aref ogl 15) s33))
   ogl)
 
 (declaim (ftype (function ((simple-array double-float (16)) pmat)
                           (simple-array double-float (16)))
                 mctoi))
 (declaim (inline mctoi))
-(defun mctoi (ogl mat) ;; matrix-convert-to-opengl-into
+(defun mctoi (ogl src) ;; matrix-convert-to-opengl-into
   "Shortname for MATRIX-CONVERT-TO-OPENGL-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-convert-to-opengl-into ogl mat))
+  (matrix-convert-to-opengl-into ogl src))
 
 ;;; ;;;;;;;;
 
 (declaim (ftype (function (pmat) (simple-array double-float (16)))
                 matrix-convert-to-opengl))
 (declaim (inline matrix-convert-to-opengl))
-(defun matrix-convert-to-opengl (mat)
-  "Convert the MAT matrix into newly allocated column-major ordered
+(defun matrix-convert-to-opengl (src)
+  "Convert the SRC matrix into newly allocated column-major ordered
 simple-array double-float (16) suitable for OpenGL and return it."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (let ((ogl (make-array 16 :element-type 'double-float
                          :initial-element 0d0)))
     (declare (type (simple-array double-float (16)) ogl))
-    (matrix-convert-to-opengl-into ogl mat)
+    (matrix-convert-to-opengl-into ogl src)
     ogl))
 
 (declaim (ftype (function (pmat) (simple-array double-float (16))) mcto))
 (declaim (inline mcto))
-(defun mcto (mat) ;; matrix-convert-to-opengl
+(defun mcto (src) ;; matrix-convert-to-opengl
   "Shortname for MATRIX-CONVERT-TO-OPENGL."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-convert-to-opengl mat))
+  (matrix-convert-to-opengl src))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (declaim (ftype (function (pmat (simple-array double-float (16))) pmat)
                 matrix-convert-from-opengl-into))
 (declaim (inline matrix-convert-from-opengl-into))
-(defun matrix-convert-from-opengl-into (mat ogl)
+(defun matrix-convert-from-opengl-into (dst ogl)
   "Convert the OGL OpenGL matrix, which is a (simple-arry
-double-float (16)), into the MAT format and return MAT."
+double-float (16)) and in column major form, into the DST row major
+format and return DST."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (declare (type (simple-array double-float (16)) ogl))
-  (with-pmat-accessors (m mat)
-    (psetf m00 (aref ogl 0)
-           m10 (aref ogl 1)
-           m20 (aref ogl 2)
-           m30 (aref ogl 3)
+  (with-pmat-accessors (d dst)
+    (psetf d00 (aref ogl 0)
+           d10 (aref ogl 1)
+           d20 (aref ogl 2)
+           d30 (aref ogl 3)
 
-           m01 (aref ogl 4)
-           m11 (aref ogl 5)
-           m21 (aref ogl 6)
-           m31 (aref ogl 7)
+           d01 (aref ogl 4)
+           d11 (aref ogl 5)
+           d21 (aref ogl 6)
+           d31 (aref ogl 7)
 
-           m02 (aref ogl 8)
-           m12 (aref ogl 9)
-           m22 (aref ogl 10)
-           m32 (aref ogl 11)
+           d02 (aref ogl 8)
+           d12 (aref ogl 9)
+           d22 (aref ogl 10)
+           d32 (aref ogl 11)
 
-           m03 (aref ogl 12)
-           m13 (aref ogl 13)
-           m23 (aref ogl 14)
-           m33 (aref ogl 15)))
-  mat)
+           d03 (aref ogl 12)
+           d13 (aref ogl 13)
+           d23 (aref ogl 14)
+           d33 (aref ogl 15)))
+  dst)
 
 (declaim (ftype (function (pmat (simple-array double-float (16))) pmat) mcfoi))
 (declaim (inline mcfoi))
-(defun mcfoi (mat ogl) ;; matrix-convert-from-opengl-into
+(defun mcfoi (dst ogl) ;; matrix-convert-from-opengl-into
   "Shortname for MATRIX-CONVERT-FROM-OPENGL-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-convert-from-opengl-into mat ogl))
+  (matrix-convert-from-opengl-into dst ogl))
 
 ;;; ;;;;;;;;
 
@@ -842,8 +896,8 @@ double-float (16)), into the MAT format and return MAT."
                 matrix-convert-from-opengl))
 (declaim (inline matrix-convert-from-opengl))
 (defun matrix-convert-from-opengl (ogl)
-  "Convert the OGL OpenGL matrix into a newly allocated MAT format and
-return it."
+  "Convert the column-major OGL OpenGL matrix into a newly allocated
+row-major MAT format and return it."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (declare (type (simple-array double-float (16)) ogl))
   (matrix-convert-from-opengl-into (pmat) ogl))
@@ -857,23 +911,23 @@ return it."
 
 (declaim (ftype (function (pmat pvec) pmat) matrix-translate-set-into))
 (declaim (inline matrix-translate-set-into))
-(defun matrix-translate-set-into (trfm trans)
+(defun matrix-translate-set-into (dst trans)
   "Set the translation vector in the pvec TRANS into the translation
-column in the transformation matrix MAT and return MAT."
+column in the transformation matrix DST and return DST."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-pmat-accessors (m trfm)
+  (with-pmat-accessors (d dst)
     (with-pvec-accessors (v trans)
-      (psetf m03 vx
-             m13 vy
-             m23 vz)))
-  trfm)
+      (psetf d03 vx
+             d13 vy
+             d23 vz)))
+  dst)
 
 (declaim (ftype (function (pmat pvec) pmat) mtrsi))
 (declaim (inline mtrsi))
-(defun mtrsi (mat trans) ;; matrix-translate-set-into
+(defun mtrsi (dst trans) ;; matrix-translate-set-into
   "Shortname for MATRIX-TRANSLATE-SET-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-translate-set-into mat trans))
+  (matrix-translate-set-into dst trans))
 
 ;;; ;;;;;;;;
 
@@ -896,109 +950,109 @@ as its translation."
 
 (declaim (ftype (function (pvec pmat) pvec) matrix-translate-get-into))
 (declaim (inline matrix-translate-get-into))
-(defun matrix-translate-get-into (trans mat)
-  "Get the translation column from the transformation matrix MAT and
+(defun matrix-translate-get-into (trans src)
+  "Get the translation column from the transformation matrix SRC and
 put into the pvec TRANS. Return TRANS."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-pmat-accessors (m mat)
+  (with-pmat-accessors (s src)
     (with-pvec-accessors (v trans)
-      (psetf vx m03
-             vy m13
-             vz m23)))
+      (psetf vx s03
+             vy s13
+             vz s23)))
   trans)
 
 (declaim (ftype (function (pvec pmat) pvec) mtrgi))
 (declaim (inline mtrgi))
-(defun mtrgi (trans mat) ;; matrix-translate-get-into
+(defun mtrgi (trans src) ;; matrix-translate-get-into
   "Shortname for MATRIX-TRANSLATE-GET-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-translate-get-into trans mat))
+  (matrix-translate-get-into trans src))
 
 ;;; ;;;;;;;;
 
 (declaim (ftype (function (pmat) pvec) matrix-translate-get))
 (declaim (inline matrix-translate-get))
-(defun matrix-translate-get (mat)
-  "Return the translation column of the transformation matrix MAT as a
+(defun matrix-translate-get (src)
+  "Return the translation column of the transformation matrix SRC as a
 newly allocated PVEC and return it."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-translate-get-into (pvec) mat))
+  (matrix-translate-get-into (pvec) src))
 
 (declaim (ftype (function (pmat) pvec) mtrg))
 (declaim (inline mtrg))
-(defun mtrg (mat) ;; matrix-translate-get
+(defun mtrg (src) ;; matrix-translate-get
   "Shortname for MATRIX-TRANSLATE-GET."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-translate-get mat))
+  (matrix-translate-get src))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (declaim (ftype (function (pvec pvec pvec pmat) (values pvec pvec pvec))
                 matrix-rotation-vectors-get-into))
-(defun matrix-rotation-vectors-get-into (xdir ydir zdir mat)
+(defun matrix-rotation-vectors-get-into (xdir ydir zdir src)
   "Store the raw direction vectors into XDIR, YDIR, and ZDIR, from the
-transformation matrix MAT. Return values of XDIR, YDIR, and ZDIR."
+transformation matrix SRC. Return values of XDIR, YDIR, and ZDIR."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-pmat-accessors (m mat)
+  (with-pmat-accessors (s src)
     (with-multiple-pvec-accessors ((x xdir) (y ydir) (z zdir))
-      (psetf xx m00 xy m10 xz m20
-             yx m01 yy m11 yz m21
-             zx m02 zy m12 zz m22)))
+      (psetf xx s00 xy s10 xz s20
+             yx s01 yy s11 yz s21
+             zx s02 zy s12 zz s22)))
   (values xdir ydir zdir))
 
 (declaim (ftype (function (pvec pvec pvec pmat) (values pvec pvec pvec)) mrvgi))
-(defun mrvgi (xdir ydir zdir mat) ;; matrix-rotation-vectors-get-into
+(defun mrvgi (xdir ydir zdir src) ;; matrix-rotation-vectors-get-into
   "Shortname for MATRIX-ROTATION-VECTORS-GET-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-rotation-vectors-get-into xdir ydir zdir mat))
+  (matrix-rotation-vectors-get-into xdir ydir zdir src))
 
 ;;; ;;;;;;;;
 
 (declaim (ftype (function (pmat) (values pvec pvec pvec))
                 matrix-rotation-vectors-get))
-(defun matrix-rotation-vectors-get (mat)
+(defun matrix-rotation-vectors-get (src)
   "Allocate and return three values that record the raw direction
-vectors into XDIR, YDIR, and ZDIR, from MAT.  Return values of XDIR,
+vectors into XDIR, YDIR, and ZDIR, from SRC.  Return values of XDIR,
 YDIR, and ZDIR."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-rotation-vectors-get-into (pvec) (pvec) (pvec) mat))
+  (matrix-rotation-vectors-get-into (pvec) (pvec) (pvec) src))
 
 (declaim (ftype (function (pmat) (values pvec pvec pvec)) mrvg))
-(defun mrvg (mat) ;; matrix-rotation-vectors-get
+(defun mrvg (src) ;; matrix-rotation-vectors-get
   "Shortname for MATRIX-ROTATION-VECTORS-GET."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-rotation-vectors-get mat))
+  (matrix-rotation-vectors-get src))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (declaim (ftype (function (pmat pvec pvec pvec) pmat)
                 matrix-rotation-vectors-set-into))
 (declaim (inline matrix-rotation-vectors-set-into))
-(defun matrix-rotation-vectors-set-into (mat xdir ydir zdir)
+(defun matrix-rotation-vectors-set-into (dst xdir ydir zdir)
   "Assign the supplied direction vectors XDIR YDIR ZDIR into the
-transformation MAT and return MAT."
+transformation DST and return DST."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-pmat-accessors (m mat)
+  (with-pmat-accessors (d dst)
     (with-multiple-pvec-accessors ((x xdir) (y ydir) (z zdir))
-      (psetf m00 xx
-             m10 xy
-             m20 xz
+      (psetf d00 xx
+             d10 xy
+             d20 xz
 
-             m01 yx
-             m11 yy
-             m21 yz
+             d01 yx
+             d11 yy
+             d21 yz
 
-             m02 zx
-             m12 zy
-             m22 zz)))
-  mat)
+             d02 zx
+             d12 zy
+             d22 zz)))
+  dst)
 
 (declaim (ftype (function (pmat pvec pvec pvec) pmat) mrvsi))
 (declaim (inline mrvsi))
-(defun mrvsi (mat xdir ydir zdir) ;; matrix-rotation-vectors-set-into
+(defun mrvsi (dst xdir ydir zdir) ;; matrix-rotation-vectors-set-into
   "Shortname for MATRIX-ROTATION-VECTORS-SET-INTO"
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-rotation-vectors-set-into mat xdir ydir zdir))
+  (matrix-rotation-vectors-set-into dst xdir ydir zdir))
 
 ;;; ;;;;;;;;
 
@@ -1022,84 +1076,84 @@ matrix. Return the transformation matrix."
 
 (declaim (ftype (function (pvec pmat keyword) pvec)
                 matrix-rotation-direction-get-into))
-(defun matrix-rotation-direction-get-into (pv mat dir)
+(defun matrix-rotation-direction-get-into (pv src dir)
   "Select the DIR (one of :X, :Y, or :Z) direction vector from the
-rotation submatrix encoded into the transformation matrix MAT and
+rotation submatrix encoded into the transformation matrix SRC and
 store into PV. Return PV."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-pmat-accessors (m mat)
+  (with-pmat-accessors (s src)
     (with-pvec-accessors (p pv)
       (ecase dir
         ((:x)
-         (psetf px m00
-                py m10
-                pz m20))
+         (psetf px s00
+                py s10
+                pz s20))
         ((:y)
-         (psetf px m01
-                py m11
-                pz m21))
+         (psetf px s01
+                py s11
+                pz s21))
         ((:z)
-         (psetf px m02
-                py m12
-                pz m22)))))
+         (psetf px s02
+                py s12
+                pz s22)))))
   pv)
 
 (declaim (ftype (function (pvec pmat keyword) pvec) mrdgi))
 (declaim (inline mrdgi))
-(defun mrdgi (pv mat dir) ;; matrix-rotation-direction-get-into
+(defun mrdgi (pv src dir) ;; matrix-rotation-direction-get-into
   "Shortname for MATIX-ROTATION-DIRECTION-GET-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-rotation-direction-get-into pv mat dir))
+  (matrix-rotation-direction-get-into pv src dir))
 
 ;;; ;;;;;;;;
 
 (declaim (ftype (function (pmat keyword) pvec) matrix-rotation-direction-get))
 (declaim (inline matrix-rotation-direction-get))
-(defun matrix-rotation-direction-get (mat dir)
+(defun matrix-rotation-direction-get (src dir)
   "Allocate and return a new pvec into which is stored the DIR (one
-of :X, :Y, or :Z) direction vector from the rotation matrix MAT."
+of :X, :Y, or :Z) direction vector from the rotation matrix SRC."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-rotation-direction-get-into (pvec) mat dir))
+  (matrix-rotation-direction-get-into (pvec) src dir))
 
 (declaim (ftype (function (pmat keyword) pvec) mrdg))
 (declaim (inline mrdg))
-(defun mrdg (mat dir) ;; matrix-rotation-direction-get
+(defun mrdg (src dir) ;; matrix-rotation-direction-get
   "Shortname for MATRIX-ROTATION-DIRECTION-GET."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-rotation-direction-get mat dir))
+  (matrix-rotation-direction-get src dir))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (declaim (ftype (function (pmat keyword pvec) pmat)
                 matrix-rotation-direction-set-into))
-(defun matrix-rotation-direction-set-into (mat dir pv)
+(defun matrix-rotation-direction-set-into (dst dir pv)
   "Store the direction vector PV into the rotation operation axis specified
-by DIR (one of :X, :Y, or :Z) in the transformation matrix MAT.
-Return MAT."
+by DIR (one of :X, :Y, or :Z) in the transformation matrix dst.
+Return dst."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-pmat-accessors (m mat)
+  (with-pmat-accessors (d dst)
     (with-pvec-accessors (p pv)
       (ecase dir
         ((:x)
-         (psetf m00 px
-                m10 py
-                m20 pz))
+         (psetf d00 px
+                d10 py
+                d20 pz))
         ((:y)
-         (psetf m01 px
-                m11 py
-                m21 pz))
+         (psetf d01 px
+                d11 py
+                d21 pz))
         ((:z)
-         (psetf m02 px
-                m12 py
-                m22 pz)))))
-  mat)
+         (psetf d02 px
+                d12 py
+                d22 pz)))))
+  dst)
 
 (declaim (ftype (function (pmat keyword pvec) pmat) mrdsi))
 (declaim (inline mrdsi))
-(defun mrdsi (mat dir pv) ;; matrix-rotation-direction-set-into
+(defun mrdsi (dst dir pv) ;; matrix-rotation-direction-set-into
   "Shortname for MATRIX-ROTATION-DIRECTION-SET-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-rotation-direction-set-into mat dir pv))
+  (matrix-rotation-direction-set-into dst dir pv))
 
 ;;; ;;;;;;;;
 
@@ -1120,57 +1174,75 @@ specified by DIR (one of :X, :Y, or :Z)."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declaim (ftype (function (pmat pvec) pmat) matrix-fly-into))
-(defun matrix-fly-into (mat fly-vec)
-  "Add each component of the FLY-VEC to the translation portion of the
-transformation matrix MAT in the direction of the respective basis
-direction in the rotation submatrix and write back into MAT.  Return
-MAT."
+(declaim (ftype (function (pmat pmat pvec) pmat) matrix-fly-into))
+(defun matrix-fly-into (dst src fly-vec)
+  "Store into DST the transformation matrix of SRC which has been
+translated down each basis axis in the rotation operator in SRC by the
+respective components of FLY-VEC. So, a FLY-VEC of [0d0 0d0 1d0] would
+translate the SRC transformation matrix in the direction of the Z axis
+in the basis and store into DST. Return DST. DST may be EQ to SRC."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-pvec-accessors (f fly-vec)
-    (with-pmat-accessors (m mat)
-      (when (> (as-double-float (abs fx))
-               (as-double-float *pvec-tol*))
-        (psetf m03 (as-double-float (+ m03 (* m00 fx)))
-               m13 (as-double-float (+ m13 (* m10 fx)))
-               m23 (as-double-float (+ m23 (* m20 fx)))))
-      (when (> (as-double-float (abs fy))
-               (as-double-float *pvec-tol*))
-        (psetf m03 (as-double-float (+ m03 (* m01 fy)))
-               m13 (as-double-float (+ m13 (* m11 fy)))
-               m23 (as-double-float (+ m23 (* m21 fy)))))
-      (when (> (as-double-float (abs fz))
-               (as-double-float *pvec-tol*))
-        (psetf m03 (as-double-float (+ m03 (* m02 fz)))
-               m13 (as-double-float (+ m13 (* m12 fz)))
-               m23 (as-double-float (+ m23 (* m22 fz)))))))
-  mat)
+  (unless (eq dst src)
+    (matrix-copy-into dst src))
 
-(declaim (ftype (function (pmat pvec) pmat) mfi))
+  (with-pvec-accessors (f fly-vec)
+    (with-pmat-accessors (d dst)
+      (let ((ox d03)
+            (oy d13)
+            (oz d23))
+
+        ;; Have fly-vec contribute in each basis direction the
+        ;; specified movement of the origin for this transformation
+        ;; matrix.
+        (when (> (as-double-float (abs fx))
+                 (as-double-float *pvec-tol*))
+          (incf ox (as-double-float (* d00 fx)))
+          (incf oy (as-double-float (* d10 fx)))
+          (incf oz (as-double-float (* d20 fx))))
+
+        (when (> (as-double-float (abs fy))
+                 (as-double-float *pvec-tol*))
+          (incf ox (as-double-float (* d01 fy)))
+          (incf oy (as-double-float (* d11 fy)))
+          (incf oz (as-double-float (* d21 fy))))
+
+        (when (> (as-double-float (abs fz))
+                 (as-double-float *pvec-tol*))
+          (incf ox (as-double-float (* d02 fz)))
+          (incf oy (as-double-float (* d12 fz)))
+          (incf oz (as-double-float (* d22 fz))))
+
+        ;; set the updated entries.
+        (psetf d03 ox
+               d13 oy
+               d23 oz)
+        dst))))
+
+(declaim (ftype (function (pmat pmat pvec) pmat) mfi))
 (declaim (inline mfi))
-(defun mfi (mat fly-vec) ;; matrix-fly-into
+(defun mfi (dst src fly-vec) ;; matrix-fly-into
   "Shortname for MATRIX-FLY-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-fly-into mat fly-vec))
+  (matrix-fly-into dst src fly-vec))
 
 ;;; ;;;;;;;;
 
 (declaim (ftype (function (pmat pvec) pmat) matrix-fly))
 (declaim (inline matrix-fly))
-(defun matrix-fly (mat fly-vec)
-  "Copy the transformation matrix MAT and add each component of the
-FLY-VEC to the translation portion of the transformation matrix MAT in
+(defun matrix-fly (src fly-vec)
+  "Copy the transformation matrix SRC and add each component of the
+FLY-VEC to the translation portion of the transformation matrix SRC in
 the direction of the respective basis direction in the rotation
-submatrix and write back into MAT. Return the copy."
+submatrix. Return the copy."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-fly-into (matrix-copy mat) fly-vec))
+  (matrix-fly-into (pmat) src fly-vec))
 
 (declaim (ftype (function (pmat pvec) pmat) mf))
 (declaim (inline mf))
-(defun mf (mat fly-vec) ;; matrix-fly
+(defun mf (src fly-vec) ;; matrix-fly
   "Shortname for MATRIX-FLY."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-fly mat fly-vec))
+  (matrix-fly src fly-vec))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1255,10 +1327,6 @@ been stored."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO, fix this to write the output into a destination (which can be
-;; EQ to a src matrix) like the others...
-
-
 (declaim (ftype (function (pmat pmat pvec &key (:stabilize t)) pmat)
                 matrix-local-axis-rotate-into))
 (defun matrix-local-axis-rotate-into
@@ -1268,7 +1336,7 @@ relative rotation (AKA the local axis rotation) as specified by the
 ROTATION-VEC. The components of the ROTATION-VEC define the relative
 rotation in radians around each axis in the rotation submatrix. The
 rotation is stabilized if keyword argument :STABILIZED is T (the
-default) but not re-orthogonalized. Return RESULT."
+default) but not re-orthogonalized. Return RESULT. RESULT may be EQ to TRFM"
 
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (let ((rot (matrix-identity)))

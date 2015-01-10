@@ -47,7 +47,7 @@ the FUNC to each frame as one walks towards the leaves."
 
   ;; perform the incremental flying vector.
   (when (flyingp f)
-    (mfi (local-basis f) (dfv f)))
+    (mfi (local-basis f) (local-basis f) (dfv f)))
 
   ;; perform the incremental local axis rotation vector.
   (when (rotatingp f)
