@@ -127,14 +127,17 @@
           (sdl2:gl-set-swap-interval 0) ; Unlock framerate
           (sdl2:hide-cursor)
           (gl:clear-color 0 0 0 0)
-          ;; Initialize viewing values.
+
           (gl:matrix-mode :projection)
-          (gl:load-identity)
-          ;; The world is (0,0) to (game-width,game-height)
-          (gl:ortho 0 (* (game-width *game*) (window-aspect-ratio *game*))
-                    0 (game-height *game*)
-                    -1 1)
-          ;; And no camera!
+          ;; Set up my own orthographic projection matrix
+          (gl:load-matrix
+           (matrix-convert-to-opengl
+            (matrix-orthographic-projection
+             0d0 (coerce (game-width *game*) 'double-float)
+             0d0 (coerce (game-height *game*) 'double-float)
+             -1d0 1d0)))
+
+          ;; And an identity camera!
           (gl:matrix-mode :modelview)
           (gl:load-identity)
 

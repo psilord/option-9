@@ -789,7 +789,7 @@ the inversion was possible, or an identity matrix and NIL if it wasn't
 
 ;; TODO Work in progress.
 
-(defun matrix-projection-into (dst left right top bottom near far)
+(defun matrix-perspective-projection-into (dst left right bottom top near far)
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-pmat-accessors (d dst)
     (psetf d00 (/ (* 2d0 near) (- right left))
@@ -813,9 +813,49 @@ the inversion was possible, or an identity matrix and NIL if it wasn't
            d33 0d0)
     dst))
 
-(defun matrix-projection (left right top bottom near far)
+(defun matrix-perspective-projection (left right bottom top near far)
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-projection-into (pmat) left right top bottom near far))
+  (matrix-perspective-projection-into (pmat) left right bottom top near far))
+
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TODO Work in progress. (seems to work, just optimize it).
+
+(declaim (ftype (function (pmat double-float double-float double-float
+                                double-float double-float double-float) pmat)
+                matrix-orthographic-projection-into))
+(declaim (inline matrix-orthographic-projection-into))
+(defun matrix-orthographic-projection-into (dst left right bottom top near far)
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (with-pmat-accessors (d dst)
+    (psetf d00 (as-double-float (/ 2d0 (- right left)))
+           d10 0d0
+           d20 0d0
+           d30 0d0
+
+           d01 0d0
+           d11 (as-double-float (/ 2d0 (- top bottom)))
+           d21 0d0
+           d31 0d0
+
+           d02 0d0
+           d12 0d0
+           d22 (as-double-float (- (/ 2d0 (- far near))))
+           d32 0d0
+
+           d03 (as-double-float (- (/ (+ right left) (- right left))))
+           d13 (as-double-float (- (/ (+ top bottom) (- top bottom))))
+           d23 (as-double-float (- (/ (+ far near) (- far near))))
+           d33 1d0)
+    dst))
+
+(declaim (ftype (function (double-float double-float double-float double-float
+                                        double-float double-float) pmat)
+                matrix-orthographic-projection))
+(declaim (inline matrix-orthographic-projection))
+(defun matrix-orthographic-projection (left right bottom top near far)
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (matrix-orthographic-projection-into (pmat) left right bottom top near far))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
