@@ -789,7 +789,13 @@ the inversion was possible, or an identity matrix and NIL if it wasn't
 
 ;; TODO Work in progress.
 
+(declaim (ftype (function (pmat double-float double-float double-float
+                                double-float double-float double-float) pmat)
+                matrix-perspective-projection-into))
+(declaim (inline matrix-perspective-projection-into))
 (defun matrix-perspective-projection-into (dst left right bottom top near far)
+  "Store a perspective projection matrix into DST described by LEFT, RIGHT,
+BOTTOM, TOP, NEAR, and FAR. Similar to glFrustum()."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-pmat-accessors (d dst)
     (psetf d00 (/ (* 2d0 near) (- right left))
@@ -813,19 +819,41 @@ the inversion was possible, or an identity matrix and NIL if it wasn't
            d33 0d0)
     dst))
 
+(declaim (ftype (function (pmat double-float double-float double-float
+                                double-float double-float double-float) pmat)
+                mppi))
+(declaim (inline mppi))
+(defun mppi (dst left right bottom top near far)
+  "Shortname for MATRIX-PERSPECTIVE-PROJECTION-INTO."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (matrix-perspective-projection-into dst left right bottom top near far))
+
+;;; ;;;;;;;;
+
 (defun matrix-perspective-projection (left right bottom top near far)
+  "Allocate and return a perspective projection matrix described by
+LEFT, RIGHT, BOTTOM, TOP, NEAR, and FAR. Similar to glFrustum()."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (matrix-perspective-projection-into (pmat) left right bottom top near far))
 
-;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(declaim (ftype (function (double-float double-float double-float double-float
+                                        double-float double-float) pmat)
+                mpp))
+(declaim (inline mpp))
+(defun mpp (left right bottom top near far)
+  "Shortname for MATRIX-PERSPECTIVE-PROJECTION."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (matrix-perspective-projection left right bottom top near far))
 
-;; TODO Work in progress. (seems to work, just optimize it).
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (declaim (ftype (function (pmat double-float double-float double-float
                                 double-float double-float double-float) pmat)
                 matrix-orthographic-projection-into))
 (declaim (inline matrix-orthographic-projection-into))
 (defun matrix-orthographic-projection-into (dst left right bottom top near far)
+  "Store an orthographics projection matrix into DST described by the
+LEFT, RIGHT, BOTTOM, TOP, NEAR, and FAR arguments. Similar to glOrtho()."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-pmat-accessors (d dst)
     (psetf d00 (as-double-float (/ 2d0 (- right left)))
@@ -849,13 +877,35 @@ the inversion was possible, or an identity matrix and NIL if it wasn't
            d33 1d0)
     dst))
 
+(declaim (ftype (function (pmat double-float double-float double-float
+                                double-float double-float double-float) pmat)
+                mopi))
+(declaim (inline mopi))
+(defun mopi (dst left right bottom top near far)
+  "Shortname for MATRIX-ORTHOGRAPHIC-PROJECTION-INTO."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (matrix-orthographic-projection-into dst left right bottom top near far))
+
+;;; ;;;;;;;;
+
 (declaim (ftype (function (double-float double-float double-float double-float
                                         double-float double-float) pmat)
                 matrix-orthographic-projection))
 (declaim (inline matrix-orthographic-projection))
 (defun matrix-orthographic-projection (left right bottom top near far)
+  "Allocate and return an orthographic projection matrix defined by
+LEFT, RIGHT, BOTTOM, TOP, NEAR, and FAR."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (matrix-orthographic-projection-into (pmat) left right bottom top near far))
+
+(declaim (ftype (function (double-float double-float double-float double-float
+                                        double-float double-float) pmat)
+                mop))
+(declaim (inline mop))
+(defun mop (left right bottom top near far)
+  "Shortname for MATRIX-ORTHOGRAPHIC-PROJECTION."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (matrix-orthographic-projection left right bottom top near far))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

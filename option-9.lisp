@@ -133,7 +133,8 @@
           (gl:load-matrix
            (matrix-convert-to-opengl
             (matrix-orthographic-projection
-             0d0 (coerce (game-width *game*) 'double-float)
+             0d0 (coerce (* (game-width *game*)
+                            (window-aspect-ratio *game*)) 'double-float)
              0d0 (coerce (game-height *game*) 'double-float)
              -1d0 1d0)))
 
