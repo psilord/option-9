@@ -128,19 +128,41 @@
           (sdl2:hide-cursor)
           (gl:clear-color 0 0 0 0)
 
-          (gl:matrix-mode :projection)
-          ;; Set up my own orthographic projection matrix
-          (gl:load-matrix
-           (matrix-convert-to-opengl
-            (matrix-orthographic-projection
-             0d0 (coerce (* (game-width *game*)
-                            (window-aspect-ratio *game*)) 'double-float)
-             0d0 (coerce (game-height *game*) 'double-float)
-             -1d0 1d0)))
+          ;; Experimental messing about with a non-ortho camera view
+          (let ((ortho-p t))
+            (gl:matrix-mode :projection)
+            (if ortho-p
+                ;; Set up my own orthographic projection matrix
+                (gl:load-matrix
+                 (matrix-convert-to-opengl
+                  (matrix-orthographic-projection
+                   0d0 (coerce (* (game-width *game*)
+                                  (window-aspect-ratio *game*)) 'double-float)
+                   0d0 (coerce (game-height *game*) 'double-float)
+                   -1d0 1d0)))
+                ;; Or a perspective camer projection matrix.
+                (gl:load-matrix
+                 (matrix-convert-to-opengl
+                  (matrix-perspective-projection
+                   -50d0 50d0 #+ignore(coerce (* (game-width *game*)
+                                  (window-aspect-ratio *game*)) 'double-float)
+                   -50d0 50d0 #+ignore(coerce (game-height *game*) 'double-float)
+                   50d0 1024d0))))
 
-          ;; And an identity camera!
-          (gl:matrix-mode :modelview)
-          (gl:load-identity)
+            (gl:matrix-mode :modelview)
+            (if ortho-p
+                ;; identity camera for orthographic
+                (gl:load-identity)
+                ;; Or a placed 3D Camera to show the illusion of the
+                ;; playing field.
+                (gl:load-matrix
+                 (matrix-convert-to-opengl
+                  (matrix-create-view
+                   (mm (mtr (pvec 50d0 -10d0 62d0))
+                       (mra (/ pi 4d0) (pvec 1d0 0d0 0d0)))
+                   :z
+                   :y)))))
+
 
           ;; nice antialiased lines, given the multisampling stuff.
           ;;(gl:enable :multisample)
