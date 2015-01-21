@@ -79,6 +79,16 @@ UI
 - load/save game at either level boundaries or checkpoints in levels.
 - possible inventory screen: select stored powerups (analogous to potions?)
 
+Rendering
+- Fullscreen support
+- Multiple aspect ratios (or at least letterboxing/pillboxing)
+
+Input
+- Virtual keys/buttons [Mick]
+- Logical inputs/events (i.e. Move Up, Move Down, Fire)
+- Keybindings (virtual keys -> logical events)
+- Rumble
+
 Technical stuff
 - Level layout & editing
 - Collision detection with level elements
