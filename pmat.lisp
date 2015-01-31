@@ -1134,8 +1134,7 @@ transformation matrix SRC. Return values of XDIR, YDIR, and ZDIR."
                 matrix-rotation-vectors-get))
 (defun matrix-rotation-vectors-get (src)
   "Allocate and return three values that record the raw direction
-vectors into XDIR, YDIR, and ZDIR, from SRC.  Return values of XDIR,
-YDIR, and ZDIR."
+vectors from SRC.  Return values of XDIR, YDIR, and ZDIR."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (matrix-rotation-vectors-get-into (pvec) (pvec) (pvec) src))
 
@@ -1565,17 +1564,17 @@ for both AT-DIR and UP-DIR."
     (let* ((nn (ecase at-dir ((:x) xv) ((:y) yv) ((:z) zv)))
            (vv (ecase up-dir ((:x) xv) ((:y) yv) ((:z) zv)))
            ;; Create the u v n of the new view matrix
-           (n (pv-normalize nn))
            (u (pv-normalize-into (pv-cross vv nn)))
+           (n (pv-normalize nn))
            (v (pv-cross n u))
            ;; create an inverted camera rotation
-           (tmp-rot (matrix-invert-trfm (matrix-rotation-vectors-set u v n)))
+           (inv-rot (matrix-invert-trfm (matrix-rotation-vectors-set u v n)))
            ;; create an inverted translation matrix
-           (tmp-trans (matrix-translate
+           (inv-trans (matrix-translate
                        (pv-negate-into
                         (matrix-translate-get camera)))))
       ;; Create the actual inverted view matrix.
-      (matrix-multiply-into view tmp-rot tmp-trans))))
+      (matrix-multiply-into view inv-rot inv-trans))))
 
 (defun mcvi (view camera at-dir up-dir)
   "Shortname for MATRIX-CREATE-VIEW-INTO."

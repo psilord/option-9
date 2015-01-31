@@ -108,8 +108,8 @@
   (format t "Written by Peter Keller <psilord@cs.wisc.edu>~%")
   (format t "Ship Designs by Stephanie Keller <aset_isis@hotmail.com>~%")
 
-  (with-game-init ("option-9.dat" :window-width 700 :window-height 700
-                                  :game-width 100 :game-height 100)
+  (with-game-init ("option-9.dat" :window-width 1280 :window-height 1024
+                                  :game-width 125 :game-height 125)
     (sdl2:with-init (:everything)
       ;; for post processing smoothing of the lines and whantot.
       ;; set before I make the window and OpenGL context.
@@ -145,7 +145,7 @@
                  (matrix-convert-to-opengl
                   (matrix-perspective-projection
                    -50d0 50d0 #+ignore(coerce (* (game-width *game*)
-                                  (window-aspect-ratio *game*)) 'double-float)
+                                                 (window-aspect-ratio *game*)) 'double-float)
                    -50d0 50d0 #+ignore(coerce (game-height *game*) 'double-float)
                    50d0 1024d0))))
 
@@ -291,7 +291,7 @@
                        (incf dt-accum frame-time)
 
                        ;; Consume the generated time in the renderer.
-                       (loop while (> dt-accum *dt-us*) do
+                       (loop while (>= dt-accum *dt-us*) do
                             (step-game *game*)
                             (decf dt-accum *dt-us*))
 
