@@ -162,10 +162,10 @@ defaults to T."
   (declare (sb-ext:muffle-conditions sb-ext:compiler-note))
   (with-pvec-accessors (p pv)
     (the double-float
-      (sqrt (as-double-float
-             (+ (* px px)
-                (* py py)
-                (* pz pz)))))))
+         (sqrt (as-double-float
+                (+ (* px px)
+                   (* py py)
+                   (* pz pz)))))))
 
 (declaim (ftype (function (pvec) pvec) pv-normalize-into))
 (defun pv-normalize-into (pv)
@@ -190,35 +190,34 @@ defaults to T."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   ;; Don't modify what was passed in!
   (let* ((is-zero-p (and (< (the double-float
-                              (abs (pvec-x pv)))
+                                 (abs (pvec-x pv)))
                             (the double-float *pvec-tol*))
                          (< (the double-float
-                              (abs (pvec-y pv)))
+                                 (abs (pvec-y pv)))
                             (the double-float *pvec-tol*))
                          (< (the double-float
-                              (abs (pvec-z pv)))
+                                 (abs (pvec-z pv)))
                             (the double-float *pvec-tol*)))))
     (if is-zero-p
         pv
         nil)))
 
-;; TODO Hrm, should specify handedness? Currently this is right handed.
 (declaim (inline pv-cross-into))
-(defun pv-cross-into (pvd pva pvb)
-  "Low level cross product of PVA and PVB and store into PVD"
+(defun pv-cross-into (pvn pvu pvv)
+  "Low level right-handed cross product of PVU and PVV and store into PVN"
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
-  (with-multiple-pvec-accessors ((r pvd) (a pva) (b pvb))
-    (psetf rx (as-double-float (- (* ay bz) (* by az)))
-           ;; Ensure that the negation is meaningful and should be there...
-           ry (as-double-float (- (- (* ax bz) (* bx az))))
-           rz (as-double-float (- (* ax by) (* bx ay)))))
-  pvd)
+  (with-multiple-pvec-accessors ((n pvn) (u pvu) (v pvv))
+    (psetf nx (as-double-float (- (* uy vz) (* uz vy)))
+           ny (as-double-float (- (* uz vx) (* ux vz)))
+           nz (as-double-float (- (* ux vy) (* uy vx)))))
+  pvn)
 
 (declaim (ftype (function (pvec pvec) pvec) pv-cross))
-(defun pv-cross (pva pvb)
-  "Do a cross product between pva and pvb and return a new pvec of it."
+(defun pv-cross (pvu pvv)
+  "Do a right handed cross product between PVU and PVB and return a
+new pvec of it."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
-  (pv-cross-into (pvec) pva pvb))
+  (pv-cross-into (pvec) pvu pvv))
 
 (declaim (ftype (function (pvec pvec pvec) pvec) pv-vector-into))
 (declaim (inline pv-vector-into))
@@ -339,9 +338,9 @@ non-normalized distance for both values."
                                                (* factor-3 factor-3)))))
       (values
        (the double-float
-         (if sqrt
-             (sqrt (as-double-float non-normalized))
-             (as-double-float non-normalized)))
+            (if sqrt
+                (sqrt (as-double-float non-normalized))
+                (as-double-float non-normalized)))
        (as-double-float non-normalized)))))
 
 (declaim (ftype (function (pvec &key (:span keyword)) pvec)
