@@ -55,11 +55,7 @@
 (defun pv-copy (pv)
   "Return a newly allocated copy of PV."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
-  (let ((new-pv (pvec)))
-    (psetf (pvec-x new-pv) (pvec-x pv)
-           (pvec-y new-pv) (pvec-y pv)
-           (pvec-z new-pv) (pvec-z pv))
-    new-pv))
+  (pv-copy-into (pvec) pv))
 
 (declaim (ftype (function (pvec) pvec) pv-clear-into))
 (declaim (inline pv-clear-into))
