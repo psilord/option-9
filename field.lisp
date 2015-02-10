@@ -169,7 +169,10 @@
       (let ((vx tx) (vy ty) (sum 0))
         ;; First, we compute the field direction at the initial point, if
         ;; by following that vector, we get closer to q1, we'll reverse
-        (when (or (< vx 0.0) (> vx 100.0) (< vy 0.0) (> vy 100.0))
+        (when (or (< vx 0.0)
+                  (> vx (game-width *game*))
+                  (< vy 0.0)
+                  (> vy (game-height *game*)))
           (return-from trace-field-line))
 
         ;; direction and follow the stream backwards.
@@ -194,7 +197,10 @@
                 (when
                     (dotimes (index (range f) t)
 
-                      (when (or (< vx 0.0) (> vx 100.0) (< vy 0.0) (> vy 100.0))
+                      (when (or (< vx 0.0)
+                                (> vx (game-width *game*))
+                                (< vy 0.0)
+                                (> vy (game-height *game*)))
                         ;; we went off the screen, so no contact.
                         (return t))
 

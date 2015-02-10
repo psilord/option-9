@@ -111,7 +111,9 @@
   (with-game-init ("option-9.dat" :window-width 1280 :window-height 1024
                                   ;; The game size has the same aspect ratio
                                   ;; as the window resolutions I am willing
-                                  ;; to allow.
+                                  ;; to allow. The levels are designed to
+                                  ;; 160 witdh by 128 height, so don't change
+                                  ;; it.
                                   :game-width 160 :game-height 128)
     (sdl2:with-init (:everything)
       ;; for post processing smoothing of the lines and whantot.
