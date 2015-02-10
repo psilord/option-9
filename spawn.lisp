@@ -247,7 +247,9 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                         :orphan-policy ,orphan-policy
                         :roles (:player)
                         :flyingp t
-                        :dv ,(pvec 50d0 5d0 0d0)
+                        :dv ,(pvec (per-game-width game 50.0)
+                                   (per-game-height game 5.0)
+                                   0d0)
                         ,@extra-init)))
 
     ;; This will be potentially realized later if the conditions are
@@ -337,7 +339,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
   (declare (ignorable loc/ent))
 
   ;; This initialization list is ultimately given to MAKE-ENTITY
-  (let* ((xloc (random 100d0))
+  (let* ((xloc (coerce (random (game-width game)) 'double-float))
          (initializer `(,(insts/equiv-choice ioi/e)
                          :orphan-policy ,orphan-policy
                          :roles (:enemy)
@@ -348,13 +350,14 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                          :dr ,(pvec 0d0 0d0 pi)
 
                          :flyingp t
-                         :dv ,(pvec xloc 95d0 0d0)
+                         :dv ,(pvec xloc (per-game-height game 95.0) 0d0)
 
                          :dfv ,(pvec
                                 ;; Strafe
                                 (coerce
                                  (* (random .1d0)
-                                    (if (> (the double-float xloc) 50d0)
+                                    (if (> (as-double-float xloc)
+                                           (per-game-width game 50.0))
                                         -1d0
                                         1d0)) 'double-float)
                                 ;; forward direction

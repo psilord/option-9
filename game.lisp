@@ -18,30 +18,47 @@
 
 (defun make-game (&key (window-width 1024) (window-height 768)
                     (game-width 100) (game-height 100))
-  (make-instance 'game
-                 :scene-man (make-instance 'scene-manager)
-                 :window-width window-width
-                 :window-height window-height
-                 :game-width game-width
-                 :game-height game-height))
+  (let ((game (make-instance 'game
+                             :scene-man (make-instance 'scene-manager)
+                             :window-width window-width
+                             :window-height window-height
+                             :game-width game-width
+                             :game-height game-height)))
+
+    ;; and we insert our game context into the universe drawable...
+    (setf (game-context (root (scene-man game))) game)
+    game))
+
 
 (defun window-aspect-ratio (game)
-  (/ (window-width game) (window-height game)))
-
-(defun per-window-width (game percentage)
-  (coerce (* (window-width game) percentage) 'double-float))
-
-(defun per-window-height (game percentage)
-  (coerce (* (window-height game) percentage) 'double-float))
+  (coerce (/ (window-width game) (window-height game)) 'double-float))
 
 (defun game-aspect-ratio (game)
-  (/ (game-width game) (game-height game)))
+  (coerce (/ (game-width game) (game-height game)) 'double-float))
 
-(defun per-game-width (game percentage)
-  (coerce (* (game-width game) percentage) 'double-float))
+(defmethod per-window-width ((game game) percentage)
+  (coerce (* (window-width game) percentage) 'double-float))
 
-(defun per-game-height (game percentage)
-  (coerce (* (game-height game) percentage) 'double-float))
+(defmethod per-window-width ((drawable drawable) percentage)
+  (coerce (per-window-width (game-context drawable) percentage) 'double-float))
+
+(defmethod per-window-height ((game game) percentage)
+  (coerce (* (window-height game) percentage) 'double-float))
+
+(defmethod per-window-height ((drawable drawable) percentage)
+  (coerce (per-window-height (game-context drawable) percentage) 'double-float))
+
+(defmethod per-game-width ((game game) percentage)
+  (coerce (* (game-width game) (/ percentage 100d0)) 'double-float))
+
+(defmethod per-game-width ((drawable drawable) percentage)
+  (coerce (per-game-width (game-context drawable) percentage) 'double-float))
+
+(defmethod per-game-height ((game game) percentage)
+  (coerce (* (game-height game) (/ percentage 100d0)) 'double-float))
+
+(defmethod per-game-height ((drawable drawable) percentage)
+  (coerce (per-game-height (game-context drawable) percentage) 'double-float))
 
 (defun add-spawnable (spawnable game)
   (push spawnable (spawnables game)))
@@ -155,10 +172,14 @@
 
 
         ;; realize the score board
-        (update-score 85 98d0 (score game) :score-board)
+        (update-score (per-game-width game 85.0)
+                      (per-game-height game 98.0)
+                      (score game) :score-board)
 
         ;; realize the high score board
-        (update-score 15 98d0 (highscore game) :high-score-board)
+        (update-score (per-game-width game 15.0)
+                      (per-game-height game 98.0)
+                      (highscore game) :high-score-board)
 
         (setf (modified-score-p game) nil)))))
 

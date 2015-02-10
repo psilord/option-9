@@ -109,7 +109,10 @@
   (format t "Ship Designs by Stephanie Keller <aset_isis@hotmail.com>~%")
 
   (with-game-init ("option-9.dat" :window-width 1280 :window-height 1024
-                                  :game-width 125 :game-height 125)
+                                  ;; The game size has the same aspect ratio
+                                  ;; as the window resolutions I am willing
+                                  ;; to allow.
+                                  :game-width 160 :game-height 128)
     (sdl2:with-init (:everything)
       ;; for post processing smoothing of the lines and whantot.
       ;; set before I make the window and OpenGL context.
@@ -136,8 +139,7 @@
                 (gl:load-matrix
                  (matrix-convert-to-opengl
                   (matrix-orthographic-projection
-                   0d0 (coerce (* (game-width *game*)
-                                  (window-aspect-ratio *game*)) 'double-float)
+                   0d0 (coerce (game-width *game*) 'double-float)
                    0d0 (coerce (game-height *game*) 'double-float)
                    -1d0 1d0)))
                 ;; Or a perspective camer projection matrix.

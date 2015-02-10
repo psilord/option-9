@@ -24,7 +24,6 @@ integer of usecs and return it."
 (defun random-delta (&key (velocity .02d0))
   (* (random velocity) (random-sign)))
 
-
 ;; From LOL
 (defun group (lst n)
   (when (zerop n) (error "A zero group size is illegal"))

@@ -101,10 +101,10 @@ the FUNC to each frame as one walks towards the leaves."
   (let* ((loc (matrix-translate-get (local-basis ent)))
          (new-loc (pv-copy loc)))
     (with-multiple-pvec-accessors ((l loc) (n new-loc))
-      (let ((y-min 3d0)
-            (y-max 95d0)
-            (x-min 4d0)
-            (x-max 96d0))
+      (let ((y-min (per-game-height ent 3.0))
+            (y-max (per-game-height ent 95.0))
+            (x-min (per-game-width ent 4.0))
+            (x-max (per-game-width ent 96.0)))
         (when (< ly y-min) (setf ny y-min))
         (when (> ly y-max) (setf ny y-max))
         (when (< lx x-min) (setf nx x-min))
@@ -121,12 +121,15 @@ the FUNC to each frame as one walks towards the leaves."
            :num-sparks 1)))
 
 
+;; TODO; fix me when I implement levels.
 ;; When the ttl for any drawable hits zero or its world coordinates
 ;; leave the arena region, it goes stale and will be removed from the
 ;; game world.
 (defmethod active-step-once :after ((ent drawable))
   (with-pvec-accessors (o (matrix-translate-get (world-basis ent)))
     (when (or (and (not (null (ttl ent))) (<= (ttl ent) 0))
-              (< ox -5d0) (> ox 105d0)
-              (< oy -5d0) (> oy 105d0))
+              (< ox (per-game-width ent -5.0))
+              (> ox (per-game-width ent 105.0))
+              (< oy (per-game-height ent -5.0))
+              (> oy (per-game-height ent 105.0)))
       (mark-stale ent))))
