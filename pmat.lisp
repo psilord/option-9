@@ -1552,20 +1552,20 @@ re-orthogonalized."
 (declaim (ftype (function (pmat pmat keyword keyword) pmat)
                 matrix-create-view-into))
 (defun matrix-create-view-into (view camera at-dir up-dir)
-  "Compute a view transformation matrix from CAMERA and store it in VIEW.
-AT-DIR represents the :X, :Y, or :Z axis in the CAMERA
-rotation submatrix that will be used as the 'look at'
-direction. UP-DIR represents the :X, :Y, or :Z axis that will be used
-as the 'up' direction in the rotation submatrix. Do not use the same vector
-for both AT-DIR and UP-DIR."
+  "Compute a view transformation matrix from a CAMERA
+world-transformation matrix and store it in VIEW. AT-DIR represents
+the :X, :Y, or :Z axis in the CAMERA rotation submatrix that will be
+used as the 'look at' direction. UP-DIR represents the :X, :Y, or :Z
+axis that will be used as the 'up' direction in the rotation
+submatrix. Do not use the same vector for both AT-DIR and UP-DIR."
 
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (multiple-value-bind (xv yv zv) (matrix-rotation-vectors-get camera)
-    (let* ((nn (ecase at-dir ((:x) xv) ((:y) yv) ((:z) zv)))
-           (vv (ecase up-dir ((:x) xv) ((:y) yv) ((:z) zv)))
+    (let* ((at (ecase at-dir ((:x) xv) ((:y) yv) ((:z) zv)))
+           (up (ecase up-dir ((:x) xv) ((:y) yv) ((:z) zv)))
            ;; Create the u v n of the new view matrix
-           (u (pv-normalize-into (pv-cross vv nn)))
-           (n (pv-normalize nn))
+           (u (pv-normalize-into (pv-cross up at)))
+           (n (pv-normalize at))
            (v (pv-cross n u))
            ;; create an inverted camera rotation
            (inv-rot (matrix-invert-trfm (matrix-rotation-vectors-set u v n)))

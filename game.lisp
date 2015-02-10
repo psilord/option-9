@@ -77,27 +77,27 @@
         (:begin
          (ecase dir
            (:up
-            (setf (dfvy p) 1.5d0))
+            (setf (dfvy p) (? :v-generic-player-forward) #+ignore 1.5d0))
            (:down
-            (setf (dfvy p) -1.5d0))
+            (setf (dfvy p) (? :v-generic-player-backward) #+ignore -1.5d0))
            (:left
-            (setf (dfvx p) -1.5d0))
+            (setf (dfvx p) (? :v-generic-player-left) #+ignore -1.5d0))
            (:right
-            (setf (dfvx p) 1.5d0))))
+            (setf (dfvx p) (? :v-generic-player-right) #+ignore 1.5d0))))
         (:end
          (ecase dir
            (:up
-            (when (> (dfvy p) 0d0)
-              (setf (dfvy p) 0d0)))
+            (when (> (dfvy p) (? :v-zero))
+              (setf (dfvy p) (? :v-zero))))
            (:down
-            (when (< (dfvy p) 0d0)
-              (setf (dfvy p) 0d0)))
+            (when (< (dfvy p) (? :v-zero))
+              (setf (dfvy p) (? :v-zero))))
            (:left
-            (when (< (dfvx p) 0d0)
-              (setf (dfvx p) 0d0)))
+            (when (< (dfvx p) (? :v-zero))
+              (setf (dfvx p) (? :v-zero))))
            (:right
-            (when (> (dfvx p) 0d0)
-              (setf (dfvx p) 0d0)))))))))
+            (when (> (dfvx p) (? :v-zero))
+              (setf (dfvx p) (? :v-zero))))))))))
 
 (defun move-player-joystick (game axis amount)
   (let ((p (car (entities-with-role (scene-man game) :player))))

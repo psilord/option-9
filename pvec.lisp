@@ -17,9 +17,10 @@
     (z 0.0d0 :type double-float))
 
   (defmacro with-pvec-accessors ((prefix-symbol pvec) &body body)
-    `(with-accessors ((,(alexandria:symbolicate prefix-symbol "X") pvec-x)
-                      (,(alexandria:symbolicate prefix-symbol "Y") pvec-y)
-                      (,(alexandria:symbolicate prefix-symbol "Z") pvec-z))
+    `(with-accessors
+           ((,(alexandria:symbolicate prefix-symbol "X") pvec-x)
+            (,(alexandria:symbolicate prefix-symbol "Y") pvec-y)
+            (,(alexandria:symbolicate prefix-symbol "Z") pvec-z))
          ,pvec
        ,@body))
 

@@ -24,15 +24,6 @@
 (defparameter *assets* nil)
 (defparameter *id* nil)
 
-;;; Timestep simulation variables.
-;; simulation frequency in Hertz
-(defparameter *dt-hz* 60)
-;; a single unit of time in seconds
-(defparameter *dt* (/ 1 *dt-hz*))
-;; a single unit of time in usecs.
-(defparameter *dt-us* (* *dt* 1000000))
-
-
 (defun new-id ()
   (let ((id *id*))
     (incf *id*)

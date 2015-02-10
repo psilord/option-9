@@ -37,6 +37,7 @@
   :serial t
   :depends-on (#:alexandria #:local-time #:cl-opengl #:sdl2)
   :components ((:file "package")
+               (:file "constants")
                (:file "classes")
                (:file "generic-functions")
                (:file "pvec")

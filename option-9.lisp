@@ -147,7 +147,7 @@
                    -50d0 50d0 #+ignore(coerce (* (game-width *game*)
                                                  (window-aspect-ratio *game*)) 'double-float)
                    -50d0 50d0 #+ignore(coerce (game-height *game*) 'double-float)
-                   50d0 1024d0))))
+                   50d0 256d0))))
 
             (gl:matrix-mode :modelview)
             (if ortho-p
@@ -162,7 +162,6 @@
                        (mra (/ pi 4d0) (pvec 1d0 0d0 0d0)))
                    :z
                    :y)))))
-
 
           ;; nice antialiased lines, given the multisampling stuff.
           ;;(gl:enable :multisample)
@@ -280,21 +279,22 @@
               (:idle ()
                      ;; The physics runs at 1/60th of a second time units.
                      (let* ((new-time (local-time:now))
-                            (frame-time (timestamp-subtract new-time current-time)))
+                            (frame-time (timestamp-subtract new-time
+                                                            current-time)))
 
                        ;; Set maximum frame time in case we slow down beyond it.
                        (when (> frame-time *dt-us*)
                          (setf frame-time *dt-us*))
                        (setf current-time new-time)
 
-                       ;; accumulate the time we just spent doing the last frame.
+                       ;; accumulate the time we just spent doing the
+                       ;; last frame.
                        (incf dt-accum frame-time)
 
                        ;; Consume the generated time in the renderer.
                        (loop while (>= dt-accum *dt-us*) do
                             (step-game *game*)
                             (decf dt-accum *dt-us*))
-
 
                        ;; Keep track of & emit stuff for FPS.
                        ;;
@@ -313,12 +313,13 @@
                                  frame-time-accum 0)))
 
                        ;; TODO: Need to account for temporal aliasing!
-                       ;; See Fix Your Timestep.
-                       ;; I'm currently unsure how to do the interpolation method
-                       ;; given how my state is represented and distributed across
-                       ;; all of my objects. I'd also need to keep THREE entire
-                       ;; states available to perform the interpolation. Need to
-                       ;; think on it.
+                       ;; See Fix Your Timestep.  I'm currently unsure
+                       ;; how to do the interpolation method given how
+                       ;; my state is represented and distributed
+                       ;; across all of my objects. I'd also need to
+                       ;; keep THREE entire states available to
+                       ;; perform the interpolation. Need to think on
+                       ;; it.
 
                        (display *game*)
 
