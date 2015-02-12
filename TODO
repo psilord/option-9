@@ -97,4 +97,7 @@ Technical stuff
 - Clean up definitions of generic functions, so they are all initialized.
 
 
+Notes:
+   blender: to make an object's center of mass the world:
+     cursor to center, center to mass, selection to cursor
 
