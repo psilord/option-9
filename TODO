@@ -6,6 +6,8 @@ Plot
 - "Supreme Commander Snarkill of the Snarlian Empire owes you
   9 bucks and has refused to pay. The only response to this affront is
   total annihilation of the Snarlian Empire. It commences immediately."
+- The last scene in the game is an image of you standing over his bloodied
+  corpse with him holding 9 dollars in his rictus hand.
 
 Levels [to be implemented]
 - Line drawn, or stippled, to preserve the visual style.
@@ -81,7 +83,8 @@ UI
 
 Rendering
 - Fullscreen support
-- Multiple aspect ratios (or at least letterboxing/pillboxing)
+- Letterboxing and pillboxing to support multiple aspect ratios
+- Postprocessing (FXAA? Retro coloring?)
 
 Input
 - Virtual keys/buttons [Mick]
@@ -96,8 +99,23 @@ Technical stuff
 - Inspection of the powerup code and DSL to see if it can be made better.
 - Clean up definitions of generic functions, so they are all initialized.
 
+Save System
+- Human-readable and editable
+- Four slots
 
-Notes:
-   blender: to make an object's center of mass the world:
-     cursor to center, center to mass, selection to cursor
+Wisdom
+- Blender
+    - To make an object's center of mass the world: cursor to center, center 
+      to mass, selection to cursor
 
+Builds
+- Linux and Windows
+- Desura?
+- SteamOS?
+
+Stats
+- What should we track for the player?
+
+Localization
+- Hot-swappable translations
+- EFIGS font support
