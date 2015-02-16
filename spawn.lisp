@@ -338,6 +338,8 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                     &allow-other-keys)
   (declare (ignorable loc/ent))
 
+  ;; TODO, write a mutator to update dfv with forward-speed and such....
+
   ;; This initialization list is ultimately given to MAKE-ENTITY
   (let* ((xloc (coerce (random (game-width game)) 'double-float))
          (initializer `(,(insts/equiv-choice ioi/e)

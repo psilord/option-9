@@ -30,13 +30,6 @@ Generally (and I should have the macro verify this naming scheme):
     ;; these values are velocities in units per second
     (:v-zero (per-hz 0d0))
 
-    ;; TODO: Lift these into the player instance itself and put into
-    ;; asset files.
-    (:v-generic-player-forward (per-hz 80d0))
-    (:v-generic-player-backward (per-hz -80d0))
-    (:v-generic-player-left (per-hz -80d0))
-    (:v-generic-player-right(per-hz 80d0))
-
     ;; These values are radians per second
 
     ;; These are just named constants not per hz or anything
