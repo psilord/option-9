@@ -12,6 +12,11 @@
   ;; a single unit of time in usecs.
   (defparameter *dt-us* (* *dt* 1000000d0)))
 
+(defun per-hz (val)
+  ;; Because I'm using a fixed timestep, figure out the incremental
+  ;; rate for the fixed update hertz I am using.
+  (/ val *hz*))
+
 (defun %? (the-keyword)
   "Lookup a constant represented by a keyword and return its
 numeric value.
@@ -21,28 +26,22 @@ Generally (and I should have the macro verify this naming scheme):
  :r-* means a rotation of radians / second
  :c-* just means a straight up constant value"
 
-  (flet ((per-hz (val)
-           ;; Because I'm using a fixed timestep, figure out the incremental
-           ;; rate for the fixed update hertz I am using.
-           (/ val *hz*)))
+  (ecase the-keyword
+    ;; these values are velocities in units per second
+    (:v-zero (per-hz 0d0))
 
+    ;; TODO: Lift these into the player instance itself and put into
+    ;; asset files.
+    (:v-generic-player-forward (per-hz 80d0))
+    (:v-generic-player-backward (per-hz -80d0))
+    (:v-generic-player-left (per-hz -80d0))
+    (:v-generic-player-right(per-hz 80d0))
 
-    (ecase the-keyword
-      ;; these values are velocities in units per second
-      (:v-zero (per-hz 0d0))
+    ;; These values are radians per second
 
-      ;; TODO: Lift these into the player instance itself and put into
-      ;; asset files.
-      (:v-generic-player-forward (per-hz 80d0))
-      (:v-generic-player-backward (per-hz -80d0))
-      (:v-generic-player-left (per-hz -80d0))
-      (:v-generic-player-right(per-hz 80d0))
+    ;; These are just named constants not per hz or anything
 
-      ;; These values are radians per second
-
-      ;; These are just named constants not per hz or anything
-
-      )))
+    ))
 
 (defmacro ? (expr)
   "Lookup a constant represented by a literal keyword or an expression

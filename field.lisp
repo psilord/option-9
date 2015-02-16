@@ -57,14 +57,14 @@
 ;; telsa-field when the range for the tesla field changes.
 (defmethod (setf power-range) (range (tf tesla-field))
   (assert (> range 0))
-  ;; The power range of the tesla-field can range from 1 to 8
-  (setf (slot-value tf '%power-range) (min range 8))
+  ;; The power range of the tesla-field can range from 1 to 7
+  (setf (slot-value tf '%power-range) (min range 7))
   ;; Now we regenerate all of the internals.
-  ;; First we figure out the real range of the traces, capped at 2^8 for
+  ;; First we figure out the real range of the traces, capped at 2^7 for
   ;; efficiency (otherwise we could waste 25% of our time in oscillations
   ;; or other integration foibles when computing the trace).
   (setf (range tf) (min (expt 2 (power-range tf))
-                        (expt 2 8)))
+                        (expt 2 7)))
 
   ;; Remake the paths array
   (setf (paths tf) (gen-paths (num-paths tf) (range tf)))

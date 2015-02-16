@@ -268,7 +268,7 @@
      (:class mine-muzzle)
      (:initargs
       :mine-count 0 ;; TODO: Decide if powerups replace or fill
-                    ;; this. Currently it fills.
+      ;; this. Currently it fills.
       :shot-instance-name :generic-proximity-mine))
 
     ;; ;;;;;;;;;;;;;
@@ -282,6 +282,12 @@
       :charge 1
       :max-hit-points 40
       :damage-points 100
+      ;; These are in units-per-second.
+      :forward-speed-spec ,(make-ratespec :initval 80d0)
+      :backward-speed-spec ,(make-ratespec :initval -80d0)
+      :strafe-left-speed-spec ,(make-ratespec :initval -80d0)
+      :strafe-right-speed-spec ,(make-ratespec :initval 80d0)
+
 
       :port-layout
       (

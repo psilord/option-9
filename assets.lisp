@@ -11,6 +11,31 @@
 
 (defmethod initialize-instance :after ((e entity) &key)
   (setf (hit-points e) (max-hit-points e))
+
+  ;; Initialize the various speeds we need from the ratespecs.
+  (with-accessors ((f-spec forward-speed-spec)
+                   (b-spec backward-speed-spec)
+                   (sl-spec strafe-left-speed-spec)
+                   (sr-spec strafe-right-speed-spec)
+                   (up-spec up-speed-spec)
+                   (down-spec down-speed-spec)) e
+
+    (macrolet ((assign-rate (place the-spec)
+                 ;; This macro is unsafe, don't abuse it.
+                 `(setf ,place
+                        (clamp (+ (ratespec-initval ,the-spec)
+                                  (coerce (random-in-range
+                                           (ratespec-rand-minoff ,the-spec)
+                                           (ratespec-rand-maxoff ,the-spec))
+                                          'double-float))
+                               (ratespec-minval ,the-spec)
+                               (ratespec-maxval ,the-spec)))))
+      (assign-rate (forward-speed e) f-spec)
+      (assign-rate (backward-speed e) b-spec)
+      (assign-rate (strafe-left-speed e) sl-spec)
+      (assign-rate (strafe-right-speed e) sr-spec)
+      (assign-rate (up-speed e) up-spec)
+      (assign-rate (down-speed e) down-spec)))
   e)
 
 (defmethod initialize-instance :after ((ent tesla-field) &key)
@@ -39,7 +64,9 @@
 
       ;; The COPY-SEQ is important because there is a potential to
       ;; modify the full-init args to replace certain named things
-      ;; with their actual values.
+      ;; with their actual values. Also, it prevents literal objects from
+      ;; being referenced by all instances (in addition to the undefined
+      ;; writing to them, if they were not copied)
       (let* ((full-args (copy-seq (append override-initargs initargs)))
              (roles (cadr (member :role full-args))))
 

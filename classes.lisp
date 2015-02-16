@@ -58,6 +58,16 @@ the config files have this type as its base so we can do certain
 instance specializations in a data driven manner. In practice, this means
 the class must be of type DRAWABLE or more specialized."))
 
+;; This structure defines a pile of constraints and restrictions about
+;; a rate. A rate can be things like "units per second", or "radians
+;; per second", or "thingies per second". It is a vector so COPY-SEQ works on
+;; it when it is used in the assets files...
+(defstruct (ratespec (:type vector))
+  (initval 0d0 :type double-float)
+  (minval most-negative-double-float :type double-float)
+  (maxval most-positive-double-float :type double-float)
+  (rand-minoff 0d0 :type double-float)
+  (rand-maxoff 0d0 :type double-float))
 
 (defclass entity ()
   ((%id :initarg :id
@@ -108,7 +118,69 @@ the class must be of type DRAWABLE or more specialized."))
    ;; Should I draw a hud around the entity on the screen?
    (%hudp :initarg :hudp
           :initform nil
-          :accessor hudp))
+          :accessor hudp)
+
+   ;; units per second speed defaults in every direction
+   (%forward-speed-spec
+    :initarg :forward-speed-spec
+    :initform (make-ratespec)
+    :accessor forward-speed-spec)
+   ;; Set up in the initialize-instance :after method.
+   (%forward-speed :initarg :forward-speed
+                   :initform 0d0
+                   :accessor forward-speed)
+
+   (%backward-speed-spec
+    :initarg :backward-speed-spec
+    ;; current-speed init-speed min-speed max-speed rand-off-min rand-off-max
+    :initform (make-ratespec)
+    :accessor backward-speed-spec)
+   ;; Set up in the initialize-instance :after method.
+   (%backward-speed :initarg :backward-speed
+                    :initform 0d0
+                    :accessor backward-speed)
+
+   (%strafe-left-speed-spec
+    :initarg :strafe-left-speed-spec
+    ;; current-speed init-speed min-speed max-speed rand-off-min rand-of-max
+    :initform (make-ratespec)
+    :accessor strafe-left-speed-spec)
+   ;; Set up in the initialize-instance :after method.
+   (%strafe-left-speed :initarg :strafe-left-speed
+                       :initform 0d0
+                       :accessor strafe-left-speed)
+
+   (%strafe-right-speed-spec
+    :initarg :strafe-right-speed-spec
+    ;; current-speed init-speed min-speed max-speed rand-off-min rand-off-max
+    :initform (make-ratespec)
+    :accessor strafe-right-speed-spec)
+   ;; Set up in the initialize-instance :after method.
+   (%strafe-right-speed :initarg :strafe-right-speed
+                        :initform 0d0
+                        :accessor strafe-right-speed)
+
+   (%up-speed-spec
+    :initarg :up-speed-spec
+    ;; current-speed init-speed min-speed max-speed rand-off-min rand-off-max
+    :initform (make-ratespec)
+    :accessor up-speed-spec)
+   ;; Set up in the initialize-instance :after method.
+   (%up-speed :initarg :up-speed
+              :initform 0d0
+              :accessor up-speed)
+
+   (%down-speed-spec
+    :initarg :down-speed-spec
+    ;; current-speed init-speed min-speed max-speed rand-off-min rand-off-max
+    :initform (make-ratespec)
+    :accessor down-speed-spec)
+   ;; Set up in the initialize-instance :after method.
+   (%down-speed :initarg :down-speed
+                :initform 0d0
+                :accessor down-speed)
+
+   )
   (:documentation "The Entity Class"))
 
 (defclass temporal ()

@@ -94,13 +94,13 @@
         (:begin
          (ecase dir
            (:up
-            (setf (dfvy p) (? :v-generic-player-forward) #+ignore 1.5d0))
+            (setf (dfvy p) (per-hz (forward-speed p))))
            (:down
-            (setf (dfvy p) (? :v-generic-player-backward) #+ignore -1.5d0))
+            (setf (dfvy p) (per-hz (backward-speed p))))
            (:left
-            (setf (dfvx p) (? :v-generic-player-left) #+ignore -1.5d0))
+            (setf (dfvx p) (per-hz (strafe-left-speed p))))
            (:right
-            (setf (dfvx p) (? :v-generic-player-right) #+ignore 1.5d0))))
+            (setf (dfvx p) (per-hz (strafe-right-speed p))))))
         (:end
          (ecase dir
            (:up
