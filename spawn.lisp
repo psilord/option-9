@@ -338,34 +338,22 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                     &allow-other-keys)
   (declare (ignorable loc/ent))
 
-  ;; TODO, write a mutator to update dfv with forward-speed and such....
-
   ;; This initialization list is ultimately given to MAKE-ENTITY
   (let* ((xloc (coerce (random (game-width game)) 'double-float))
          (initializer `(,(insts/equiv-choice ioi/e)
                          :orphan-policy ,orphan-policy
                          :roles (:enemy)
 
-                         ;; All enemies fly in a downwards direction,
-                         ;; so rotate it with a one time rotation to
-                         ;; point straight down.
+                         ;; We let the THINK system determine if it
+                         ;; should be flying and what the dfv will be.
+                         :flyingp nil
+
+                         ;; rotate to aim downwards
                          :dr ,(pvec 0d0 0d0 pi)
 
-                         :flyingp t
+                         ;; place the enemy in relation to screen coordinates.
                          :dv ,(pvec xloc (per-game-height game 95.0) 0d0)
 
-                         :dfv ,(pvec
-                                ;; Strafe
-                                (coerce
-                                 (* (random .1d0)
-                                    (if (> (as-double-float xloc)
-                                           (per-game-width game 50.0))
-                                        -1d0
-                                        1d0)) 'double-float)
-                                ;; forward direction
-                                (random 1d0)
-                                ;; Stay in the plane.
-                                0d0)
                          ,@extra-init)))
 
     ;; This will be potentially realized later if the conditions are

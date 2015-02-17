@@ -307,7 +307,7 @@
                        (when emit-fps-p
                          (incf frame-count)
                          (incf frame-time-accum frame-time)
-                         (when (> frame-time-accum (in-usecs 1.0)) ;; every second..
+                         (when (>= frame-time-accum (in-usecs 1.0)) ;; every second..
                            (format t "frame-count = ~A frame-time-accum = ~A sec fps = ~A~%"
                                    frame-count
                                    (/ frame-time-accum 1000000.0)

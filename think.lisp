@@ -2,17 +2,23 @@
 
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
+;; Thinking happens on each physics fixed timestep.
+
 ;; By default, nothing thinks...
 (defmethod think (ent)
   nil)
 
 ;; but enemies think...
 (defmethod think ((ent enemy))
-  (when (until-next-action ent)
-    (cond
-      ((zerop (until-next-action ent))
-       (idea ent)
-       (setf (until-next-action ent) (+ 15 (random 105))))
-      (t
-       (decf (until-next-action ent))))))
+  (cond
+    ((plusp (time-to-next-action ent))
+     ;; If there is more time to go, we'll have to wait.
+     (decf (time-to-next-action ent) *dt*))
+    (t
+     ;; Otherwise we have an idea to do something.
+     (idea ent)
+     ;; To remove periodicity, we'll recompute the idea-rate
+     (setf (idea-rate ent) (compute-ratespec (idea-rate-spec ent)))
 
+     ;; Then, we wait until that time comes.
+     (setf (time-to-next-action ent) (idea-rate ent)))))

@@ -9,33 +9,30 @@
     (setf (ttl s) (+ (ttl-min s) (random (- (ttl-max s) (ttl-min s))))))
   s)
 
+(defun compute-ratespec (the-spec)
+  (clamp (+ (ratespec-initval the-spec)
+            (coerce (random-in-range
+                     (ratespec-rand-minoff the-spec)
+                     (ratespec-rand-maxoff the-spec))
+                    'double-float))
+         (ratespec-minval the-spec)
+         (ratespec-maxval the-spec)))
+
 (defmethod initialize-instance :after ((e entity) &key)
   (setf (hit-points e) (max-hit-points e))
 
   ;; Initialize the various speeds we need from the ratespecs.
-  (with-accessors ((f-spec forward-speed-spec)
-                   (b-spec backward-speed-spec)
-                   (sl-spec strafe-left-speed-spec)
-                   (sr-spec strafe-right-speed-spec)
-                   (up-spec up-speed-spec)
-                   (down-spec down-speed-spec)) e
+  (setf (forward-speed e) (compute-ratespec (forward-speed-spec e)))
+  (setf (backward-speed e) (compute-ratespec (backward-speed-spec e)))
+  (setf (strafe-left-speed e) (compute-ratespec (strafe-left-speed-spec e)))
+  (setf (strafe-right-speed e) (compute-ratespec (strafe-right-speed-spec e)))
+  (setf (up-speed e) (compute-ratespec (up-speed-spec e)))
+  (setf (down-speed e) (compute-ratespec (down-speed-spec e)))
+  e)
 
-    (macrolet ((assign-rate (place the-spec)
-                 ;; This macro is unsafe, don't abuse it.
-                 `(setf ,place
-                        (clamp (+ (ratespec-initval ,the-spec)
-                                  (coerce (random-in-range
-                                           (ratespec-rand-minoff ,the-spec)
-                                           (ratespec-rand-maxoff ,the-spec))
-                                          'double-float))
-                               (ratespec-minval ,the-spec)
-                               (ratespec-maxval ,the-spec)))))
-      (assign-rate (forward-speed e) f-spec)
-      (assign-rate (backward-speed e) b-spec)
-      (assign-rate (strafe-left-speed e) sl-spec)
-      (assign-rate (strafe-right-speed e) sr-spec)
-      (assign-rate (up-speed e) up-spec)
-      (assign-rate (down-speed e) down-spec)))
+(defmethod initialize-instance :after ((e brain) &key)
+  ;; initialize the rate at which this brain can have ideas.
+  (setf (idea-rate e) (compute-ratespec (idea-rate-spec e)))
   e)
 
 (defmethod initialize-instance :after ((ent tesla-field) &key)

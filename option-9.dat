@@ -288,17 +288,11 @@
       :strafe-left-speed-spec ,(make-ratespec :initval -80d0)
       :strafe-right-speed-spec ,(make-ratespec :initval 80d0)
 
-
       :port-layout
       (
        ;; :port-location,
-       ;; specialized or genreic :instance-name-of-turrent,
+       ;; specialized or generic :instance-name-of-turrent,
        ;; specialized or generic :instance-name
-
-       ;; XXXXXXXXXXXXXXXXXXXXXX
-       ;; TODO, convert weapons port shot names to generic muzzle names,
-       ;; convert SHOOT to look into the muzzle when it creates the instance
-       ;; it finds there. Do this for all ships.
 
        ;; Describe all default turrets and payloads upon spawn
        ;; of :player-1
@@ -330,7 +324,7 @@
       :charge 1
       :damage-points 100
       :flyingp t
-      :dfv ,(pvec 0d0 1.7d0 0d0)
+      :dfv ,(pvec 0d0 (per-hz 102d0) 0d0)
       :geometry :player-1-simple-shot))
 
     ((:instance :player-1-hardnose-shot)
@@ -340,7 +334,7 @@
       :charge 1
       :damage-points 200
       :flyingp t
-      :dfv ,(pvec 0d0 1.9d0 0d0)
+      :dfv ,(pvec 0d0 (per-hz 113d0) 0d0)
       :geometry :player-1-hardnose-shot))
 
     ((:instance :player-1-super-shot)
@@ -350,7 +344,7 @@
       :charge 1
       :damage-points 400
       :flyingp t
-      :dfv ,(pvec 0d0 2.5d0 0d0)
+      :dfv ,(pvec 0d0 (per-hz 150d0) 0d0)
       :geometry :player-1-super-shot))
 
     ((:instance :tesla-gun)
@@ -375,6 +369,21 @@
       :damage-points 100
       :shrapnel-generation .50
       :shrapnel (:enemy-1/shrapnel-1 :enemy-1/shrapnel-2 :enemy-1/shrapnel-3)
+
+      ;; These are in units-per-second.
+      :forward-speed-spec
+      ,(make-ratespec :initval 80d0 :rand-minoff -80d0 :rand-maxoff 0d0)
+      :backward-speed-spec
+      ,(make-ratespec :initval -80d0 :rand-minoff 0d0 :rand-maxoff 80d0)
+      :strafe-left-speed-spec
+      ,(make-ratespec :initval -20d0 :rand-minoff 0d0 :rand-maxoff 20d0)
+      :strafe-right-speed-spec
+      ,(make-ratespec :initval 20d0 :rand-minoff -20d0 :rand-maxoff 0d0)
+
+      ;; idea rate in seconds.
+      :idea-rate-spec
+      ,(make-ratespec :initval .75d0 :rand-minoff -.5d0 :rand-maxoff .5d0)
+
       :port-layout
       ((:shield-port :generic-shield-turret nil)
        (:passive-weapon-port :generic-one-shot-turret nil)
@@ -441,6 +450,21 @@
       :damage-points 100
       :shrapnel-generation .50
       :shrapnel (:enemy-2/shrapnel-1 :enemy-2/shrapnel-2 :enemy-2/shrapnel-3)
+
+      ;; These are in units-per-second.
+      :forward-speed-spec
+      ,(make-ratespec :initval 80d0 :rand-minoff -80d0 :rand-maxoff 0d0)
+      :backward-speed-spec
+      ,(make-ratespec :initval -80d0 :rand-minoff 0d0 :rand-maxoff 80d0)
+      :strafe-left-speed-spec
+      ,(make-ratespec :initval -20d0 :rand-minoff 0d0 :rand-maxoff 20d0)
+      :strafe-right-speed-spec
+      ,(make-ratespec :initval 20d0 :rand-minoff -20d0 :rand-maxoff 0d0)
+
+      ;; idea rate in seconds.
+      :idea-rate-spec
+      ,(make-ratespec :initval .75d0 :rand-minoff -.5d0 :rand-maxoff .5d0)
+
       :port-layout
       ((:shield-port :generic-shield-turret nil)
        (:passive-weapon-port :generic-one-shot-turret nil)
@@ -507,6 +531,21 @@
       :charge 1
       :shrapnel-generation .50
       :shrapnel (:enemy-3/shrapnel-1 :enemy-3/shrapnel-2)
+
+      ;; These are in units-per-second.
+      :forward-speed-spec
+      ,(make-ratespec :initval 80d0 :rand-minoff -80d0 :rand-maxoff 0d0)
+      :backward-speed-spec
+      ,(make-ratespec :initval -80d0 :rand-minoff 0d0 :rand-maxoff 80d0)
+      :strafe-left-speed-spec
+      ,(make-ratespec :initval -20d0 :rand-minoff 0d0 :rand-maxoff 20d0)
+      :strafe-right-speed-spec
+      ,(make-ratespec :initval 20d0 :rand-minoff -20d0 :rand-maxoff 0d0)
+
+      ;; idea rate in seconds.
+      :idea-rate-spec
+      ,(make-ratespec :initval .75d0 :rand-minoff -.5d0 :rand-maxoff .5d0)
+
       :port-layout
       ((:shield-port :generic-shield-turret ((.75 :generic-shot-shield)))
        (:passive-weapon-port :generic-one-shot-turret nil)

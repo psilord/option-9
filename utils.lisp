@@ -25,8 +25,12 @@ integer of usecs and return it."
   (* (random velocity) (random-sign)))
 
 (defun random-in-range (start end)
-  "Produce a random integer in the range specified."
-  (+ start (random (+ 1 (abs (- end start))))))
+  "Produce a random double-float in the range specified."
+  ;; I wish I didn't have to have a branch here...
+  (let ((range (abs (- end start))))
+    (if (zerop range)
+        0d0
+        (+ start (random (coerce (abs (- end start)) 'double-float))))))
 
 (defun clamp (val minimum maximum)
   "Clamp VAL into the range MINIMUM and MAXIMUM."

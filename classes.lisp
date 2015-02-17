@@ -120,7 +120,14 @@ the class must be of type DRAWABLE or more specialized."))
           :initform nil
           :accessor hudp)
 
-   ;; units per second speed defaults in every direction
+   ;; These next slots represent information about what this entity
+   ;; could do in terms of movement, but not what it is actually
+   ;; doing. Information needs to be moved from here to the FRAME
+   ;; slots, to actually enact the movements. The main purpose of these
+   ;; slots is to remove hard coded constants about entity movement and
+   ;; allow specification of them in the asset files.
+
+   ;; These are in units per second speed defaults in every direction
    (%forward-speed-spec
     :initarg :forward-speed-spec
     :initform (make-ratespec)
@@ -362,9 +369,15 @@ vector at that position"))
   (:documentation "The Spark Class"))
 
 (defclass brain (collidable)
-  ((%until-next-action :initarg :until-next-action
-                       :initform 0
-                       :accessor until-next-action))
+  ((%time-to-next-action :initarg :time-to-next-action ;; units in seconds.
+                         :initform 0d0
+                         :accessor time-to-next-action)
+   (%idea-rate-spec :initarg :idea-rate-spec
+                    :initform (make-ratespec :initval .5d0)
+                    :accessor idea-rate-spec)
+   (%idea-rate :initarg :idea-rate
+               :initform 0d0
+               :accessor idea-rate))
   (:documentation "The Brain Class"))
 
 (defclass powerup (brain)
