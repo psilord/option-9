@@ -15,7 +15,7 @@
 ;; matrix incuding a 4x1 matrix representing the translation in the
 ;; 4th column of the 4x4 matrix.
 
-#-option-9-optimize-pmat
+#+(or (not option-9-optimize-pmat) option-9-debug)
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)

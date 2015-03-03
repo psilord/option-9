@@ -1,6 +1,6 @@
 (in-package :option-9)
 
-(declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
+#+option-9-debug (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
 ;; If any random entity sets a ttl-max and nothing more specific changes this
 ;; method, then assign a random ttl based upon the ttl-max.

@@ -17,8 +17,19 @@
 
 (in-package #:option-9-asd)
 
-;; (pushnew :option-9-optimize-pvec *features*)
-;; (pushnew :option-9-optimize-pmat *features*)
+(defun announce-and-push-feature (feature)
+  (format t "~&Adding ~A to *features*~%" feature)
+  (finish-output)
+  (pushnew feature *features*))
+
+#+sbcl (progn
+         ;; (announce-and-push-feature :option-9-optimize-pvec)
+         ;; (announce-and-push-feature :option-9-optimize-pmat)
+         (announce-and-push-feature :option-9-debug))
+#+ccl (progn
+        (announce-and-push-feature :option-9-optimize-pvec)
+        (announce-and-push-feature :option-9-optimize-pmat))
+#-(or sbcl ccl) (error "Only SBCL and CCL are supported")
 
 ;; The defauls on SBCL are sometimes not good enough to expand the
 ;; optimization macro passes in certain files. So fix it here and apply

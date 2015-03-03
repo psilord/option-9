@@ -1,6 +1,6 @@
 (in-package :option-9)
 
-(declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
+#+option-9-debug (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
 ;; Primary method is both entities damage each other and one, both, or
 ;; neither may die.

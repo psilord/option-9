@@ -1,6 +1,6 @@
 (in-package :option-9)
 
-(declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
+#+option-9-debug (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
 ;; The shoot verb has become odd. It really means to activate the
 ;; thing in the turret, so this verb probably has to change. I've introduce

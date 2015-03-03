@@ -1,6 +1,6 @@
 (in-package :option-9)
 
-#-option-9-optimize-pvec
+#+(or (not option-9-optimize-pvec) option-9-debug)
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
 (defparameter *pvec-tol* (as-double-float 10d-10))

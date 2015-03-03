@@ -14,7 +14,7 @@
 
 (in-package #:option-9)
 
-(declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
+#+option-9-debug (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
 (defun make-game (&key (window-width 1280) (window-height 1024)
                     (game-width 160) (game-height 128))

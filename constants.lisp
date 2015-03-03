@@ -1,6 +1,6 @@
 (in-package #:option-9)
 
-(declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
+#+option-9-debug (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
 ;; I do some velocity computations for constants at compile time in macros..
 (eval-when (:compile-toplevel :load-toplevel :execute)
