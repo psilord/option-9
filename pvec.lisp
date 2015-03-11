@@ -31,7 +31,7 @@
         `(with-pvec-accessors ,(car sbinds)
            (with-multiple-pvec-accessors ,(cdr sbinds) ,@body))))
 
-  ;; NOTE: I must use the pprint-dispatch table to emit nicely formated
+  ;; NOTE: I must use the pprint-dispatch table to emit nicely formatted
   ;; pvecs because they aren't a CLASS due to the defstruct definition
   ;; I am using. So PRINT-OBJECT doesn't work on PVEC types.
   (set-pprint-dispatch
@@ -70,6 +70,7 @@
   pv)
 
 (declaim (ftype (function (pvec) pvec) pv-clear))
+(declaim (inline pv-clear))
 (defun pv-clear (pv)
   "Allocate a vector with all elements being 0d0 and return it. Ignore PV."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
@@ -127,12 +128,14 @@ defaults to T."
   pv)
 
 (declaim (ftype (function (pvec) pvec) pv-stabilize))
+(declaim (inline pv-stabilize))
 (defun pv-stabilize (pv)
   "Allocate a new pvec and return the stabilized PV in it."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   (pv-stabilize-into (pv-copy pv)))
 
 (declaim (ftype (function (pvec) pvec) pv-negate-into))
+(declaim (inline pv-negate-into))
 (defun pv-negate-into (pv)
   "Negate the vetor and store back into PV."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
@@ -143,6 +146,7 @@ defaults to T."
   pv)
 
 (declaim (ftype (function (pvec) pvec) pv-negate))
+(declaim (inline pv-negate))
 (defun pv-negate (pv)
   "Store the negation of PV into a newly created pvec and return it."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
@@ -151,7 +155,7 @@ defaults to T."
 (declaim (ftype (function (pvec) double-float) pv-mag))
 (declaim (inline pv-mag))
 (defun pv-mag (pv)
-  "Compute the double-float euclidean magnitude of PV and return it."
+  "Compute the double-float Euclidean magnitude of PV and return it."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   ;; And remove the compiler note about the boxed double-float I'm trying
   ;; to return.
@@ -176,6 +180,7 @@ defaults to T."
     pv))
 
 (declaim (ftype (function (pvec) pvec) pv-normalize))
+(declaim (inline pv-normalize))
 (defun pv-normalize (pv)
   "Allocate a new pvec that contains the normalization of PV and return it."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
@@ -210,6 +215,7 @@ defaults to T."
   pvn)
 
 (declaim (ftype (function (pvec pvec) pvec) pv-cross))
+(declaim (inline pv-cross))
 (defun pv-cross (pvu pvv)
   "Do a right handed cross product between PVU and PVB and return a
 new pvec of it."
@@ -228,6 +234,7 @@ new pvec of it."
   pvd)
 
 (declaim (ftype (function (pvec pvec) pvec) pv-vector))
+(declaim (inline pv-vector))
 (defun pv-vector (pva pvb)
   "Compute a vector from the point represented in PVA to the point
 represented in PVB and return the new pvec vector."
@@ -248,6 +255,7 @@ represented in PVB and return the new pvec vector."
   pvd)
 
 (declaim (ftype (function (pvec pvec) pvec) pv-add))
+(declaim (inline pv-add))
 (defun pv-add (pva pvb)
   "Add two vectors and return a new pvec with the result."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
@@ -265,6 +273,7 @@ represented in PVB and return the new pvec vector."
   pvd)
 
 (declaim (ftype (function (pvec pvec) pvec) pv-sub))
+(declaim (inline pv-sub))
 (defun pv-sub (pva pvb)
   "Subtract PVB from PVA and return result in a new pvec."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
@@ -282,6 +291,7 @@ represented in PVB and return the new pvec vector."
     pv))
 
 (declaim (ftype (function (pvec double-float) pvec) pv-scale))
+(declaim (inline pv-scale))
 (defun pv-scale (pv scale-factor)
   "Allocate and return a new pvec that contains PV scaled by SCALE-FACTOR."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
@@ -322,9 +332,9 @@ represented in PVB and return the new pvec vector."
                 pv-dist))
 (defun pv-dist (pva pvb &key (sqrt t))
   "Assume PVA and PVB are points in 3 dimensions and compute the distance
-between them. If :SQRT is T, the default, then return the euclidean distance
+between them. If :SQRT is T, the default, then return the Euclidean distance
 as the first value and the non-normalized distance as the second. If :SQRT is
-NIL, then do not compute the euclidean distance and instead return the
+NIL, then do not compute the Euclidean distance and instead return the
 non-normalized distance for both values."
   (with-multiple-pvec-accessors ((a pva) (b pvb))
     (let* ((factor-1 (as-double-float (- bx ax)))
@@ -386,6 +396,7 @@ the vector space defined by the :SPAN keyword. :SPAN may be one of:
 
 (declaim (ftype (function (&key (:span keyword)) pvec)
                 pv-rand-dir))
+(declaim (inline pv-rand-dir))
 (defun pv-rand-dir (&key (span :xy))
   "Compute and return a new pvec with a randomized oriented and
   normalized vector in the specified SPAN."
