@@ -70,8 +70,6 @@
         `(with-pmat-accessors ,(car sbinds)
            (with-multiple-pmat-accessors ,(cdr sbinds) ,@body)))))
 
-
-
 (defun matrix-print (str obj)
   "Define a pretty printer for nicely formatted pmats.
 
