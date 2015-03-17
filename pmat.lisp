@@ -671,7 +671,7 @@ matrix and NIL if it couldn't happen."
 
       #+option-9-optimize-pmat (declare (type double-float det-s))
 
-      ;; Bail of the inversion doesn't exist.
+      ;; Bail if the determinent is 0 or too close to it.
       (when (< (as-double-float det-s) (as-double-float *pvec-tol*))
         (matrix-identity-into dst)
         (return-from matrix-invert-into (values dst NIL)))
