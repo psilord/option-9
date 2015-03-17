@@ -68,24 +68,24 @@
     (if (null sbinds)
         `(progn ,@body)
         `(with-pmat-accessors ,(car sbinds)
-           (with-multiple-pmat-accessors ,(cdr sbinds) ,@body))))
+           (with-multiple-pmat-accessors ,(cdr sbinds) ,@body)))))
 
-  ;; NOTE: I must use the pprint-dispatch table to emit nicely
-  ;; formated pmats because they aren't a CLASS due to the defstruct
-  ;; definition I am using. So PRINT-OBJECT doesn't work on PMAT
-  ;; types.
-  (set-pprint-dispatch
-   'pmat
-   #'(lambda (str pobj)
-       (with-pmat-accessors (m pobj)
-         (print-unreadable-object (pobj str)
-           (format
-            str
-            "[~A ~A ~A ~A]~%  [~A ~A ~A ~A]~%  [~A ~A ~A ~A]~%  [~A ~A ~A ~A]"
-            m00 m01 m02 m03
-            m10 m11 m12 m13
-            m20 m21 m22 m23
-            m30 m31 m32 m33))))))
+(defun matrix-print (str obj)
+  "Define a pretty printer for nicely formatted pmats.
+
+   NOTE: I must use the pprint-dispatch table instead of PRINT-OBJECT
+   because pmats aren't a CLASS due to the defstruct definition I am using."
+  (print-unreadable-object (obj str)
+    (with-pmat-accessors (m obj)
+      (format str
+              "[~A ~A ~A ~A]~%  [~A ~A ~A ~A]~%  [~A ~A ~A ~A]~%  [~A ~A ~A ~A]"
+              m00 m01 m02 m03
+              m10 m11 m12 m13
+              m20 m21 m22 m23
+              m30 m31 m32 m33))))
+;; Priority of 1 given incase other arrays of type single-float (16) are
+;; pretty printed. This will enable ours to take precedence.
+(set-pprint-dispatch 'pmat 'matrix-print 1)
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
