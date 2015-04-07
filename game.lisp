@@ -16,8 +16,8 @@
 
 #+option-9-debug (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
-(defun make-game (&key (window-width 1280) (window-height 1024)
-                    (game-width 160) (game-height 128))
+(defun make-game (&key (window-width +game-width+) (window-height +game-height+)
+                    (game-width +game-width+) (game-height +game-height+))
   (let ((game (make-instance 'game
                              :scene-man (make-instance 'scene-manager)
                              :window-width window-width
@@ -72,10 +72,10 @@
       (setf (paused g) t)))
 
 (defmacro with-game-init ((filename &key
-                                    (window-width 1280)
-                                    (window-height 1024)
-                                    (game-width 160)
-                                    (game-height 128))
+                                    (window-width +game-width+)
+                                    (window-height +game-height+)
+                                    (game-width +game-width+)
+                                    (game-height +game-height+))
                           &body body)
   ;; The let* is important to bind *id* before MAKE-GAME is called.
   `(let* ((*assets* (load-dat-file ,filename))

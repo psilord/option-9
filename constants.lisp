@@ -51,3 +51,10 @@ writing this macro and then thrown into hell for naming it thusly."
       ;; call function call that'll do the work with the evaluated
       ;; expression.
       `(%? ,expr)))
+
+;; The game size has the same aspect ratio as the window resolutions I
+;; am willing to allow. The levels are designed to 160 witdh by 128
+;; height, so don't change it.
+(defconstant +game-width+ 160)
+(defconstant +game-height+ 128)
+
