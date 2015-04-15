@@ -58,3 +58,5 @@ writing this macro and then thrown into hell for naming it thusly."
 (defconstant +game-width+ 160)
 (defconstant +game-height+ 128)
 
+(defparameter *windowed-modes* '((1280 . 1024) (640 . 512)))
+

@@ -102,6 +102,21 @@
 ;;                   controller-name
 ;;                   has-haptic)))))))
 
+(defun set-initial-game-window-size (game)
+  (labels ((set-window-size (max-width max-height resolutions)
+             (let ((width (caar resolutions))
+                   (height (cdar resolutions)))
+               (when resolutions
+                 (if (and (< width max-width)
+                          (< height max-height))
+                     (setf (window-width game) width
+                           (window-height game) height)
+                     (set-window-size max-width max-height (cdr resolutions)))))))
+    (multiple-value-bind (format
+                          width
+                          height) (sdl2:get-current-display-mode 0)
+      (set-window-size width height *windowed-modes*))))
+
 (defun game-main ()
   (format t "Welcome to Option 9, Version 0.9!~%")
   (format t "A space shoot'em up game written in CLOS.~%")
@@ -110,9 +125,7 @@
 
   (with-game-init ("option-9.dat")
     (sdl2:with-init (:video :gamecontroller :noparachute)
-
-      ;; @TODO Calculate the window size
-
+      (set-initial-game-window-size *game*)
       ;; for post processing smoothing of the lines and whantot.
       ;; set before I make the window and OpenGL context.
       ;;(sdl2:gl-set-attr :multisamplebuffers 1)
