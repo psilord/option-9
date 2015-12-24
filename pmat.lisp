@@ -1462,7 +1462,7 @@ default) but not re-orthogonalized. Return RESULT. RESULT may be EQ to TRFM"
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (let ((rot (matrix-identity)))
     ;; We incrementally rotate the result matrix we initialize with trfm
-	;; by each direction in the rotation-vec. We then return the result.
+    ;; by each direction in the rotation-vec. We then return the result.
     (matrix-copy-into result trfm)
 
     (with-pmat-accessors (rt rot)
