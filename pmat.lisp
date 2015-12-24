@@ -1461,6 +1461,10 @@ default) but not re-orthogonalized. Return RESULT. RESULT may be EQ to TRFM"
 
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (let ((rot (matrix-identity)))
+    ;; We incrementally rotate the result matrix we initialize with trfm
+	;; by each direction in the rotation-vec. We then return the result.
+    (matrix-copy-into result trfm)
+
     (with-pmat-accessors (rt rot)
       (with-pvec-accessors (rv rotation-vec)
 
@@ -1478,8 +1482,7 @@ default) but not re-orthogonalized. Return RESULT. RESULT may be EQ to TRFM"
                         (let ((,sin-sym (sin ,axis))
                               (,cos-sym (cos ,axis)))
                           ,@body)
-                        (matrix-multiply-into result trfm rot)
-                        (matrix-copy-rotation-into trfm result))))
+                        (matrix-multiply-into result result rot))))
 
           ;; These rotations must be done in this order.  Also, this
           ;; is a right handed system.
