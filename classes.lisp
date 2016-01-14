@@ -643,16 +643,16 @@ vector at that position"))
 (defclass game ()
   (;; Important dimensions about the display window and game world size
    (%window-width :initarg :window-width
-                  :initform 1024
+                  :initform +game-width+
                   :accessor window-width)
    (%window-height :initarg :window-height
-                   :initform 768
+                   :initform +game-height+
                    :accessor window-height)
    (%game-width :initarg :game-width
-                :initform 100
+                :initform +game-width+
                 :accessor game-width)
    (%game-height :initarg :game-height
-                 :initform 100
+                 :initform +game-height+
                  :accessor game-height)
 
    ;; Make the universe object which is the root of the scene tree.
