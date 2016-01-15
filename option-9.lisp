@@ -121,7 +121,31 @@
   (format t "Welcome to Option 9, Version 0.9!~%")
   (format t "A space shoot'em up game written in CLOS.~%")
   (format t "Written by Peter Keller <psilord@cs.wisc.edu>~%")
-  (format t "Ship Designs by Stephanie Keller <aset_isis@hotmail.com>~%")
+  (format t "Ship Designs by Stephanie Keller <sakeller42@gmail.com>~%~%")
+
+  (format t "Instructions:
+  Arrow keys         Move as expected
+  Spacebar           Fire
+  q                  Quits
+  e                  Enter repl. (quit) ends it [and then unpause to play].
+  p                  Pause/Unpause
+  d                  Drop mines (if you have any)
+
+Powerups:
+  Spiral             Shield which protects only against shots. 5 charges.
+  Triangle           Shield which protects against ships and shots. 5 charges.
+  Hourglass          Restore some energy.
+  Hash               Proximity Mines (recharge to hold up to 5).
+  Red H in diamond   Hardnose-Shot (penetrate other shots).
+  Green S in diamond Super-Shot (penetrate other shots AND ships).
+  Asterisk           Telsa Weapon (get 7 of these in a row!).
+  Downward Arrow     Charged shot. Get more of these for faster charging.
+                     Hold space to charge the weapon and release to fire. If
+                     you get enough of these, then it'll charge to max by the
+                     time you release the spacebar to fire! Useful!
+
+  Good luck!~%~%")
+
 
   (with-game-init ("option-9.dat")
     (sdl2:with-init (:video :gamecontroller :noparachute)
