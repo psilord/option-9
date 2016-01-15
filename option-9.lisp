@@ -125,7 +125,7 @@
 
   (format t "Instructions:
   Arrow keys         Move as expected
-  Spacebar           Fire
+  Spacebar           Fire (Hold to charge if you have the powerups)
   q                  Quits
   e                  Enter repl. (quit) ends it [and then unpause to play].
   p                  Pause/Unpause
