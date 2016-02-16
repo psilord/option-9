@@ -89,6 +89,40 @@
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declaim (ftype (function (pmat) pmat) matrix-identity-into))
+(defun matrix-identity-into (dst)
+  "Fill the matrix DST with an identity matrix."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (with-pmat-accessors (d dst)
+    (psetf d00 1.0d0 d01 0.0d0 d02 0.0d0 d03 0.0d0
+           d10 0.0d0 d11 1.0d0 d12 0.0d0 d13 0.0d0
+           d20 0.0d0 d21 0.0d0 d22 1.0d0 d23 0.0d0
+           d30 0.0d0 d31 0.0d0 d32 0.0d0 d33 1.0d0))
+  dst)
+
+(declaim (ftype (function (pmat) pmat) mii))
+(declaim (inline mii))
+(defun mii (dst) ;; matrix-identity-into
+  "Shortname for MATRIX-IDENTITY-INTO."
+  (matrix-identity-into dst))
+
+;;; ;;;;;;;;
+
+(declaim (ftype (function () pmat) matrix-identity))
+(defun matrix-identity ()
+  "Return a newly allocated identity matrix."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (matrix-identity-into (pmat)))
+
+(declaim (ftype (function () pmat) mi))
+(declaim (inline mi))
+(defun mi () ;; matrix-identity
+  "Shortname for MATRIX-IDENTITY."
+  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
+  (matrix-identity))
+
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (declaim (ftype (function (pmat pmat) pmat) matrix-copy-into))
 (defun matrix-copy-into (dst src)
   "Copy SRC into DST and return DST. DST and SRC may be EQ."
@@ -124,60 +158,82 @@
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declaim (ftype (function (pmat pmat) pmat) matrix-stabilize-into))
-(defun matrix-stabilize-into (dst src)
-  "Read all values from the SRC matrix and if they are less than
-*PVEC-TOL*, collapse them to 0d0, or copy the original value, into the
-corresponding location in DST.  SRC and DST may be EQ. Return DST."
+(declaim (ftype (function (pmat pmat &key
+                                (:min-val double-float)
+                                (:max-val double-float))
+                          pmat) matrix-clamp-into))
+(defun matrix-clamp-into (dst src &key (min-val least-negative-double-float)
+                                    (max-val most-positive-double-float))
+  "Read all values from the SRC matrix and clamp them between MIN-VAL and
+MAX-VAL. DST and SRC may be EQ. Return DST."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (with-multiple-pmat-accessors ((d dst) (s src))
     ;; This macro isn't entirely lexically/once-only safe, so don't abuse it.
-    (macrolet ((stabilize (read-place)
-                 `(if (< (as-double-float (abs ,read-place))
-                         (as-double-float *pvec-tol*))
-                      0d0
-                      ,read-place)))
-      (psetf d00 (stabilize s00)
-             d01 (stabilize s01)
-             d02 (stabilize s02)
-             d03 (stabilize s03)
-             d10 (stabilize s10)
-             d11 (stabilize s11)
-             d12 (stabilize s12)
-             d13 (stabilize s13)
-             d20 (stabilize s20)
-             d21 (stabilize s21)
-             d22 (stabilize s22)
-             d23 (stabilize s23)
-             d30 (stabilize s30)
-             d31 (stabilize s31)
-             d32 (stabilize s32)
-             d33 (stabilize s33)))
+    (macrolet ((clamp (read-place)
+                 `(cond
+                    ((< (as-double-float ,read-place)
+                        (as-double-float min-val))
+                     (as-double-float min-val))
+
+                    ((> (as-double-float ,read-place)
+                        (as-double-float max-val))
+                     (as-double-float max-val))
+
+                    (t
+                     ,read-place))))
+      (psetf d00 (clamp s00)
+             d01 (clamp s01)
+             d02 (clamp s02)
+             d03 (clamp s03)
+             d10 (clamp s10)
+             d11 (clamp s11)
+             d12 (clamp s12)
+             d13 (clamp s13)
+             d20 (clamp s20)
+             d21 (clamp s21)
+             d22 (clamp s22)
+             d23 (clamp s23)
+             d30 (clamp s30)
+             d31 (clamp s31)
+             d32 (clamp s32)
+             d33 (clamp s33)))
     dst))
 
-(declaim (ftype (function (pmat pmat) pmat) msti))
-(declaim (inline msti))
-(defun msti (dst src) ;; matrix-stabilize-into
-  "Shortname for MATRIX-STABILIZE-INTO."
+(declaim (ftype (function (pmat pmat &key
+                                (:min-val double-float)
+                                (:max-val double-float))
+                          pmat) mci))
+(declaim (inline mci))
+(defun mci (dst src &key (min-val least-negative-double-float)
+                      (max-val most-positive-double-float)) ;; matrix-clamp-into
+  "Shortname for MATRIX-CLAMP-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-stabilize-into dst src))
+  (matrix-clamp-into dst src :min-val min-val :max-val max-val))
 
 ;;; ;;;;;;;;
 
-(declaim (ftype (function (pmat) pmat) matrix-stabilize))
-(defun matrix-stabilize (src)
-  "Return a newly allocated matrix that contains the stabilized values
+(declaim (ftype (function (pmat &key
+                                (:min-val double-float)
+                                (:max-val double-float))
+                          pmat) matrix-clamp))
+(defun matrix-clamp (src &key (min-val least-negative-double-float)
+                           (max-val most-positive-double-float))
+  "Return a newly allocated matrix that contains the clamped values
 from SRC."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (let ((m (matrix-copy src)))
-    (matrix-stabilize-into m m)))
+    (matrix-clamp-into m m :min-val min-val :max-val max-val)))
 
-(declaim (ftype (function (pmat) pmat) mst))
-(declaim (inline mst))
-(defun mst (src) ;; matrix-stabilize
-  "Shortname for MATRIX-STABILIZE."
+(declaim (ftype (function (pmat &key
+                                (:min-val double-float)
+                                (:max-val double-float))
+                          pmat) mc))
+(declaim (inline mc))
+(defun mc (src &key (min-val least-negative-double-float)
+                 (max-val most-positive-double-float)) ;; matrix-clamp
+  "Shortname for MATRIX-CLAMP."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-stabilize src))
+  (matrix-clamp src :min-val min-val :max-val max-val))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -208,40 +264,6 @@ from SRC."
   "Shortname for MATRIX-TEST."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (matrix-test))
-
-;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(declaim (ftype (function (pmat) pmat) matrix-identity-into))
-(defun matrix-identity-into (dst)
-  "Fill the matrix DST with an identity matrix."
-  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (with-pmat-accessors (d dst)
-    (psetf d00 1.0d0 d01 0.0d0 d02 0.0d0 d03 0.0d0
-           d10 0.0d0 d11 1.0d0 d12 0.0d0 d13 0.0d0
-           d20 0.0d0 d21 0.0d0 d22 1.0d0 d23 0.0d0
-           d30 0.0d0 d31 0.0d0 d32 0.0d0 d33 1.0d0))
-  dst)
-
-(declaim (ftype (function (pmat) pmat) mii))
-(declaim (inline mii))
-(defun mii (dst) ;; matrix-identity-into
-  "Shortname for MATRIX-IDENTITY-INTO."
-  (matrix-identity-into dst))
-
-;;; ;;;;;;;;
-
-(declaim (ftype (function () pmat) matrix-identity))
-(defun matrix-identity ()
-  "Return a newly allocated identity matrix."
-  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-identity-into (pmat)))
-
-(declaim (ftype (function () pmat) mi))
-(declaim (inline mi))
-(defun mi () ;; matrix-identity
-  "Shortname for MATRIX-IDENTITY."
-  #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-identity))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -360,9 +382,9 @@ be EQ to MAT0 or MAT1."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declaim (ftype (function (pmat double-float pvec &key (:stabilize t)) pmat)
+(declaim (ftype (function (pmat double-float pvec) pmat)
                 matrix-rotate-around-into))
-(defun matrix-rotate-around-into (rotation angle axis &key (stabilize t))
+(defun matrix-rotate-around-into (rotation angle axis)
   "Store a computed rotation matrix with a (0 0 0) translation vector
 into the ROTATION transformation matrix that will rotate around the
 vector AXIS by the specified ANGLE. This assumes a right handed
@@ -417,37 +439,34 @@ coordinate system. Similar to glRotate()."
                  r23 0d0
                  r33 1d0)))))
 
-  (if stabilize
-      (matrix-stabilize-into rotation rotation)
-      rotation))
+  rotation)
 
-(declaim (ftype (function (pmat double-float pvec &key (:stabilize t)) pmat)
+(declaim (ftype (function (pmat double-float pvec) pmat)
                 mrai))
 (declaim (inline mrai))
-(defun mrai (rotation angle axis &key (stabilize t));; matrix-rotate-around-into
+(defun mrai (rotation angle axis);; matrix-rotate-around-into
   "Shortname for PM-TRFM-ROTATE-AROUND."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-rotate-around-into rotation angle axis :stabilize stabilize))
+  (matrix-rotate-around-into rotation angle axis))
 
 ;;; ;;;;;;;;
 
-(declaim (ftype (function (double-float pvec &key (:stabilize t)) pmat)
+(declaim (ftype (function (double-float pvec) pmat)
                 matrix-rotate-around))
-(defun matrix-rotate-around (angle axis &key (stabilize t))
+(defun matrix-rotate-around (angle axis)
   "Allocate and return a transformation matrix with a (0 0 0)
 translation vector that will rotate around the vector AXIS by the
 specified ANGLE. This assumes a right handed coordinate system."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-rotate-around-into (matrix-identity) angle axis
-                             :stabilize stabilize))
+  (matrix-rotate-around-into (matrix-identity) angle axis))
 
-(declaim (ftype (function (double-float pvec &key (:stabilize t)) pmat)
+(declaim (ftype (function (double-float pvec) pmat)
                 mra))
 (declaim (inline mra))
-(defun mra (angle axis &key (stabilize t)) ;; matrix-rotate-around
+(defun mra (angle axis) ;; matrix-rotate-around
   "Shortname for PM-TRFM-ROTATE-AROUND."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-rotate-around angle axis :stabilize stabilize))
+  (matrix-rotate-around angle axis))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -594,7 +613,7 @@ vector in the 4x1 column on the right) SRC and store into DST. DST can
 be EQ with SRC. This means 1) store the transpose the 3x3 rotation
 matrix contained in the upper left hand of the transformation matrix,
 2) store the application of the inverted rotation to the negation of
-the 4x1 translation column.  Return the stabilized DST. This function
+the 4x1 translation column.  Return the DST. This function
 will not invert arbitrary 4x4 matricies."
 
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
@@ -617,7 +636,7 @@ will not invert arbitrary 4x4 matricies."
            d23 (as-double-float
                 (+ (* d20 (- d03)) (* d21 (- d13)) (* d22 (- d23))))))
 
-  (matrix-stabilize dst))
+  dst)
 
 (declaim (ftype (function (pmat pmat) pmat) minvti))
 (declaim (inline minvti))
@@ -758,7 +777,7 @@ matrix and NIL if it couldn't happen."
                           (* s00 s12 s21) (* s01 s10 s22) (* s02 s11 s20))
                        det-s))))
 
-      (values (matrix-stabilize-into dst dst) t))))
+      (values dst t))))
 
 (declaim (ftype (function (pmat pmat) (values pmat t)) minvi))
 (declaim (inline minvi))
@@ -772,7 +791,7 @@ matrix and NIL if it couldn't happen."
 (declaim (ftype (function (pmat) (values pmat t)) matrix-invert))
 (defun matrix-invert (src)
   "Allocate a new matrix and place into it the inverse of the arbitrary
-4x4 matrix SRC. Return the values of a stabilized inverted matrix and T if
+4x4 matrix SRC. Return the values of a inverted matrix and T if
 the inversion was possible, or an identity matrix and NIL if it wasn't
  possible."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
@@ -1448,16 +1467,15 @@ been stored."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declaim (ftype (function (pmat pmat pvec &key (:stabilize t)) pmat)
+(declaim (ftype (function (pmat pmat pvec) pmat)
                 matrix-local-axis-rotate-into))
 (defun matrix-local-axis-rotate-into
-    (result trfm rotation-vec &key (stabilize t))
+    (result trfm rotation-vec)
   "Store into RESULT a rotation of the transformation matrix TRFM as a
 relative rotation (AKA the local axis rotation) as specified by the
 ROTATION-VEC. The components of the ROTATION-VEC define the relative
-rotation in radians around each axis in the rotation submatrix. The
-rotation is stabilized if keyword argument :STABILIZED is T (the
-default) but not re-orthogonalized. Return RESULT. RESULT may be EQ to TRFM"
+rotation in radians around each axis in the rotation submatrix. Return RESULT.
+ RESULT may be EQ to TRFM"
 
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (let ((rot (matrix-identity)))
@@ -1513,41 +1531,35 @@ default) but not re-orthogonalized. Return RESULT. RESULT may be EQ to TRFM"
                                 rt02 (as-double-float sval)
                                 rt12 0d0
                                 rt22 (as-double-float cval)))))))
-  (if stabilize
-      (matrix-stabilize-into result result)
-      result))
+  result)
 
-(declaim (ftype (function (pmat pmat pvec &key (:stabilize t)) pmat) mlari))
+(declaim (ftype (function (pmat pmat pvec) pmat) mlari))
 (declaim (inline mlari))
-(defun mlari (result trfm rotation-vec &key (stabilize t)) ;; matrix-local-axis-rotate-into
+(defun mlari (result trfm rotation-vec) ;; matrix-local-axis-rotate-into
   "Shortname for MATRIX-LOCAL-AXIS-ROTATE-INTO."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-local-axis-rotate-into result trfm rotation-vec
-                                 :stabilize stabilize))
+  (matrix-local-axis-rotate-into result trfm rotation-vec))
 
 ;;; ;;;;;;;;
 
-(declaim (ftype (function (pmat pvec &key (:stabilize t)) pmat)
+(declaim (ftype (function (pmat pvec) pmat)
                 matrix-local-axis-rotate))
 (declaim (inline matrix-local-axis-rotate))
-(defun matrix-local-axis-rotate (trfm rotation-vec &key (stabilize t))
+(defun matrix-local-axis-rotate (trfm rotation-vec)
   "Return a newly allocated transformation matrix which was the
 relative rotation (AKA the local axis rotation) as specified by the
 ROTATION-VEC as applied to TRFM. The ROTATION-VEC defines the relative
 rotation around each axis in the rotation submatrix (note, it does not
-specify a vector around which a rotation happens). The rotation is
-stabilized if keyword argument :STABILIZED is T (the default) but not
-re-orthogonalized."
+specify a vector around which a rotation happens)."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-local-axis-rotate-into (matrix-identity) trfm rotation-vec
-                                 :stabilize stabilize))
+  (matrix-local-axis-rotate-into (matrix-identity) trfm rotation-vec))
 
-(declaim (ftype (function (pmat pvec &key (:stabilize t)) pmat) mlar))
+(declaim (ftype (function (pmat pvec) pmat) mlar))
 (declaim (inline mlar))
-(defun mlar (trfm rotation-vec &key (stabilize t)) ;; matrix-local-axis-rotate
+(defun mlar (trfm rotation-vec) ;; matrix-local-axis-rotate
   "Shortname for MATRIX-LOCAL-AXIS-ROTATE."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (matrix-local-axis-rotate trfm rotation-vec :stabilize stabilize))
+  (matrix-local-axis-rotate trfm rotation-vec))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1625,7 +1637,7 @@ default) or as a list."
          ;; Compute the vector we'll be crossing.
          (vec-a (pv-vector p0 p1))
          (vec-b (pv-vector p0 p2))
-         (norm (pv-stabilize-into (pv-cross vec-a vec-b)))
+         (norm (pv-cross vec-a vec-b))
          (d (pv-dot norm p0)))
     (with-pvec-accessors (n norm)
       (if multiple-value

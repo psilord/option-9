@@ -112,6 +112,55 @@ defaults to T."
          (as-double-float py)
          (as-double-float pz)))))
 
+(declaim (ftype (function (pvec &key
+                                (:min-val double-float)
+                                (:max-val double-float))
+                          pvec) pv-clamp-into))
+(declaim (inline pv-clamp-into))
+(defun pv-clamp-into (pv &key (min-val least-negative-double-float)
+                           (max-val most-positive-double-float))
+  "Clamp all elements to between MIN-VAL and MAX-VAL values."
+  #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
+  (with-pvec-accessors (p pv)
+    (macrolet ((clamp (slot)
+                 `(cond
+                    ((< (as-double-float ,slot)
+                        (as-double-float min-val))
+                     (setf ,slot min-val))
+
+                    ((> (as-double-float ,slot)
+                        (as-double-float max-val))
+                     (setf ,slot max-val))
+                    (t
+                     ;; do nothing
+                     ))))
+      (clamp px)
+      (clamp py)
+      (clamp pz)))
+  pv)
+
+(declaim (ftype (function (pvec &key
+                                (:min-val double-float)
+                                (:max-val double-float))
+                          pvec) pv-clamp))
+(declaim (inline pv-clamp))
+(defun pv-clamp (pv &key (min-val least-negative-double-float)
+                      (max-val most-positive-double-float))
+  "Allocate a new pvec and return the clamped PV in it."
+  #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
+  (pv-clamp-into (pv-copy pv) :min-val min-val :max-val max-val))
+
+(declaim (ftype (function (pvec) pvec) pv-negate-into))
+(declaim (inline pv-negate-into))
+(defun pv-negate-into (pv)
+  "Negate the vetor and store back into PV."
+  #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
+  (with-pvec-accessors (p pv)
+    (psetf px (as-double-float (- px))
+           py (as-double-float (- py))
+           pz (as-double-float (- pz))))
+  pv)
+
 (declaim (ftype (function (pvec) pvec) pv-stabilize-into))
 (declaim (inline pv-stabilize-into))
 (defun pv-stabilize-into (pv)
@@ -134,16 +183,6 @@ defaults to T."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   (pv-stabilize-into (pv-copy pv)))
 
-(declaim (ftype (function (pvec) pvec) pv-negate-into))
-(declaim (inline pv-negate-into))
-(defun pv-negate-into (pv)
-  "Negate the vetor and store back into PV."
-  #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
-  (with-pvec-accessors (p pv)
-    (psetf px (as-double-float (- px))
-           py (as-double-float (- py))
-           pz (as-double-float (- pz))))
-  pv)
 
 (declaim (ftype (function (pvec) pvec) pv-negate))
 (declaim (inline pv-negate))
@@ -239,9 +278,7 @@ new pvec of it."
   "Compute a vector from the point represented in PVA to the point
 represented in PVB and return the new pvec vector."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
-  (let ((result (pvec)))
-    (pv-vector-into result pva pvb)
-    (pv-stabilize-into result)))
+  (pv-vector-into (pvec) pva pvb))
 
 (declaim (ftype (function (pvec pvec pvec) pvec) pc-add-into))
 (declaim (inline pv-add-into))
