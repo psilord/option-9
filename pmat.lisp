@@ -390,7 +390,7 @@ into the ROTATION transformation matrix that will rotate around the
 vector AXIS by the specified ANGLE. This assumes a right handed
 coordinate system. Similar to glRotate()."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (let ((norm-axis (pv-normalize axis))
+  (let ((norm-axis (vnorm axis))
         (c (as-double-float (cos angle)))
         (s (as-double-float (sin angle))))
     #+option-9-optimize-pmat
@@ -1579,15 +1579,14 @@ submatrix. Do not use the same vector for both AT-DIR and UP-DIR."
     (let* ((at (ecase at-dir ((:x) xv) ((:y) yv) ((:z) zv)))
            (up (ecase up-dir ((:x) xv) ((:y) yv) ((:z) zv)))
            ;; Create the u v n of the new view matrix
-           (u (pv-normalize-into (pv-cross up at)))
-           (n (pv-normalize at))
-           (v (pv-cross n u))
+           (u (vnorm (vcross up at)))
+           (n (vnorm at))
+           (v (vcross n u))
            ;; create an inverted camera rotation
            (inv-rot (matrix-invert-trfm (matrix-rotation-vectors-set u v n)))
            ;; create an inverted translation matrix
-           (inv-trans (matrix-translate
-                       (pv-negate-into
-                        (matrix-translate-get camera)))))
+           (trans (matrix-translate-get camera))
+           (inv-trans (matrix-translate (vnegi trans trans))))
       ;; Create the actual inverted view matrix.
       (matrix-multiply-into view inv-rot inv-trans))))
 
@@ -1632,13 +1631,13 @@ default) or as a list."
          (axis-a (matrix-rotation-direction-get mat choice-a))
          (axis-b (matrix-rotation-direction-get mat choice-b))
          ;; These are actual points.
-         (p1 (pv-add p0 axis-a))
-         (p2 (pv-add p0 axis-b))
+         (p1 (vadd p0 axis-a))
+         (p2 (vadd p0 axis-b))
          ;; Compute the vector we'll be crossing.
-         (vec-a (pv-vector p0 p1))
-         (vec-b (pv-vector p0 p2))
-         (norm (pv-cross vec-a vec-b))
-         (d (pv-dot norm p0)))
+         (vec-a (vvect p0 p1))
+         (vec-b (vvect p0 p2))
+         (norm (vcross vec-a vec-b))
+         (d (vdot norm p0)))
     (with-pvec-accessors (n norm)
       (if multiple-value
           (values nx ny nz d)

@@ -16,7 +16,7 @@ integer of usecs and return it."
 (defmethod distance ((a frame) (b frame) &key (sqrt t))
   (let ((ao (matrix-translate-get (world-basis a)))
         (bo (matrix-translate-get (world-basis b))))
-    (pv-dist ao bo :sqrt sqrt)))
+    (vdist ao bo :sqrt sqrt)))
 
 (defun random-sign ()
   (if (zerop (random 2)) 1d0 -1d0))
@@ -136,15 +136,15 @@ pvectors which happen to be used as points."
   ;; This implements the d(P, L) equation.
 
   (let* (;; Compute the vector l from the two points: l = e - s
-         (l (pv-sub e s))
+         (l (vsub e s))
          ;; Compute the vector w from the line starting from s and ending at p
-         (w (pv-sub p s))
+         (w (vsub p s))
          ;; Compute the cross product of l and w
-         (lw-cross (pv-cross l w))
+         (lw-cross (vcross l w))
          ;; Get the magnitude of lw-cross
-         (lw-cross-mag (pv-mag lw-cross))
+         (lw-cross-mag (vmag lw-cross))
          ;; Then compute the magnitiude of l
-         (l-mag (pv-mag l)))
+         (l-mag (vmag l)))
 
     ;; Now, compute the distance and return it
     (/ lw-cross-mag l-mag)))

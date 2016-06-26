@@ -198,9 +198,11 @@
   (when (> (score game) (highscore game))
     (incf (highscore game) (- (score game) (highscore game)))))
 
-(defun display (game)
+(defun display (game jutter-interpolant)
   (gl:clear :color-buffer-bit)
-  (walk-frame-hierarchy (root (scene-man game)) #'render))
+  (walk-frame-hierarchy (root (scene-man game))
+                        (lambda (entity)
+                          (render entity jutter-interpolant))))
 
 (defun step-game (game)
   (unless (paused game)

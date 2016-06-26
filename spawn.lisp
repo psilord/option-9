@@ -313,7 +313,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
          (initializer `(,the-mine-instance-name
                         :orphan-policy ,orphan-policy
                         :roles (:player-mine)
-                        :dv ,(pv-copy loc)
+                        :dv ,(vcopy loc)
                         ,@extra-init)))
     (add-spawnable
      (make-spawnable spawn-class
@@ -435,12 +435,13 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                             :orphan-policy ,orphan-policy
                             :roles (:scenery)
                             ;; each spark needs own copy!
-                            :dv ,(pv-copy loc)
+                            :dv ,(vcopy loc)
                             ;; And it moves in a random direction.
-                            :dtv ,(pv-scale-into
-                                   (pv-rand-dir :span :xy)
-                                   (+ initial-velocity
-                                      (random velocity-factor)))
+                            :dtv ,(let ((dirvec (vrand :span :xy)))
+                                       (vscalei dirvec
+                                                dirvec
+                                                (+ initial-velocity
+                                                   (random velocity-factor))))
                             ,@(when ttl-max-supplied-p (list :ttl-max ttl-max))
                             ,@extra-init)))
 
@@ -470,7 +471,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                          :orphan-policy ,orphan-policy
                          :roles (:player-powerup)
                          :flyingp t
-                         :dv ,(pv-copy loc)
+                         :dv ,(vcopy loc)
                          ,@extra-init)))
     (add-spawnable
      (make-spawnable spawn-class
@@ -512,7 +513,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
          (initializer `(,the-mine-instance-name
                         :orphan-policy ,orphan-policy
                         :roles (:enemy-mine)
-                        :dv ,(pv-copy loc)
+                        :dv ,(vcopy loc)
                         ,@extra-init)))
     (add-spawnable
      (make-spawnable spawn-class
@@ -541,7 +542,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
          (initializer `(,(insts/equiv-choice ioi/e)
                          :orphan-policy ,orphan-policy
                          :roles ,roles
-                         :dv ,(pv-copy loc)
+                         :dv ,(vcopy loc)
                          ,@extra-init)))
     (add-spawnable
      (make-spawnable spawn-class
@@ -571,7 +572,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
          (initializer `(,(insts/equiv-choice ioi/e)
                          :orphan-policy ,orphan-policy
                          :roles (:shrapnel)
-                         :dv ,(pv-copy loc)
+                         :dv ,(vcopy loc)
                          :rotatingp t
                          :drv ,(pvec 0d0 0d0 (/ pi (+ 64d0 (random 64d0))))
                          :dtv ,(pvec (* (random-delta) velocity-factor)

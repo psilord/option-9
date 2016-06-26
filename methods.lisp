@@ -160,16 +160,16 @@
 
 ;; by default, there is no decay.
 (defmethod dtv-decay ((f frame) &key (decay 1d0))
-  (when (not (pv-zero-p (dtv f)))
+  (when (not (vzerop (dtv f)))
     (with-pvec-accessors (tv (dtv f))
       (psetf tvx (* tvx decay)
              tvy (* tvy decay)
              tvz (* tvz decay)))
-    (pv-stabilize-into (dtv f))))
+    (vstabi (dtv f) (dtv f))))
 
 (defmethod dtv-decay ((f field-mine) &key)
-  (when (not (pv-zero-p (dtv f)))
-    (pv-clear-into (dtv f))))
+  (when (not (vzerop (dtv f)))
+    (vzeroi (dtv f))))
 
 (defmethod at-location ((destination frame) (source frame))
   (matrix-copy-into (local-basis destination) (local-basis source))

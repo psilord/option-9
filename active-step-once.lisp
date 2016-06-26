@@ -15,6 +15,10 @@ the FUNC to each frame as one walks towards the leaves."
          (walk-frame-hierarchy c func))))
 
 (defmethod resolve-world-basis ((f frame))
+  ;; save off the current world-basis so I can interpolate the rendering later
+  ;; of whatever is using this frame later.
+  (mcpi (previous-world-basis f) (world-basis f))
+
   ;; If I have a parent, then compute my world-coordinates in relation
   ;; to it.  The "universe" frame's world coord is identity and never
   ;; changes, because since everything is a child of it, it would be
@@ -32,16 +36,16 @@ the FUNC to each frame as one walks towards the leaves."
   ;; Translate the current frame in the direction of DV.
   (mmi (local-basis f) (mtr (dv f)) (local-basis f))
   ;; Zero it, so if no other displacements are added, we add nothing.
-  (pv-clear-into (dv f))
+  (vzeroi (dv f))
 
   ;; Rotate the one time local axis rotation not related to rotatingp, if any.
   (mlari (local-basis f) (local-basis f) (dr f))
   ;; Then zero it
-  (pv-clear-into (dr f))
+  (vzeroi (dr f))
 
   ;; Add in the incremental displacement not related to the basis
   ;; directions vector and do the decay of it
-  (unless (pv-zero-p (dtv f))
+  (unless (vzerop (dtv f))
     (mmi (local-basis f) (mtr (dtv f)) (local-basis f))
     (dtv-decay f))
 
@@ -99,7 +103,7 @@ the FUNC to each frame as one walks towards the leaves."
 ;; correction to the local axis space.
 (defmethod active-step-once :after ((ent player))
   (let* ((loc (matrix-translate-get (local-basis ent)))
-         (new-loc (pv-copy loc)))
+         (new-loc (vcopy loc)))
     (with-multiple-pvec-accessors ((l loc) (n new-loc))
       (let ((y-min (per-game-height ent 3.0))
             (y-max (per-game-height ent 95.0))

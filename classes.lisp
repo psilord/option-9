@@ -315,6 +315,10 @@ vector at that position"))
    (%world-basis :initarg :world-basis
                  :initform (matrix-identity)
                  :accessor world-basis)
+   ;; previous storage of the model matrix for jutter removal
+   (%previous-world-basis :initarg :previous-world-basis
+                          :initform (matrix-identity)
+                          :accessor previous-world-basis)
    ;; Parent frame of this frame. NIL means this is the root.
    (%parent :initarg :parent
             :initform nil

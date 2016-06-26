@@ -175,7 +175,7 @@ advantage of the simulation step."))
 simulation of the entity. A passive step is something which requires final
 knowledge of all entity locations. An example is field generation."))
 
-(defgeneric render (drawable)
+(defgeneric render (drawable jutter-interpolant)
   (:documentation
    "Renders the entity shape with respect to the frame at the scale desired."))
 

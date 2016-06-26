@@ -2,10 +2,12 @@
 
 #+option-9-debug (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
-(defmethod render (ent)
+(defmethod render (ent jutter-interpolant)
   nil)
 
-(defmethod render ((ent drawable))
+(defmethod render ((ent drawable) jutter-interpolant)
+  (declare (ignorable jutter-interpolant))
+
   (let ((geometry (geometry ent)))
     ;; only render if we actually have a geometry to render.
     (when geometry
@@ -16,6 +18,12 @@
       ;; Push matrix because I have the inverted camera view matrix
       ;; there already.
       (gl:push-matrix)
+
+      ;; Crap. Implement quaternions to jutter-interpolate between the
+      ;; previous and current model matrix before putting it into
+      ;; opengl. Otherwise, I'd have to manually compute each vertex
+      ;; interpolation.
+
       ;; Then put the object into the camera's coordinate system.
       (gl:mult-matrix (matrix-convert-to-opengl (world-basis ent)))
 
@@ -32,7 +40,7 @@
               (destructuring-bind ((vx vy vz) (cx cy cz))
                   vertex/color
                 (gl:color cx cy cz)
-                (pv-set-into vertex vx vy vz)
+                (vseti vertex vx vy vz)
                 (with-pvec-accessors (w vertex)
                   (gl:vertex wx wy wz)))))))
 
@@ -93,7 +101,7 @@
 ;; know how to render the various paths. We render this before the
 ;; regular render so any :primitives for the passive-gun get rendered
 ;; on top of the passive effect.
-(defmethod render :before ((f tesla-field))
+(defmethod render :before ((f tesla-field) jutter-interpolant)
 
   ;; The tesla field is rendered in the world coordiante system.
   (gl:matrix-mode :modelview)
