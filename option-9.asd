@@ -53,6 +53,7 @@
                (:file "generic-functions")
                (:file "pvec")
                (:file "pmat" :around-compile using-better-limits)
+               (:file "pquat")
                (:file "utils")
                (:file "field")
                (:file "methods")
