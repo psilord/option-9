@@ -743,6 +743,6 @@ be one of:
 (declaim (inline vrand))
 (defun vrand (&key (span :xy))
   "Shortname for VECT-RAND-INTO."
-  (vect-rand-into (pvec) :span span))
+  (vect-rand :span span))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
