@@ -21,28 +21,31 @@
                 (game-context collider)
                 :parent :universe
                 :orphan-policy :destroy
-                :extra-init (list
-                             ;; I should have a powerup such that the
-                             ;; charge of a shot can propogate to
-                             ;; here, causing a fission-type reaction
-                             ;; as each charged shot hits other stuff
-                             ;; too. This is a cool effect!
+                :extra-init
+                (list
+                 ;; I should have a powerup such that the
+                 ;; charge of a shot can propogate to
+                 ;; here, causing a fission-type reaction
+                 ;; as each charged shot hits other stuff
+                 ;; too. This is a cool effect!
 
-                             ;; :charge-percentage 1.0
+                 ;; :charge-percentage 1.0
 
-                             :flyingp (flyingp collider)
-                             :local-basis (matrix-copy (local-basis collider))
-                             :world-basis (matrix-copy (world-basis collider))
-                             :roles (copy-seq (roles collider))
-                             :dfv (vcopy (dfv collider))
-                             :drv (vcopy (drv collider))
-                             ;; and it goes in a random direction.
-                             :dr (pvec 0d0 0d0 (random (* 2d0 pi)))
-                             :dtv (vcopy (dtv collider))
-                             :dv (vcopy (dv collider))
-                             :rotatingp (rotatingp collider)
-                             :local-basis (local-basis collider)
-                             :world-basis (world-basis collider))))))
+                 :flyingp (flyingp collider)
+                 :local-basis (matrix-copy (local-basis collider))
+                 :world-basis (matrix-copy (world-basis collider))
+                 :roles (copy-seq (roles collider))
+                 :dfv (vcopy (dfv collider))
+                 :drv (vcopy (drv collider))
+                 ;; and it goes in a random direction.
+                 :dr (pvec 0d0 0d0 (random (* 2d0 pi)))
+                 :dtv (vcopy (dtv collider))
+                 :dv (vcopy (dv collider))
+                 :rotatingp (rotatingp collider)
+                 :local-basis (local-basis collider)
+                 :world-basis (world-basis collider)
+                 :previous-world-basis (previous-world-basis collider)
+                 :previous-world-basis-defined-p (previous-world-basis-defined-p collider))))))
 
 ;; Here we handle the processing of a something hitting a ship which might
 ;; or might not have a shield.

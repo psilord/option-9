@@ -173,7 +173,12 @@
 
 (defmethod at-location ((destination frame) (source frame))
   (matrix-copy-into (local-basis destination) (local-basis source))
-  (matrix-copy-into (world-basis destination) (world-basis source)))
+  (matrix-copy-into (world-basis destination) (world-basis source))
+  ;; and deal with any previous world-basis and if it has been defined or not.
+  (matrix-copy-into (previous-world-basis destination)
+                    (previous-world-basis source))
+  (setf (previous-world-basis-defined-p destination)
+        (previous-world-basis-defined-p source)))
 
 ;; Used to give things temporary invulnerability.
 (defmethod vulnerable ((ent entity))
