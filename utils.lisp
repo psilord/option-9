@@ -150,19 +150,26 @@ pvectors which happen to be used as points."
     (/ lw-cross-mag l-mag)))
 
 
-(defun interpolate-transform-matricies-into (mat-dst mat-from mat-to interp)
-  "Interpolate from MAT-FROM to MAT-TO by INTERP amont and store into MAT-DST.
-Return MAT-DST. The interpolation happens via conversion to quaternions."
-  ;; TODO: This need much memory use optimization.
-  (let* (;; First, interpolate the rotation
-         (q-from (quat-mtoq mat-from))
-         (q-to (quat-mtoq mat-to))
-         (q-inter (quat-slerp q-from q-to interp))
-         ;; Then, interpolate the translation
-         (trans-from (matrix-translate-get mat-from))
-         (trans-to (matrix-translate-get mat-to))
-         (trans-inter (vect-interpolate trans-from trans-to interp)))
+;; single threaded cache of memory for the enclosed function to prevent
+;; a lot of memory churn during the transform interpolation code.
+(let ((q-from (pquat))
+      (q-to (pquat))
+      (q-inter (pquat))
+      (trans-from (pvec))
+      (trans-to (pvec))
+      (trans-inter (pvec)))
 
+  (defun interpolate-transform-matricies-into (mat-dst mat-from mat-to interp)
+    "Interpolate from MAT-FROM to MAT-TO by INTERP amont and store into MAT-DST.
+Return MAT-DST. The interpolation happens via conversion to quaternions."
+    ;; Compute the rotational interpolation
+    (quat-mtoq-into q-from mat-from)
+    (quat-mtoq-into q-to mat-to)
+    (quat-slerp-into q-inter q-from q-to interp)
+    ;; Compute the translational interpolation.
+    (matrix-translate-get-into trans-from mat-from)
+    (matrix-translate-get-into trans-to mat-to)
+    (vect-interpolate-into trans-inter trans-from trans-to interp)
     ;; Now assemble everything into the interpolated matrix.
     (quat-qtom-into mat-dst q-inter)
     (matrix-translate-set-into mat-dst trans-inter)

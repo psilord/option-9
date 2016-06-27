@@ -329,7 +329,7 @@ Powerups:
                        ;; last frame.
                        (incf dt-accum frame-time)
 
-                       ;; Consume the generated time in the renderer.
+                       ;; Consume the generated time in the physics
                        (loop while (>= dt-accum *dt-us*) do
                             (step-game *game*)
                             (decf dt-accum *dt-us*))
