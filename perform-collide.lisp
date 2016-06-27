@@ -42,9 +42,8 @@
                  :dtv (vcopy (dtv collider))
                  :dv (vcopy (dv collider))
                  :rotatingp (rotatingp collider)
-                 :local-basis (local-basis collider)
-                 :world-basis (world-basis collider)
-                 :previous-world-basis (previous-world-basis collider)
+                 :local-basis (mc (local-basis collider))
+                 :previous-world-basis (mc (previous-world-basis collider))
                  :previous-world-basis-defined-p (previous-world-basis-defined-p collider))))))
 
 ;; Here we handle the processing of a something hitting a ship which might
