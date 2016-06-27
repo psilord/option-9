@@ -89,6 +89,17 @@
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun pmat-aref (mat row col)
+  ;; linearize the row/column index into a linear index
+  (the double-float(aref mat (+ (* row 4) col))))
+
+(defun (setf pmat-aref) (new-val mat row col)
+  ;; linearize the row/column index into a linear index.
+  (setf (the double-float (aref mat (+ (* row 4) col)))
+        (the double-float new-val)))
+
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (declaim (ftype (function (pmat) pmat) matrix-identity-into))
 (defun matrix-identity-into (dst)
   "Fill the matrix DST with an identity matrix."
