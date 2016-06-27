@@ -15,8 +15,10 @@ the FUNC to each frame as one walks towards the leaves."
          (walk-frame-hierarchy c func))))
 
 (defmethod resolve-world-basis ((f frame))
-  ;; copy over the current matrix to the previous one for jutter removal.
-  (when (previous-world-basis f)
+  ;; If we have already been alive long enough to have more than one
+  ;; physics update, then copy over the current matrix to the previous
+  ;; one for jutter removal.
+  (when (previous-world-basis-defined-p f)
     (mcpi (previous-world-basis f) (world-basis f)))
 
   ;; If I have a parent, then compute my world-coordinates in relation
