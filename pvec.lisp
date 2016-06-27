@@ -736,6 +736,7 @@ the vector space defined by the :SPAN keyword. :SPAN may be one of:
 oriented in the vector space defined by the :SPAN keyword. :SPAN may
 be one of:
 :X, :Y, :Z, :XZ, :XY, :YZ, :XYZ."
+  #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   (vrandi (pvec) :span span))
 
 (declaim (ftype (function (&key (:span keyword)) pvec)
@@ -743,6 +744,23 @@ be one of:
 (declaim (inline vrand))
 (defun vrand (&key (span :xy))
   "Shortname for VECT-RAND-INTO."
+  #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   (vect-rand :span span))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun vect-interpolate-into (dst from to interp)
+  "Interpolate from pvec FROM to pvec TO by INTERP. Put result into pvec DST
+and return it."
+  #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
+  (flet ((dlerp (a b interp)
+           (as-double-float (+ (* (- 1d0 interp) a) (* interp b)))))
+    (with-multiple-pvec-accessors ((d dst) (f from) (e to))
+      (psetf dx (dlerp fx ex interp)
+             dy (dlerp fy ey interp)
+             dz (dlerp fz ez interp))))
+  dst)
+
+(defun vect-interpolate (from to interp)
+  #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
+  (vect-interpolate-into (pvec) from to interp))

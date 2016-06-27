@@ -148,3 +148,26 @@ pvectors which happen to be used as points."
 
     ;; Now, compute the distance and return it
     (/ lw-cross-mag l-mag)))
+
+
+(defun interpolate-transform-matricies-into (mat-dst mat-from mat-to interp)
+  "Interpolate from MAT-FROM to MAT-TO by INTERP amont and store into MAT-DST.
+Return MAT-DST. The interpolation happens via conversion to quaternions."
+  ;; TODO: This need much memory use optimization.
+  (let* (;; First, interpolate the rotation
+         (q-from (quat-mtoq mat-from))
+         (q-to (quat-mtoq mat-to))
+         (q-inter (quat-slerp q-from q-to interp))
+         ;; Then, interpolate the translation
+         (trans-from (matrix-translate-get mat-from))
+         (trans-to (matrix-translate-get mat-to))
+         (trans-inter (vect-interpolate trans-from trans-to interp)))
+
+    ;; Now assemble everything into the interpolated matrix.
+    (quat-qtom-into mat-dst q-inter)
+    (matrix-translate-set-into mat-dst trans-inter)
+
+    mat-dst))
+
+(defun interpolate-transform-matricies (mat-from mat-to interp)
+  (interpolate-transform-matricies-into (pmat) mat-from mat-to interp))

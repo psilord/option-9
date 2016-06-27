@@ -351,7 +351,7 @@ Powerups:
                                  frame-time-accum 0)))
 
                        ;; Compute the Rendering Interpolant to remove jutter.
-                       (display *game* (/ dt-accum *dt*))
+                       (display *game* (/ dt-accum *dt-us*))
 
                        ;; Start processing buffered OpenGL routines.
                        (gl:flush)

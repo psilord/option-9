@@ -147,7 +147,7 @@
          (norm2 (as-double-float (* norm norm))))
 
     ;; inverse into DST and then we'll finish by dividing it by norm2.
-    (quat-conj-into dst quat)
+    (quat-conjugate-into dst quat)
 
     (with-pquat-accessors (d dst)
       (psetf dw (as-double-float (/ dw norm2))
@@ -279,6 +279,8 @@ ANGLE-IN-RADIANS around the arbitrary vector AXIS-OF-ROTATION. Return QUAT."
 ;; http://www.gamasutra.com/view/feature/131686/rotating_objects_using_quaternions.php
 ;; which looks like it was gotten from "Advanced Animation and
 ;; Rendering Techniques" by Watt et al page 363-364
+;;
+;; NOTE: I fixed this to be column major ordering.
 
 ;; TODO: Fix optimization. PROGN is supposed to be AS-DOUBLE-FLOAT but it it too
 ;; dumb to notice the function calls.
@@ -389,3 +391,5 @@ store the resultant quaternion into QUAT-RESULT. Return QUAT-RESULT."
 (defun quat-slerp (quat-src quat-dst interp)
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   (quat-slerp-into (pquat) quat-src quat-dst interp))
+
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

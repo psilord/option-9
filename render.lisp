@@ -8,7 +8,13 @@
 (defmethod render ((ent drawable) jutter-interpolant)
   (declare (ignorable jutter-interpolant))
 
-  (let ((geometry (geometry ent)))
+  (let ((geometry (geometry ent))
+        ;; And compute the rendering interpolation to remove juttering.
+        (model-interpolated
+         (interpolate-transform-matricies (previous-world-basis ent)
+                                          (world-basis ent)
+                                          jutter-interpolant)))
+
     ;; only render if we actually have a geometry to render.
     (when geometry
 
@@ -25,7 +31,7 @@
       ;; interpolation.
 
       ;; Then put the object into the camera's coordinate system.
-      (gl:mult-matrix (matrix-convert-to-opengl (world-basis ent)))
+      (gl:mult-matrix (matrix-convert-to-opengl model-interpolated))
 
       ;; render a list of possibly differing primitives associated with
       ;; this shape. NOTE: this is really simple, nothing like texturing
@@ -65,7 +71,7 @@
           ;; be perpendicular to the camera.
           (gl:mult-matrix
            (matrix-convert-to-opengl
-            (mtr (matrix-translate-get (world-basis ent)))))
+            (mtr (matrix-translate-get model-interpolated))))
 
           ;; draw with respect to local coordinate system.
           (with-pvec-accessors (o (pvec 0d0 0d0 0d0))

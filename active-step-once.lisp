@@ -15,9 +15,9 @@ the FUNC to each frame as one walks towards the leaves."
          (walk-frame-hierarchy c func))))
 
 (defmethod resolve-world-basis ((f frame))
-  ;; save off the current world-basis so I can interpolate the rendering later
-  ;; of whatever is using this frame later.
-  (mcpi (previous-world-basis f) (world-basis f))
+  ;; copy over the current matrix to the previous one for jutter removal.
+  (when (previous-world-basis f)
+    (mcpi (previous-world-basis f) (world-basis f)))
 
   ;; If I have a parent, then compute my world-coordinates in relation
   ;; to it.  The "universe" frame's world coord is identity and never
@@ -25,7 +25,14 @@ the FUNC to each frame as one walks towards the leaves."
   ;; meaningless.
   (if (parent f)
       (mmi (world-basis f) (world-basis (parent f)) (local-basis f))
-      (mcpi (world-basis f) (local-basis f))))
+      (mcpi (world-basis f) (local-basis f)))
+
+  ;; If this is the first time we resolve this basis, copy the exact
+  ;; same thing over which, for the first frame of existence, does no
+  ;; jutter removal (since it can't).
+  (unless (previous-world-basis-defined-p f)
+    (mcpi (previous-world-basis f) (world-basis f))
+    (setf (previous-world-basis-defined-p f) T)))
 
 ;; XXX Transform each one of these operations into VERBS, it'll make clipping
 ;; and other effects much easier.

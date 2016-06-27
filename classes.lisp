@@ -315,6 +315,10 @@ vector at that position"))
    (%world-basis :initarg :world-basis
                  :initform (matrix-identity)
                  :accessor world-basis)
+   ;; Set to NIL if there is no previous basis, set to T when it is defined.
+   (%previous-world-basis-defined-p :initarg :previous-world-basis-defined-p
+                                    :initform nil
+                                    :accessor previous-world-basis-defined-p)
    ;; previous storage of the model matrix for jutter removal
    (%previous-world-basis :initarg :previous-world-basis
                           :initform (matrix-identity)
