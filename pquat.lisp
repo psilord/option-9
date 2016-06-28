@@ -135,7 +135,7 @@
              dz (as-double-float (/ qz norm)))))
   dst)
 
-(defun quat-nroamlize (quat)
+(defun quat-normalize (quat)
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   (quat-normalize-into (pquat) quat))
 
