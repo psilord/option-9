@@ -105,6 +105,8 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
 ;; Generic means to get the real-world location where something should spawn.
 ;; TODO: This may need work when dealing with relative to a parent locations.
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmethod resolve-spawn-location (loc/ent)
+  (error "resolve-spawn-location: Can't resolve the location of something I don't understand!"))
 
 ;; Assume this will be a PVEC, break in an undefined manner otherwise.
 (defmethod resolve-spawn-location ((loc/ent simple-array))
