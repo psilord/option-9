@@ -213,7 +213,9 @@
                    (spawn
                     'sp-sparks :insts/sparks (pvec (x loc) (y loc) (z loc))
                     *game*
-                    :num-sparks 2 :ttl-max 5 :velocity-factor .2d0))))))))
+                    :num-sparks 1
+                    :ttl-max (in-usecs .075)
+                    :velocity-factor .2d0))))))))
    (entity-contacts f)))
 
 ;; field mines follow the field back to the generating ship and are
