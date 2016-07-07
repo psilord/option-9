@@ -3,6 +3,10 @@
 #+(or (not option-9-optimize-pvec) option-9-debug)
 (declaim (optimize (safety 3) (space 0) (speed 0) (debug 3)))
 
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; An implementation of quaternions.
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defparameter *quaternion-slerp-epsilon-radians* (/ pi 180d0)) ;; 1 degree
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -19,10 +23,10 @@
 
   (defmacro with-pquat-accessors ((prefix-symbol pquat) &body body)
     `(with-accessors
-           ((,(alexandria:symbolicate prefix-symbol "X") pquat-x)
+           ((,(alexandria:symbolicate prefix-symbol "W") pquat-w)
+            (,(alexandria:symbolicate prefix-symbol "X") pquat-x)
             (,(alexandria:symbolicate prefix-symbol "Y") pquat-y)
-            (,(alexandria:symbolicate prefix-symbol "Z") pquat-z)
-            (,(alexandria:symbolicate prefix-symbol "W") pquat-w))
+            (,(alexandria:symbolicate prefix-symbol "Z") pquat-z))
          ,pquat
        ,@body))
 
@@ -208,6 +212,7 @@ ANGLE-IN-RADIANS around the arbitrary vector AXIS-OF-ROTATION. Return QUAT."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   (let ((normalized-axis-of-rotation (vnorm axis-of-rotation))
         (sin-of-half-angle (as-double-float (sin (/ angle-in-radians 2d0)))))
+    (declare (type double-float sin-of-half-angle))
     (with-pvec-accessors (a normalized-axis-of-rotation)
       (with-pquat-accessors (q quat)
         (psetf qw (as-double-float (cos (/ angle-in-radians 2d0)))
@@ -219,6 +224,19 @@ ANGLE-IN-RADIANS around the arbitrary vector AXIS-OF-ROTATION. Return QUAT."
 (defun quat-rotation (angle-in-radians axis-of-rotation)
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   (quat-rotation-into (pquat) angle-in-radians axis-of-rotation))
+
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun quat-rotate-into (dst-point point qrot)
+  "Rotate a pvec POINT by the rotation stored in QROT and store the rotated
+point in the pvec DST-POINT."
+  (quat-extract-pure-into dst-point
+                          (quat-mul qrot
+                                    (quat-mul (quat-create-pure point)
+                                              (quat-inverse qrot)))))
+
+(defun quat-rotate (point qrot)
+  (quat-rotate-into (pvec) point qrot))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
