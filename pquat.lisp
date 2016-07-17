@@ -86,9 +86,9 @@
   (with-multiple-pquat-accessors ((d dst) (a qa) (b qb))
     (psetf
      dw (as-double-float (- (* aw bw) (* ax bx) (* ay by) (* az bz)))
-     dx (as-double-float (- (+ (* aw bx) (* bw ax) (* ay bz)) (* by az)))
-     dy (as-double-float (- (+ (* aw by) (* bw ay) (* az bx)) (* bz ax)))
-     dz (as-double-float (- (+ (* aw bz) (* bw az) (* ax by)) (* bx ay)))))
+     dx (as-double-float (- (+ (* aw bx) (* ax bw) (* ay bz)) (* az by)))
+     dy (as-double-float (- (+ (* aw by) (* ay bw) (* az bx)) (* ax bz)))
+     dz (as-double-float (- (+ (* aw bz) (* az bw) (* ax by)) (* ay bx)))))
   dst)
 
 (defun quat-mul (qa qb)
