@@ -142,12 +142,12 @@ pvectors which happen to be used as points."
          ;; Compute the cross product of l and w
          (lw-cross (vcross l w))
          ;; Get the magnitude of lw-cross
-         (lw-cross-mag (vmag lw-cross))
+         (lw-cross-mag (vnorm lw-cross))
          ;; Then compute the magnitiude of l
-         (l-mag (vmag l)))
+         (l-norm (vnorm l)))
 
     ;; Now, compute the distance and return it
-    (/ lw-cross-mag l-mag)))
+    (/ lw-cross-mag l-norm)))
 
 
 ;; single threaded cache of memory for the enclosed function to prevent

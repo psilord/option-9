@@ -206,11 +206,11 @@
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun quat-rotation-into (quat angle-in-radians axis-of-rotation)
+(defun quat-rotate-around-into (quat angle-in-radians axis-of-rotation)
   "Create a quaternion into QUAT that represents a rotation of
 ANGLE-IN-RADIANS around the arbitrary vector AXIS-OF-ROTATION. Return QUAT."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
-  (let ((normalized-axis-of-rotation (vnorm axis-of-rotation))
+  (let ((normalized-axis-of-rotation (vnormalize axis-of-rotation))
         (sin-of-half-angle (as-double-float (sin (/ angle-in-radians 2d0)))))
     (declare (type double-float sin-of-half-angle))
     (with-pvec-accessors (a normalized-axis-of-rotation)
@@ -221,13 +221,13 @@ ANGLE-IN-RADIANS around the arbitrary vector AXIS-OF-ROTATION. Return QUAT."
                qz (as-double-float (* az sin-of-half-angle))))))
   quat)
 
-(defun quat-rotation (angle-in-radians axis-of-rotation)
+(defun quat-rotate-around (angle-in-radians axis-of-rotation)
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
-  (quat-rotation-into (pquat) angle-in-radians axis-of-rotation))
+  (quat-rotate-around-into (pquat) angle-in-radians axis-of-rotation))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun quat-rotate-into (dst-point point qrot)
+(defun quat-apply-into (dst-point point qrot)
   "Rotate a pvec POINT by the rotation stored in QROT and store the rotated
 point in the pvec DST-POINT."
   (quat-extract-pure-into dst-point
@@ -235,8 +235,8 @@ point in the pvec DST-POINT."
                                     (quat-mul (quat-create-pure point)
                                               (quat-inverse qrot)))))
 
-(defun quat-rotate (point qrot)
-  (quat-rotate-into (pvec) point qrot))
+(defun quat-apply (point qrot)
+  (quat-apply-into (pvec) point qrot))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

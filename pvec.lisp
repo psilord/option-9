@@ -323,9 +323,9 @@ storing it into into DST."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declaim (ftype (function (pvec) double-float) vect-magnitude))
-(declaim (inline vect-magnitude))
-(defun vect-magnitude (src)
+(declaim (ftype (function (pvec) double-float) vect-norm))
+(declaim (inline vect-norm))
+(defun vect-norm (src)
   "Compute the double-float Euclidean magnitude of SRC and return it."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   ;; And remove the compiler note about the boxed double-float I'm trying
@@ -339,16 +339,16 @@ storing it into into DST."
                    (* sy sy)
                    (* sz sz)))))))
 
-(declaim (ftype (function (pvec) double-float) vmag))
-(declaim (inline vmag))
-(defun vmag (src)
-  "Shortname for VECT-MAGNITUDE."
+(declaim (ftype (function (pvec) double-float) vnorm))
+(declaim (inline vnorm))
+(defun vnorm (src)
+  "Shortname for VECT-NORM."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   ;; And remove the compiler note about the boxed double-float I'm trying
   ;; to return.
   #+(and :option-9-optimize-pvec :sbcl)
   (declare (sb-ext:muffle-conditions sb-ext:compiler-note))
-  (vect-magnitude src))
+  (vect-norm src))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -357,16 +357,16 @@ storing it into into DST."
 (defun vect-normalize-into (dst src)
   "Normalize SRC and put result into DST. Return DST."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
-  (let ((mag (vmag src)))
+  (let ((mag (vnorm src)))
     (with-multiple-pvec-accessors ((d dst) (s src))
       (psetf dx (as-double-float (/ sx mag))
              dy (as-double-float (/ sy mag))
              dz (as-double-float (/ sz mag))))
     dst))
 
-(declaim (ftype (function (pvec pvec) pvec) vnormi))
-(declaim (inline vnormi))
-(defun vnormi (dst src)
+(declaim (ftype (function (pvec pvec) pvec) vnormalizei))
+(declaim (inline vnormalizei))
+(defun vnormalizei (dst src)
   "Shortname for VECT-NORMALIZE-INTO."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   (vect-normalize-into dst src))
@@ -378,11 +378,11 @@ storing it into into DST."
 (defun vect-normalize (src)
   "Allocate a new pvec that contains the normalization of SRC and return it."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
-  (vnormi (pvec) src))
+  (vnormalizei (pvec) src))
 
-(declaim (ftype (function (pvec) pvec) vnorm))
-(declaim (inline vnorm))
-(defun vnorm (src)
+(declaim (ftype (function (pvec) pvec) vnormalize))
+(declaim (inline vnormalize))
+(defun vnormalize (src)
   "Shortname for VECT-NORMALIZE."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   (vect-normalize src))
@@ -625,8 +625,8 @@ DOUBLE-FLOAT SCALE-FACTOR."
     (return-from vect-angle 0.0d0))
 
   (let ((dot (vdot pva pvb))
-        (a-mag (vmag pva))
-        (b-mag (vmag pvb)))
+        (a-mag (vnorm pva))
+        (b-mag (vnorm pvb)))
     (as-double-float (acos (/ dot (* a-mag b-mag))))))
 
 (declaim (ftype (function (pvec pvec) double-float) vangle))

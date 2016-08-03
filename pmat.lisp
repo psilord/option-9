@@ -401,7 +401,7 @@ into the ROTATION transformation matrix that will rotate around the
 vector AXIS by the specified ANGLE. This assumes a right handed
 coordinate system. Similar to glRotate()."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (let ((norm-axis (vnorm axis))
+  (let ((norm-axis (vnormalize axis))
         (c (as-double-float (cos angle)))
         (s (as-double-float (sin angle))))
     #+option-9-optimize-pmat
@@ -1590,8 +1590,8 @@ submatrix. Do not use the same vector for both AT-DIR and UP-DIR."
     (let* ((at (ecase at-dir ((:x) xv) ((:y) yv) ((:z) zv)))
            (up (ecase up-dir ((:x) xv) ((:y) yv) ((:z) zv)))
            ;; Create the u v n of the new view matrix
-           (u (vnorm (vcross up at)))
-           (n (vnorm at))
+           (u (vnormalize (vcross up at)))
+           (n (vnormalize at))
            (v (vcross n u))
            ;; create an inverted camera rotation
            (inv-rot (matrix-invert-trfm (matrix-rotation-vectors-set u v n)))
