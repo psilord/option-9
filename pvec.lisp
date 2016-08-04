@@ -281,6 +281,7 @@ values into DST."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; TODO fix to be vect-clamp instead.
 (declaim (ftype (function (pvec pvec) pvec) vect-stabilize-into))
 (declaim (inline vect-stabilize-into))
 (defun vect-stabilize-into (dst src)
@@ -620,14 +621,12 @@ DOUBLE-FLOAT SCALE-FACTOR."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
   #+(and :option-9-optimize-pvec :sbcl)
   (declare (sb-ext:muffle-conditions sb-ext:compiler-note))
-  (when (or (vzerop pva) (vzerop pvb))
-    ;; Avoid a divide by zero, assume they are coincident.
-    (return-from vect-angle 0.0d0))
-
   (let ((dot (vdot pva pvb))
-        (a-mag (vnorm pva))
-        (b-mag (vnorm pvb)))
-    (as-double-float (acos (/ dot (* a-mag b-mag))))))
+        (denom (* (vnorm pva) (vnorm pvb))))
+
+    (if (zerop denom)
+        0d0
+        (as-double-float (acos (/ dot denom))))))
 
 (declaim (ftype (function (pvec pvec) double-float) vangle))
 (declaim (inline vangle))
