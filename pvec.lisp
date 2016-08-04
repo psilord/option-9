@@ -281,7 +281,6 @@ values into DST."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO fix to be vect-clamp instead.
 (declaim (ftype (function (pvec pvec) pvec) vect-stabilize-into))
 (declaim (inline vect-stabilize-into))
 (defun vect-stabilize-into (dst src)
