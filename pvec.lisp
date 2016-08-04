@@ -747,18 +747,38 @@ be one of:
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun vect-interpolate-into (dst from to interp)
+(defun dlerp (a b interp)
+  "Perform a linear interpolation from double-float A to double-float B
+with double-float INTERP being the interpolant value. Return the interpolated
+value as a double-float."
+  #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
+  (as-double-float
+   (+ (* (- 1d0 interp) a) (* interp b))))
+
+(defun vect-interpolate-into (dst from to interp &key (interp-func #'dlerp))
+
   "Interpolate from pvec FROM to pvec TO by INTERP. Put result into pvec DST
 and return it."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
-  (flet ((dlerp (a b interp)
-           (as-double-float (+ (* (- 1d0 interp) a) (* interp b)))))
-    (with-multiple-pvec-accessors ((d dst) (f from) (e to))
-      (psetf dx (dlerp fx ex interp)
-             dy (dlerp fy ey interp)
-             dz (dlerp fz ez interp))))
+  (with-multiple-pvec-accessors ((d dst) (f from) (e to))
+    (psetf dx (funcall interp-func fx ex interp)
+           dy (funcall interp-func fy ey interp)
+           dz (funcall interp-func fz ez interp)))
   dst)
 
-(defun vect-interpolate (from to interp)
+(defun vinterpi (dst from to interp &key (interp-func #'dlerp))
+  "Shortname for VECT-INTERPOLATE-INTO."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
-  (vect-interpolate-into (pvec) from to interp))
+  (vect-interpolate-into dst from to interp :interp-func interp-func))
+
+;;; ;;;;;;;;
+
+(defun vect-interpolate (from to interp &key (interp-func #'dlerp))
+  #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
+  (vect-interpolate-into (pvec) from to interp :interp-func interp-func))
+
+(defun vinterp (from to interp &key (interp-func #'dlerp))
+  #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
+  (vect-interpolate from to interp :interp-func interp-func))
+
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
