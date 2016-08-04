@@ -747,6 +747,9 @@ be one of:
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declaim (ftype (function (double-float double-float double-float) double-float)
+                dlerp))
+(declaim (inline dlerp))
 (defun dlerp (a b interp)
   "Perform a linear interpolation from double-float A to double-float B
 with double-float INTERP being the interpolant value. Return the interpolated
