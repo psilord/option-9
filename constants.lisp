@@ -10,7 +10,7 @@
   ;; a single unit of time in seconds
   (defparameter *dt* (/ 1d0 *hz*))
   ;; a single unit of time in usecs.
-  (defparameter *dt-us* (* *dt* 1000000d0)))
+  (defparameter *dt-us* (truncate (* *dt* 1000000d0))))
 
 (defun per-hz (val)
   ;; Because I'm using a fixed timestep, figure out the incremental
@@ -59,4 +59,3 @@ writing this macro and then thrown into hell for naming it thusly."
 (defconstant +game-height+ 128)
 
 (defparameter *windowed-modes* '((1280 . 1024) (640 . 512)))
-

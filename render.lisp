@@ -7,7 +7,6 @@
 
 (defmethod render ((ent drawable) jutter-interpolant)
   (declare (ignorable jutter-interpolant))
-
   (let ((geometry (geometry ent))
         ;; And compute the rendering interpolation to remove juttering.
         (model-interpolated
@@ -17,7 +16,6 @@
 
     ;; only render if we actually have a geometry to render.
     (when geometry
-
 
       ;; Give opengl my world-basis so all verticies are computed by ogl.
       (gl:matrix-mode :modelview)
