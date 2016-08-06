@@ -325,7 +325,8 @@ Powerups:
                      (setf now (local-time:now))
 
                      (let* ((step-count 0)
-                            (frame-time (timestamp-subtract now previous-time)))
+                            (frame-time (timestamp-subtract now previous-time))
+                            (observed-frame-time frame-time))
 
                        (incf frame-count)
 
@@ -378,8 +379,8 @@ Powerups:
                            (setf frame-count-fps 0
                                  frame-time-accum 0)))
 
-                       (format t "~A ~A ~A ~A ~A~%"
-                                  frame-count step-count frame-time dt-accum
+                       (format t "~A ~A ~A ~A ~A ~A~%"
+                                  frame-count step-count observed-frame-time frame-time dt-accum
                                (/ dt-accum (float *dt-us* 1d0)))
                        ;; Compute the Rendering Interpolant to remove jutter.
                        (display *game* (/ dt-accum (float *dt-us* 1d0)))
