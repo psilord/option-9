@@ -333,6 +333,7 @@ Powerups:
                        #+-(when (> frame-time (* *dt-us* 10d0))
                          (setf frame-time (* *dt-us* 10d0)))
 
+                       (progn
                        ;; Do frank's algorithm
                        #+-(format t "~A frame-time ~A frank-delta-buffer ~A~%"
                                frame-count frame-time frank-delta-buffer)
@@ -347,6 +348,7 @@ Powerups:
                        (setf frank-delta-buffer
                              (- frank-previous-delta frame-time))
                        #+-(format t "New frame-time = ~A~%" frame-time)
+                       )
 
 
 
@@ -376,7 +378,7 @@ Powerups:
                            (setf frame-count-fps 0
                                  frame-time-accum 0)))
 
-                       #+-(format t "~A ~A ~A ~A ~A~%"
+                       (format t "~A ~A ~A ~A ~A~%"
                                   frame-count step-count frame-time dt-accum
                                (/ dt-accum (float *dt-us* 1d0)))
                        ;; Compute the Rendering Interpolant to remove jutter.
