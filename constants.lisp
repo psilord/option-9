@@ -15,7 +15,16 @@
 (defun per-hz (val)
   ;; Because I'm using a fixed timestep, figure out the incremental
   ;; rate for the fixed update hertz I am using.
-  (/ val *hz*))
+  (as-double-float (/ val *hz*)))
+
+(defun per-sec (val)
+  ;; Return the value as a slice of *dt*.
+  (as-double-float (* val *dt*)))
+
+(defun in-usecs (seconds)
+  "Convert a floating point value denoting SECONDS into an equivalent
+integer of usecs and return it."
+  (truncate (* seconds 1000000)))
 
 (defun %? (the-keyword)
   "Lookup a constant represented by a keyword and return its

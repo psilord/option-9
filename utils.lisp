@@ -8,11 +8,6 @@ The keyword argument TRUNCP indicates if the result should be TRUNCATed or not."
   (let ((result (+ (* (- 1.0 interp) a) (* interp b))))
     (if truncp (truncate result) result)))
 
-(defun in-usecs (seconds)
-  "Convert a floating point value denoting SECONDS into an equivalent
-integer of usecs and return it."
-  (truncate (* seconds 1000000)))
-
 (defmethod distance ((a frame) (b frame) &key (sqrt t))
   (let ((ao (matrix-translate-get (world-basis a)))
         (bo (matrix-translate-get (world-basis b))))

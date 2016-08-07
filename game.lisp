@@ -199,7 +199,8 @@
     (incf (highscore game) (- (score game) (highscore game)))))
 
 (defun display (game jutter-interpolant)
-  (gl:clear :color-buffer-bit)
+  (format t "Display a frame...~%")
+  (gl:clear :color-buffer-bit :depth-buffer-bit)
   (walk-frame-hierarchy (root (scene-man game))
                         (lambda (entity)
                           (render entity jutter-interpolant))))
@@ -220,11 +221,11 @@
         (when (zerop (enemy-spawn-timer game))
           (setf (enemy-spawn-timer game) (1+ (random 90)))
           ;; Just pick a random enemy from the various enemy instances
-          (spawn 'sp-enemy :insts/enemies NIL game))
+          #+-(spawn 'sp-enemy :insts/enemies NIL game))
         )
 
       ;; 3. Show the score boards
-      (realize-score-boards game)
+      #+-(realize-score-boards game)
 
       ;; 4. If possible, make concrete all currently pending spawns into
       ;; the scene tree.  This makes them actually show up in the game

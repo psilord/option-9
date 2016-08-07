@@ -325,14 +325,15 @@ Powerups:
                      (setf now (local-time:now))
 
                      (let* ((step-count 0)
-                            (frame-time (timestamp-subtract now previous-time))
+                            (frame-time
+                             (/ (timestamp-subtract now previous-time) 1d6))
                             (observed-frame-time frame-time))
 
                        (incf frame-count)
 
                        ;; Set maximum frame time in case we slow down beyond it.
-                       #+-(when (> frame-time (* *dt-us* 10d0))
-                         (setf frame-time (* *dt-us* 10d0)))
+                       #+-(when (> frame-time (* *dt* 10d0))
+                         (setf frame-time (* *dt* 10d0)))
 
                        (progn
                        ;; Do frank's algorithm
@@ -340,12 +341,11 @@ Powerups:
                                frame-count frame-time frank-delta-buffer)
                        (incf frame-time frank-delta-buffer)
                        (setf frank-frame-count
-                             (truncate (1+ (* (/ frame-time 1000000d0) 60d0))))
+                             (truncate (1+ (* frame-time 60d0))))
                        (when (<= frank-frame-count 0)
                          (setf frank-frame-count 1))
                        (setf frank-previous-delta frame-time)
-                       (setf frame-time
-                             (truncate (* (/ frank-frame-count 60d0) 1000000d0)))
+                       (setf frame-time (/ frank-frame-count 60d0))
                        (setf frank-delta-buffer
                              (- frank-previous-delta frame-time))
                        #+-(format t "New frame-time = ~A~%" frame-time)
@@ -358,10 +358,10 @@ Powerups:
                        (incf dt-accum frame-time)
 
                        ;; Consume the generated time in the physics
-                       (loop while (>= dt-accum *dt-us*) do
+                       (loop while (>= dt-accum *dt*) do
                             (step-game *game*)
                             (incf step-count)
-                            (decf dt-accum *dt-us*))
+                            (decf dt-accum *dt*))
 
                        ;; Keep track of & emit stuff for FPS.
                        ;;
@@ -381,9 +381,9 @@ Powerups:
 
                        (format t "~A ~A ~A ~A ~A ~A~%"
                                   frame-count step-count observed-frame-time frame-time dt-accum
-                               (/ dt-accum (float *dt-us* 1d0)))
+                               (/ dt-accum (float *dt* 1d0)))
                        ;; Compute the Rendering Interpolant to remove jutter.
-                       (display *game* (/ dt-accum (float *dt-us* 1d0)))
+                       (display *game* (/ dt-accum (float *dt* 1d0)))
 
                        ;; Start processing buffered OpenGL routines.
                        (sdl2:gl-swap-window game-window))))))))))
