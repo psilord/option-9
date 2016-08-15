@@ -92,34 +92,6 @@ The keyword argument TRUNCP indicates if the result should be TRUNCATed or not."
 (defmacro mihtequalp (&body keys/values)
   `(make-initialized-hash-table (:test #'equalp) ,@keys/values))
 
-
-(defun timestamp-subtract (x y)
-  "Perform (- X Y) with the LOCAL-TIME objects and return +/- usec of the
-difference.
-
-Inspired from: http://www.gnu.org/savannah-checkouts/gnu/libc/manual/html_node/Elapsed-Time.html"
-  (let* ((sx (local-time:timestamp-to-unix x))
-         (ux (truncate (local-time:nsec-of x) 1000)) ; convert nsec to usec
-         (sy (local-time:timestamp-to-unix y))
-         (uy (truncate (local-time:nsec-of y) 1000))) ; convert nsec to usec
-
-    (cond
-      ((< ux uy)
-       (let ((nsec (1+ (truncate (- uy ux) 1000000))))
-         (psetf uy (- uy (* nsec 1000000))
-                sy (+ sy nsec)))))
-
-    (cond
-      ((> (- ux uy) 1000000)
-       (let ((nsec (truncate (- ux uy) 1000000)))
-         (psetf uy (+ uy (* nsec 1000000))
-                sy (- sy nsec)))))
-
-    (let ((sr (- sx sy))
-          (ur (- ux uy)))
-      ;; Return the +/- difference in usec.
-      (+ (* sr 1000000) ur))))
-
 ;; TODO: This math utility needs a better home and memory optimization.
 (defun dist-line-point (s e p)
   "Find the shortest distance from point P to the infinite line
@@ -173,3 +145,13 @@ Return MAT-DST. The interpolation happens via conversion to quaternions."
 
 (defun interpolate-transform-matricies (mat-from mat-to interp)
   (interpolate-transform-matricies-into (pmat) mat-from mat-to interp))
+
+
+(defun get-monitor-refresh-rate ()
+  ;; TODO: Put a config entry in here in case I need to specify it manually.
+  ;; This isn't exactly right, since some LCD monitors use 59.95 and
+  ;; SDL just truncates it to an integer.
+  (let ((val (nth-value 3 (sdl2:get-current-display-mode 0))))
+    (if (or (null val) (zerop val))
+        60d0
+        59.95d0 #++(float val 1d0))))

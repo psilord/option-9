@@ -5,6 +5,15 @@
 (defmethod render (ent jutter-interpolant)
   nil)
 
+(defparameter *hackmax* (* 60 4)) ;; in seconds.
+(defparameter *hack* (make-hash-table :test 'equal))
+(defparameter *hackiter* 0)
+(defstruct hackit
+  (replayingp NIL)
+  (write-index 0)
+  (read-index 0)
+  (transforms (make-array *hackmax* :initial-element NIL)))
+
 (defmethod render ((ent drawable) jutter-interpolant)
   (declare (ignorable jutter-interpolant))
   (let ((geometry (geometry ent))
@@ -13,6 +22,35 @@
          (interpolate-transform-matricies (previous-world-basis ent)
                                           (world-basis ent)
                                           jutter-interpolant)))
+
+    (when NIL
+      ;; ONE BIG HACK to cycle N frames of data.
+      (multiple-value-bind (hit presentp)
+          (gethash ent *hack*)
+        ;; If I haven't recorded any for this entity, do so and keep going
+        (unless presentp
+          (let ((nhit (make-hackit)))
+            (setf (gethash ent *hack*) nhit)
+            (setf hit nhit)))
+
+        ;; If I do have one, see if I've writetn the max I could into it.
+        (cond
+          ((hackit-replayingp hit)
+           (setf model-interpolated
+                 (aref (hackit-transforms hit) (hackit-read-index hit)))
+           (incf (hackit-read-index hit))
+           ;; reset to zero if gone too fr.
+           (when (= (hackit-read-index hit) *hackmax*)
+             (setf (hackit-read-index hit) 0)))
+          (t
+           ;; not replaying, so storing.
+           (setf (aref (hackit-transforms hit) (hackit-write-index hit))
+                 model-interpolated)
+           (incf (hackit-write-index hit))
+           (when (= (hackit-write-index hit) *hackmax*)
+             (setf (hackit-replayingp hit) T))))))
+
+
 
     ;; only render if we actually have a geometry to render.
     (when geometry
@@ -37,16 +75,11 @@
       (dolist (primitive (primitives geometry))
         (gl:with-primitive (car primitive)
           ;; render each specific primitive
-          (let ((vertex (pvec)))
-            (dolist (vertex/color (cdr primitive))
-              ;; Apply the point to the world basis of the
-              ;; drawable.
-              (destructuring-bind ((vx vy vz) (cx cy cz))
-                  vertex/color
-                (gl:color cx cy cz)
-                (vseti vertex vx vy vz)
-                (with-pvec-accessors (w vertex)
-                  (gl:vertex wx wy wz)))))))
+          (dolist (vertex/color (cdr primitive))
+            (destructuring-bind ((vx vy vz) (cx cy cz))
+                vertex/color
+              (gl:color cx cy cz)
+              (gl:vertex vx vy vz)))))
 
       (gl:pop-matrix)
 

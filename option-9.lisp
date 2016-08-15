@@ -78,13 +78,14 @@
       (sdl2:hide-cursor))
     (format t "Exiting Text Console.~%")))
 
-
-#+ignore(defun option-9-profiled ()
-          (sb-sprof:profile-call-counts "OPTION-9")
-          (sb-sprof:with-profiling (:max-samples 1000000
-                                                 :report :flat
-                                                 :loop nil)
-            (option-9)))
+#+-
+(defun option-9-profiled ()
+  (sb-sprof:profile-call-counts "OPTION-9")
+  (sb-sprof:with-profiling (:max-samples 1000000
+                                         :mode :time
+                                         :report :flat
+                                         :loop nil)
+    (option-9)))
 
 (defun initialize-joysticks ())
 ;; (let ((num-sticks (sdl2:joystick-count)))
@@ -153,8 +154,8 @@ Powerups:
       (set-initial-game-window-size *game*)
       ;; for post processing smoothing of the lines and whantot.
       ;; set before I make the window and OpenGL context.
-      ;;(sdl2:gl-set-attr :multisamplebuffers 1)
-      ;;(sdl2:gl-set-attr :multisamplesamples 4)
+      (sdl2:gl-set-attr :multisamplebuffers 1)
+      (sdl2:gl-set-attr :multisamplesamples 4)
       (sdl2:with-window (game-window :title "Option 9 Version 0.9"
                                      :w (window-width *game*)
                                      :h (window-height *game*)
@@ -164,7 +165,7 @@ Powerups:
         (sdl2:gl-set-attr :depth-size 24)
         (sdl2:with-gl-context (gl-context game-window)
           (sdl2:gl-make-current game-window gl-context)
-          (sdl2:gl-set-swap-interval 1) ;; Lock to vsync
+          (sdl2:gl-set-swap-interval 1) ;; Turn on vsync
           (sdl2:hide-cursor)
           (gl:clear-color 0 0 0 0)
 
@@ -206,6 +207,9 @@ Powerups:
 
           (initialize-joysticks)
 
+          (format t "Monitor refresh rate is: ~A hz~%"
+                  (get-monitor-refresh-rate))
+
           (let ((emit-fps-p nil)
                 (now (local-time:now))
                 (previous-time (local-time:now))
@@ -215,6 +219,7 @@ Powerups:
                 (frame-time-accum 0)
                 (frank-delta-buffer 0)
                 (frank-frame-count 0)
+                (last-coeff 0d0)
                 (frank-previous-delta 0))
             (sdl2:with-event-loop (:method :poll)
               (:quit () t)
@@ -326,32 +331,33 @@ Powerups:
 
                      (let* ((step-count 0)
                             (frame-time
-                             (/ (timestamp-subtract now previous-time) 1d6))
+                             (local-time:timestamp-difference
+                              now previous-time))
                             (observed-frame-time frame-time))
 
                        (incf frame-count)
 
                        ;; Set maximum frame time in case we slow down beyond it.
-                       #+-(when (> frame-time (* *dt* 10d0))
-                         (setf frame-time (* *dt* 10d0)))
+                       (when (> frame-time (* *dt* 5d0))
+                         (setf frame-time (* *dt* 5d0)))
 
                        (progn
-                       ;; Do frank's algorithm
-                       #+-(format t "~A frame-time ~A frank-delta-buffer ~A~%"
-                               frame-count frame-time frank-delta-buffer)
-                       (incf frame-time frank-delta-buffer)
-                       (setf frank-frame-count
-                             (truncate (1+ (* frame-time 60d0))))
-                       (when (<= frank-frame-count 0)
-                         (setf frank-frame-count 1))
-                       (setf frank-previous-delta frame-time)
-                       (setf frame-time (/ frank-frame-count 60d0))
-                       (setf frank-delta-buffer
-                             (- frank-previous-delta frame-time))
-                       #+-(format t "New frame-time = ~A~%" frame-time)
-                       )
-
-
+                         ;; Do frank's algorithm
+                         #+-(format t "~A frame-time ~A frank-delta-buffer ~A~%"
+                                    frame-count frame-time frank-delta-buffer)
+                         (incf frame-time frank-delta-buffer)
+                         (setf frank-frame-count
+                               (truncate (1+ (* frame-time
+                                                (get-monitor-refresh-rate)))))
+                         (when (<= frank-frame-count 0)
+                           (setf frank-frame-count 1))
+                         (setf frank-previous-delta frame-time)
+                         (setf frame-time (/ frank-frame-count
+                                             (get-monitor-refresh-rate)))
+                         (setf frank-delta-buffer
+                               (- frank-previous-delta frame-time))
+                         #+-(format t "New frame-time = ~A~%" frame-time)
+                         )
 
                        ;; accumulate the time we just spent doing the
                        ;; last frame.
@@ -368,25 +374,31 @@ Powerups:
                        ;; TODO: Should change this to keep track of
                        ;; average usecs per frame instead.
                        #+-(when emit-fps-p
-                         (incf frame-count-fps)
-                         (incf frame-time-accum frame-time)
-                         (when (>= frame-time-accum (in-usecs 1.0)) ;; every second..
-                           (format t "frame-count = ~A frame-time-accum = ~A sec fps = ~A~%"
-                                   frame-count-fps
-                                   (/ frame-time-accum 1000000.0)
-                                   (/ frame-count-fps (/ frame-time-accum 1000000.0)))
-                           (finish-output)
-                           (setf frame-count-fps 0
-                                 frame-time-accum 0)))
-
-                       (format t "~A ~A ~A ~A ~A ~A~%"
+                            (incf frame-count-fps)
+                            (incf frame-time-accum frame-time)
+                            (when (>= frame-time-accum (in-usecs 1.0)) ;; every second..
+                              (format t "frame-count = ~A frame-time-accum = ~A sec fps = ~A~%"
+                                      frame-count-fps
+                                      (/ frame-time-accum 1000000.0)
+                                      (/ frame-count-fps (/ frame-time-accum 1000000.0)))
+                              (finish-output)
+                              (setf frame-count-fps 0
+                                    frame-time-accum 0)))
+                       #++(format t "~A ~A ~A ~A ~A ~A~%"
                                   frame-count step-count observed-frame-time frame-time dt-accum
-                               (/ dt-accum (float *dt* 1d0)))
+                                  (/ dt-accum (float *dt* 1d0)))
                        ;; Compute the Rendering Interpolant to remove jutter.
-                       (display *game* (/ dt-accum (float *dt* 1d0)))
+                       (display *game* (lerp last-coeff (/ dt-accum (float *dt* 1d0)) .5))
+                       (setf last-coeff (/ dt-accum (float *dt* 1d0)))
 
                        ;; Start processing buffered OpenGL routines.
-                       (sdl2:gl-swap-window game-window))))))))))
+                       (sdl2:gl-swap-window game-window)
+                       ;;TODO: Crappy hack!
+                       ;; Required to make my GTX 660 not microstutter.
+                       ;; Also need the correct refresh rate for my monitor.
+                       ;; This is actually horrible since it causes 100%
+                       ;; cpu usage.
+                      #+-(gl:finish))))))))))
 
 (defun option-9 ()
   (sdl2:make-this-thread-main #'game-main))

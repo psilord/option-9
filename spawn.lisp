@@ -250,7 +250,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                         :roles (:player)
                         :flyingp t
                         :dv ,(pvec (per-game-width game 50.0)
-                                   (per-game-height game 50.0)
+                                   (per-game-height game 5.0)
                                    0d0)
                         ,@extra-init)))
 

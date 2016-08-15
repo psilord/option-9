@@ -939,40 +939,40 @@ LEFT, RIGHT, BOTTOM, TOP, NEAR, and FAR."
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declaim (ftype (function ((simple-array double-float (16)) pmat)
-                          (simple-array double-float (16)))
+(declaim (ftype (function ((simple-array float (16)) pmat)
+                          (simple-array float (16)))
                 matrix-convert-to-opengl-into))
 (declaim (inline matrix-convert-to-opengl-into))
 (defun matrix-convert-to-opengl-into (ogl src)
   "Convert the MAT matrix into OGL, which is a column-major OpenGL
-matrix represented as a (simple-array double-float (16)), and then
-return OGL."
+matrix represented as a (simple-array float (16)), and then
+return OGL. Precision is lost going from double-float to float here."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (declare (type (simple-array double-float (16)) ogl))
+  (declare (type (simple-array float (16)) ogl))
   (with-pmat-accessors (s src)
-    (psetf (aref ogl 0) s00
-           (aref ogl 1) s10
-           (aref ogl 2) s20
-           (aref ogl 3) s30
+    (psetf (aref ogl 0) (float s00 1.0)
+           (aref ogl 1) (float s10 1.0)
+           (aref ogl 2) (float s20 1.0)
+           (aref ogl 3) (float s30 1.0)
 
-           (aref ogl 4) s01
-           (aref ogl 5) s11
-           (aref ogl 6) s21
-           (aref ogl 7) s31
+           (aref ogl 4) (float s01 1.0)
+           (aref ogl 5) (float s11 1.0)
+           (aref ogl 6) (float s21 1.0)
+           (aref ogl 7) (float s31 1.0)
 
-           (aref ogl 8) s02
-           (aref ogl 9) s12
-           (aref ogl 10) s22
-           (aref ogl 11) s32
+           (aref ogl 8) (float s02 1.0)
+           (aref ogl 9) (float s12 1.0)
+           (aref ogl 10) (float s22 1.0)
+           (aref ogl 11) (float s32 1.0)
 
-           (aref ogl 12) s03
-           (aref ogl 13) s13
-           (aref ogl 14) s23
-           (aref ogl 15) s33))
+           (aref ogl 12) (float s03 1.0)
+           (aref ogl 13) (float s13 1.0)
+           (aref ogl 14) (float s23 1.0)
+           (aref ogl 15) (float s33 1.0)))
   ogl)
 
-(declaim (ftype (function ((simple-array double-float (16)) pmat)
-                          (simple-array double-float (16)))
+(declaim (ftype (function ((simple-array float (16)) pmat)
+                          (simple-array float (16)))
                 mctoi))
 (declaim (inline mctoi))
 (defun mctoi (ogl src) ;; matrix-convert-to-opengl-into
@@ -982,20 +982,21 @@ return OGL."
 
 ;;; ;;;;;;;;
 
-(declaim (ftype (function (pmat) (simple-array double-float (16)))
+(declaim (ftype (function (pmat) (simple-array float (16)))
                 matrix-convert-to-opengl))
 (declaim (inline matrix-convert-to-opengl))
 (defun matrix-convert-to-opengl (src)
   "Convert the SRC matrix into newly allocated column-major ordered
-simple-array double-float (16) suitable for OpenGL and return it."
+simple-array float (16) suitable for OpenGL and return it. Precision is lost
+going form double-float to float here."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
-  (let ((ogl (make-array 16 :element-type 'double-float
-                         :initial-element 0d0)))
-    (declare (type (simple-array double-float (16)) ogl))
+  (let ((ogl (make-array 16 :element-type 'float
+                         :initial-element 0.0)))
+    (declare (type (simple-array float (16)) ogl))
     (matrix-convert-to-opengl-into ogl src)
     ogl))
 
-(declaim (ftype (function (pmat) (simple-array double-float (16))) mcto))
+(declaim (ftype (function (pmat) (simple-array float (16))) mcto))
 (declaim (inline mcto))
 (defun mcto (src) ;; matrix-convert-to-opengl
   "Shortname for MATRIX-CONVERT-TO-OPENGL."
@@ -1009,8 +1010,8 @@ simple-array double-float (16) suitable for OpenGL and return it."
 (declaim (inline matrix-convert-from-opengl-into))
 (defun matrix-convert-from-opengl-into (dst ogl)
   "Convert the OGL OpenGL matrix, which is a (simple-arry
-double-float (16)) and in column major form, into the DST row major
-format and return DST."
+float (16)) and in column major form, into the DST row major
+format and return DST. Precision is lost going from doule-float to float here."
   #+option-9-optimize-pmat (declare (optimize (speed 3) (safety 0)))
   (declare (type (simple-array double-float (16)) ogl))
   (with-pmat-accessors (d dst)
@@ -1508,8 +1509,8 @@ rotation in radians around each axis in the rotation submatrix. Return RESULT.
         (macrolet ((do-a-rotation (axis sin-sym cos-sym &body body)
                      `(when (> (as-double-float (abs ,axis))
                                (as-double-float *pvec-tol*))
-                        (let ((,sin-sym (sin ,axis))
-                              (,cos-sym (cos ,axis)))
+                        (let ((,sin-sym (as-double-float (sin ,axis)))
+                              (,cos-sym (as-double-float (cos ,axis))))
                           ,@body)
                         (matrix-multiply-into result result rot))))
 
