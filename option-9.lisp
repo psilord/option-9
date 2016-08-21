@@ -154,8 +154,8 @@ Powerups:
       (set-initial-game-window-size *game*)
       ;; for post processing smoothing of the lines and whantot.
       ;; set before I make the window and OpenGL context.
-      (sdl2:gl-set-attr :multisamplebuffers 1)
-      (sdl2:gl-set-attr :multisamplesamples 4)
+      ;;(sdl2:gl-set-attr :multisamplebuffers 1)
+      ;;(sdl2:gl-set-attr :multisamplesamples 4)
       (sdl2:with-window (game-window :title "Option 9 Version 0.9"
                                      :w (window-width *game*)
                                      :h (window-height *game*)
