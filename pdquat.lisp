@@ -18,11 +18,13 @@
                (:constructor make-pdquat)
                (:constructor pdquat (&optional rw rx ry rz dw dx dy dz)))
 
+    ;; The default value represents 0 radians of rotation and 0 units of
+    ;; translation.
     (rw 1d0 :type double-float)
     (rx 0d0 :type double-float)
     (ry 0d0 :type double-float)
     (rz 0d0 :type double-float)
-    (dw 0d0 :type double-float)
+    (dw 1d0 :type double-float)
     (dx 0d0 :type double-float)
     (dy 0d0 :type double-float)
     (dz 0d0 :type double-float))
@@ -218,11 +220,42 @@
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; This must return a dual number as a values.
+;; This must return a dual number as a values with the real part first.
+;; The norm of q is sqrt(q time q*).
+;; After a bunch of simplification of that equation, it ends up being:
+;; sqrt( Qw^2 + Qx^2 + Qy^2 + Qz^2 ) where Qw Qz Qy Qz are the dual numbers of
+;; SRC.
+;; Then, note that the square root of a dual number is:
+;; sqrt(A + De) = (sqrt A) + (/ B (* 2 (sqrt A)))e
 (defun dquat-norm (src)
-  (declare (ignore src))
-  ;; TODO
-  nil)
+  (with-pdquat-accessors (s src)
+    (let ((tmp (pdquat)))
+      ;; First we compute the squared partial result
+      (with-pdquat-accessors (a tmp)
+        (psetf arw (* srw srw)
+               adw (* 2d0 srw sdw)
+
+               arx (* srx srx)
+               adx (* 2d0 srx sdx)
+
+               ary (* sry sry)
+               ady (* 2d0 sry sdy)
+
+               arz (* srz srz)
+               adz (* 2d0 srz sdz))
+
+        ;; Now, compute the summation of the squared dual terms
+        (let ((r 0d0)
+              (d 0d0))
+          (psetf r (+ arw arx ary arz)
+                 d (+ adw adx ady adz))
+
+          ;; Now compute the square root
+          ;; Not all dual quternions have defined norms....
+          (if (zerop d)
+              NIL
+              (let ((sqrt-r (sqrt r)))
+                (values sqrt-r (/ d (* 2d0 sqrt-r))))))))))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
