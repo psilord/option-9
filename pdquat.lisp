@@ -11,6 +11,8 @@
 ;;; making it easier to pass to opengl shaders.
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;; Note: Dual numbers do not have an explicit representation in this code.
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (deftype pdquat () `(simple-array double-float (8)))
   (defstruct (pdquat
@@ -20,6 +22,7 @@
 
     ;; The default value represents 0 radians of rotation and 0 units of
     ;; translation.
+    ;; NOTE: This is NOT a normalized dual quaternion!!!!
     (rw 1d0 :type double-float)
     (rx 0d0 :type double-float)
     (ry 0d0 :type double-float)
@@ -256,6 +259,47 @@
               NIL
               (let ((sqrt-r (sqrt r)))
                 (values sqrt-r (/ d (* 2d0 sqrt-r))))))))))
+
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun dual-number-divide (a b c d)
+  "Perform the dual number operation: (A + Be) / (C + De) and return
+as values the real and dual part. Return NIL if the division cannot be
+performed."
+  (if (zerop c)
+      NIL
+      (values (as-double-float (/ a c))
+              (as-double-float (/ (- (* b c) (* a d))
+                                  (* c c))))))
+
+;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun dquat-normalize-into (dst src)
+  (with-multiple-pdquat-accessors ((d dst) (s src))
+    (multiple-value-bind (nr nd) (dquat-norm src)
+      (when (null nr)
+        ;; Some dual quaternions cannot be normalized: like degenerate ones.
+        (return-from dquat-normalize-into NIL))
+
+      (multiple-value-bind (r0 d0) (dual-number-divide srw sdw nr nd)
+        (multiple-value-bind (r1 d1) (dual-number-divide srx sdx nr nd)
+          (multiple-value-bind (r2 d2) (dual-number-divide sry sdy nr nd)
+            (multiple-value-bind (r3 d3) (dual-number-divide srz sdz nr nd)
+              (psetf drw r0
+                     ddw d0
+
+                     drx r1
+                     ddx d1
+
+                     dry r2
+                     ddy d2
+
+                     drz r3
+                     ddz d3)))))))
+  dst)
+
+(defun dquat-normalize (src)
+  (dquat-normalize-into (pdquat) src))
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
