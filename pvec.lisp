@@ -357,11 +357,11 @@ storing it into into DST."
 (defun vect-normalize-into (dst src)
   "Normalize SRC and put result into DST. Return DST."
   #+option-9-optimize-pvec (declare (optimize (speed 3) (safety 0)))
-  (let ((mag (vnorm src)))
+  (let ((inv-mag (the double-float (/ (vnorm src)))))
     (with-multiple-pvec-accessors ((d dst) (s src))
-      (psetf dx (as-double-float (/ sx mag))
-             dy (as-double-float (/ sy mag))
-             dz (as-double-float (/ sz mag))))
+      (psetf dx (as-double-float (* sx inv-mag))
+             dy (as-double-float (* sy inv-mag))
+             dz (as-double-float (* sz inv-mag))))
     dst))
 
 (declaim (ftype (function (pvec pvec) pvec) vnormalizei))
