@@ -23,10 +23,10 @@
 
   (defmacro with-pquat-accessors ((prefix-symbol pquat) &body body)
     `(with-accessors
-           ((,(alexandria:symbolicate prefix-symbol "W") pquat-w)
-            (,(alexandria:symbolicate prefix-symbol "X") pquat-x)
-            (,(alexandria:symbolicate prefix-symbol "Y") pquat-y)
-            (,(alexandria:symbolicate prefix-symbol "Z") pquat-z))
+           ((,(make-accessor-symbol prefix-symbol "W") pquat-w)
+            (,(make-accessor-symbol prefix-symbol "X") pquat-x)
+            (,(make-accessor-symbol prefix-symbol "Y") pquat-y)
+            (,(make-accessor-symbol prefix-symbol "Z") pquat-z))
          ,pquat
        ,@body))
 

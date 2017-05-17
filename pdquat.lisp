@@ -34,14 +34,14 @@
 
   (defmacro with-pdquat-accessors ((prefix-symbol pdquat) &body body)
     `(with-accessors
-           ((,(alexandria:symbolicate prefix-symbol "RW") pdquat-rw)
-            (,(alexandria:symbolicate prefix-symbol "RX") pdquat-rx)
-            (,(alexandria:symbolicate prefix-symbol "RY") pdquat-ry)
-            (,(alexandria:symbolicate prefix-symbol "RZ") pdquat-rz)
-            (,(alexandria:symbolicate prefix-symbol "DW") pdquat-dw)
-            (,(alexandria:symbolicate prefix-symbol "DX") pdquat-dx)
-            (,(alexandria:symbolicate prefix-symbol "DY") pdquat-dy)
-            (,(alexandria:symbolicate prefix-symbol "DZ") pdquat-dz))
+           ((,(make-accessor-symbol prefix-symbol "RW") pdquat-rw)
+            (,(make-accessor-symbol prefix-symbol "RX") pdquat-rx)
+            (,(make-accessor-symbol prefix-symbol "RY") pdquat-ry)
+            (,(make-accessor-symbol prefix-symbol "RZ") pdquat-rz)
+            (,(make-accessor-symbol prefix-symbol "DW") pdquat-dw)
+            (,(make-accessor-symbol prefix-symbol "DX") pdquat-dx)
+            (,(make-accessor-symbol prefix-symbol "DY") pdquat-dy)
+            (,(make-accessor-symbol prefix-symbol "DZ") pdquat-dz))
          ,pdquat
        ,@body))
 

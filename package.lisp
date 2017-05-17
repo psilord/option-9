@@ -29,6 +29,16 @@
     (incf *id*)
     id))
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  ;; Needed for macro generation of symbols in a lexical intercourse scenario
+  ;; across packages.
+  (defun make-accessor-symbol (prefix-symbol suffix-strsym)
+    (intern
+     (string-upcase
+      (concatenate 'string (symbol-name prefix-symbol) (string suffix-strsym)))
+     (symbol-package prefix-symbol))))
+
+
 ;; lifted from Graham's ANSI Common Lisp book
 (defmacro with-type (type expr)
   `(the ,type ,(if (atom expr)

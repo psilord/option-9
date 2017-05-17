@@ -18,9 +18,9 @@
 
   (defmacro with-pvec-accessors ((prefix-symbol pvec) &body body)
     `(with-accessors
-           ((,(alexandria:symbolicate prefix-symbol "X") pvec-x)
-            (,(alexandria:symbolicate prefix-symbol "Y") pvec-y)
-            (,(alexandria:symbolicate prefix-symbol "Z") pvec-z))
+           ((,(make-accessor-symbol prefix-symbol "X") pvec-x)
+            (,(make-accessor-symbol prefix-symbol "Y") pvec-y)
+            (,(make-accessor-symbol prefix-symbol "Z") pvec-z))
          ,pvec
        ,@body))
 
