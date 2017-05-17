@@ -30,13 +30,14 @@
     id))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  ;; Needed for macro generation of symbols in a lexical intercourse scenario
-  ;; across packages.
-  (defun make-accessor-symbol (prefix-symbol suffix-strsym)
-    (intern
-     (string-upcase
-      (concatenate 'string (symbol-name prefix-symbol) (string suffix-strsym)))
-     (symbol-package prefix-symbol))))
+  (defun make-accessor-symbol (prefix-symbol &rest args)
+    "Create a symbol suitable for an accessor in with-p* macros used in
+the math API. PREFIX-SYMBOL _must_ be a symbol so we can discover the
+package it is from. ARGS can be anything else that will all end up
+stringified into a symbol interned into the symbol package of PREFIX-SYMBOL."
+    ;; Thank you pjb!
+    (intern (format nil "~:@(~{~A~}~)" (cons prefix-symbol args))
+            (symbol-package prefix-symbol))))
 
 
 ;; lifted from Graham's ANSI Common Lisp book
