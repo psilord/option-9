@@ -7,7 +7,7 @@
 ;;; An implementation of quaternions.
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *quaternion-slerp-epsilon-radians* (/ pi 180d0)) ;; 1 degree
+(defparameter *quaternion-slerp-cutoff* (cos (* 5d0 (/ pi 180d0)))) ;; 5 degrees
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (deftype pquat () `(simple-array double-float (4)))
@@ -388,7 +388,7 @@ store the resultant quaternion into QUAT-RESULT. Return QUAT-RESULT."
         ;; calculate coefficients
         (multiple-value-bind (scale0 scale1)
             (cond
-              ((> (- 1d0 cosom) *quaternion-slerp-epsilon-radians*)
+              ((< cosom *quaternion-slerp-cutoff*)
                (let* ((omega (as-double-float (acos cosom)))
                       (sinom (as-double-float (sin omega))))
                  (values
