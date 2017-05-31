@@ -133,12 +133,21 @@ Hrm (High level musings)
 
 - Removing Gimbal Lock
 The transformation pipeline suffers from gimbal lock:
+;; Rotate +90 around X
 OPTION-9> (let ((r (mlar (mi) (pvec (/ pi 2d0) 0d0 0d0)))) (ma r (pvec 0d0 1d0 0d0)))
 
+;; Now, see that an additional PI rotation around Y....
 #<[0.0d0 6.123233995736766d-17 1.0d0]>
 OPTION-9> (let ((r (mlar (mi) (pvec (/ pi 2d0) (* 1d0 pi) 0d0)))) (ma r (pvec 0d0 1d0 0d0)))
 
+;; OR a +90 rotation around Z...
 #<[0.0d0 6.123233995736766d-17 1.0d0]>
+OPTION-9> (let ((r (mlar (mi) (pvec (/ pi 2d0) 0d0 (* 1d0 pi))))) (ma r (pvec 0d0 1d0 0d0)))
+
+#<[-7.498798913309288d-33 -6.123233995736766d-17 1.0d0]>
+
+.. both produced the same point. Hence, gimbal lock.
+
 
 So, I wonder if I should rip out matricies and do the
 {Quaternion, Translation, Scale} rigid body discriptor for each frame
