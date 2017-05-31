@@ -127,3 +127,23 @@ Stats
 Localization
 - Hot-swappable translations
 - EFIGS font support
+
+
+Hrm (High level musings)
+
+- Removing Gimbal Lock
+The transformation pipeline suffers from gimbal lock:
+OPTION-9> (let ((r (mlar (mi) (pvec (/ pi 2d0) 0d0 0d0)))) (ma r (pvec 0d0 1d0 0d0)))
+
+#<[0.0d0 6.123233995736766d-17 1.0d0]>
+OPTION-9> (let ((r (mlar (mi) (pvec (/ pi 2d0) (* 1d0 pi) 0d0)))) (ma r (pvec 0d0 1d0 0d0)))
+
+#<[0.0d0 6.123233995736766d-17 1.0d0]>
+
+So, I wonder if I should rip out matricies and do the
+{Quaternion, Translation, Scale} rigid body discriptor for each frame
+which prevents gimbal lock and also, since the matricies will be recreated
+each frame, reduces numerical error in transforms since I'm wouldn't be doing 
+incremental rotations anymore.
+
+
