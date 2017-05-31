@@ -143,7 +143,7 @@ OPTION-9> (let ((r (mlar (mi) (pvec (/ pi 2d0) (* 1d0 pi) 0d0)))) (ma r (pvec 0d
 
 #<[0.0d0 6.123233995736766d-17 1.0d0]>
 
-;; OR a +90 rotation around Z...
+;; OR a PI rotation around Z...
 OPTION-9> (let ((r (mlar (mi) (pvec (/ pi 2d0) 0d0 (* 1d0 pi))))) (ma r (pvec 0d0 1d0 0d0)))
 
 #<[-7.498798913309288d-33 -6.123233995736766d-17 1.0d0]>
