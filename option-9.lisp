@@ -165,7 +165,8 @@ Powerups:
         (sdl2:gl-set-attr :depth-size 24)
         (sdl2:with-gl-context (gl-context game-window)
           (sdl2:gl-make-current game-window gl-context)
-          (sdl2:gl-set-swap-interval 1) ;; Turn on vsync
+          ;; Turn on vsync (TODO: Some drivers don't support this.)
+          #++(sdl2:gl-set-swap-interval 1)
           (sdl2:hide-cursor)
           (gl:clear-color 0 0 0 0)
 
