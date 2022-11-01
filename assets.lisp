@@ -40,6 +40,13 @@
   (setf (power-lines ent) (power-lines ent))
   ent)
 
+(defun copy-arrays (list)
+  (mapcar (lambda (item)
+            (if (arrayp item)
+                (copy-seq item)
+                item))
+          list))
+
 ;; A factory constructor to make me a CLOS instance of any :instance
 ;; read into *assets*. Each entity also knows the game context
 ;; in which it will be placed. This allows the generic methods of
@@ -64,7 +71,8 @@
       ;; with their actual values. Also, it prevents literal objects from
       ;; being referenced by all instances (in addition to the undefined
       ;; writing to them, if they were not copied)
-      (let* ((full-args (copy-seq (append override-initargs initargs)))
+      (let* ((full-args (copy-arrays
+                          (copy-seq (append override-initargs initargs))))
              (roles (cadr (member :role full-args))))
 
         ;; Ensure any specified roles are actually valid!
