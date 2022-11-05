@@ -31,4 +31,4 @@
                        ;; Stay in the plane, no up/down speed
                        0d0))))
 
-  (shoot ent :front-weapon-port))
+  (shoot ent :front-weapon-port :now))

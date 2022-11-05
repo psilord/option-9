@@ -197,10 +197,11 @@ collided with something."))
   (:documentation
    "When something dies and needs to explode, this is how it explodes."))
 
-(defgeneric shoot (ship port)
+(defgeneric shoot (ship port context)
   (:documentation
    "The ship, be it player or enemy or something else, shoots whatever turret
-exists at the identified port."))
+exists at the identified port. The context indicates :now or :charged for the
+condition under which the shooting happens."))
 
 (defgeneric turret (ship turret-name)
   (:documentation

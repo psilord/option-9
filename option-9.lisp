@@ -221,7 +221,8 @@ Powerups:
                 (frank-delta-buffer 0)
                 (frank-frame-count 0)
                 (last-coeff 0d0)
-                (frank-previous-delta 0))
+                (frank-previous-delta 0)
+		(space-down nil))
             (sdl2:with-event-loop (:method :poll)
               (:quit () t)
               (:keydown (:keysym keysym)
@@ -232,6 +233,11 @@ Powerups:
                              (let ((player (car (entities-with-role
                                                  (scene-man *game*) :player))))
                                (when player
+				 ;; ALWAYS shoot upon initial key down ...
+				 (unless space-down
+				   (setf space-down t)
+				   (shoot player :front-weapon-port :now))
+				 ;; ... and maybe shoot if charging is avail.
                                  (start-charging player :front-weapon-port)
                                  )))
                             ((sdl2:scancode= scancode :scancode-p) ; Pause Game
@@ -253,22 +259,22 @@ Powerups:
                              (let ((player (car (entities-with-role
                                                  (scene-man *game*) :player))))
                                (when player
-                                 (shoot player :left-weapon-port))))
+                                 (shoot player :left-weapon-port :now))))
                             ((sdl2:scancode= scancode :scancode-d) ;; TEST: center weapon port fire
                              (let ((player (car (entities-with-role
                                                  (scene-man *game*) :player))))
                                (when player
-                                 (shoot player :center-weapon-port))))
+                                 (shoot player :center-weapon-port :now))))
                             ((sdl2:scancode= scancode :scancode-x) ;; TEST: rear weapon port fire
                              (let ((player (car (entities-with-role
                                                  (scene-man *game*) :player))))
                                (when player
-                                 (shoot player :rear-weapon-port))))
+                                 (shoot player :rear-weapon-port :now))))
                             ((sdl2:scancode= scancode :scancode-c) ;; TEST: right weapon port fire
                              (let ((player (car (entities-with-role
                                                  (scene-man *game*) :player))))
                                (when player
-                                 (shoot player :right-weapon-port))))
+                                 (shoot player :right-weapon-port :now))))
                             ((sdl2:scancode= scancode :scancode-up)
                              (move-player-keyboard *game* :begin :up))
                             ((sdl2:scancode= scancode :scancode-down)
@@ -282,11 +288,12 @@ Powerups:
                         ;; (format t "Key up: ~S~%" key)
                         (cond
                           ((sdl2:scancode= scancode :scancode-space)
-                           ;; Fire front weapon port
+			   (setf space-down nil)
+                           ;; Fire front weapon port if charged
                            (let ((player (car (entities-with-role
                                                (scene-man *game*) :player))))
                              (when player
-                               (shoot player :front-weapon-port))))
+                               (shoot player :front-weapon-port :charged))))
                           ((sdl2:scancode= scancode :scancode-up)
                            (move-player-keyboard *game* :end :up))
                           ((sdl2:scancode= scancode :scancode-down)
@@ -313,7 +320,7 @@ Powerups:
                                                                      (scene-man *game*)
                                                                      :player))))
                                                    (when player
-                                                     (shoot player :front-turret-port))))
+                                                     (shoot player :front-turret-port :now))))
                                                 ((= button 6)
                                                  (sdl2:push-event :quit))))
 
