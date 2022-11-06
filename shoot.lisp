@@ -43,45 +43,33 @@
       ;; while spawning.
       (fire ship 'sp-enemy-shot context muzzle turret))))
 
-(defmethod fire ((ship ship) spawn-class (context (eql :now))
-                 (muzzle muzzle) turret)
+(defmethod fire ((ship ship) spawn-class context (muzzle muzzle) turret)
   (let ((shot-name (shot-instance-name muzzle)))
-    ;; Actually fire.
-    (spawn spawn-class
-           ;; Specialize the shot in the muzzle to be appropriate for the
-           ;; ship firing it.
-           (specialize-generic-instance-name
-            (instance-name ship) shot-name)
-           turret (game-context ship)
-           ;; And transfer the muzzle's charge to the thing I'm about to fire.
-           :extra-init `(:charge-percentage ,(charge-percentage muzzle)))
+    (flet ((spawn-the-shot ()
+             ;; Actually fire.
+             (spawn spawn-class
+                    ;; Specialize the shot in the muzzle to be appropriate for
+                    ;; the ship firing it.
+                    (specialize-generic-instance-name
+                     (instance-name ship) shot-name)
+                    turret (game-context ship)
+                    ;; And transfer the muzzle's charge to the thing I'm about
+                    ;; to fire.
+                    :extra-init
+                    `(:charge-percentage ,(charge-percentage muzzle)))))
+      (ecase context
+        (:now
+         (spawn-the-shot))
+        (:charged
+         (when (>= (charge-percentage muzzle) 1d0)
+           (spawn-the-shot))))
 
-    ;; Stop charging the muzzle and reset, because we've fired
-    (setf (chargingp muzzle) nil
-          (charge-percentage muzzle) 0.0)))
-
-(defmethod fire ((ship ship) spawn-class (context (eql :charged))
-                 (muzzle muzzle) turret)
-  (let ((shot-name (shot-instance-name muzzle)))
-    ;; Only fire if our charge is high enough (TODO: Tinker with misfires..)
-    (when (>= (charge-percentage muzzle) 1d0)
-      (spawn spawn-class
-             ;; Specialize the shot in the muzzle to be appropriate for the
-             ;; ship firing it.
-             (specialize-generic-instance-name
-              (instance-name ship) shot-name)
-             turret (game-context ship)
-             ;; And transfer the muzzle's charge to the thing I'm about to
-             ;; fire.
-             :extra-init `(:charge-percentage ,(charge-percentage muzzle))))
-
-    ;; Stop charging the muzzle and reset, because we've fired
-    (setf (chargingp muzzle) nil
-          (charge-percentage muzzle) 0.0)))
+      ;; Stop charging the muzzle and reset, because we've fired
+      (setf (chargingp muzzle) nil
+            (charge-percentage muzzle) 0.0))))
 
 (defmethod fire ((ship ship) spawn-class context (muzzle mine-muzzle) turret)
   (let ((shot-name (shot-instance-name muzzle)))
-
     ;; Actually fire
     (cond
       ((plusp (mine-count muzzle))
