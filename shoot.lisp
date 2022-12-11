@@ -86,8 +86,6 @@
                     (turret-world (matrix-copy loc/ent))
                     (turret-rotation (mcri (mi) turret-world))
                     (turret-translation (mtrg turret-world))
-                    (wiggle (* (/ pi 4d0) (sin (get-internal-real-time))))
-                    (half-spread-angle (+ half-spread-angle wiggle))            
 
                     ;; get starting orientation of turret
                     (start-turret-rotation

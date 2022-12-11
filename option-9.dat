@@ -215,7 +215,7 @@
     ((:instance :player-1-n-shot-turret)
      (:class n-shot-turret)
      (:initargs
-      :geometry :small-fuchsia-triangle :spread-angle ,(* pi 1/7) :num-sectors 7))
+      :geometry :small-fuchsia-triangle :spread-angle 0d0 :num-sectors 1))
 
     ((:instance :player-1-shield-turret)
      (:class shield-turret)
