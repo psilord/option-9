@@ -23,5 +23,11 @@
                  ((0d0 .5d0 0d0) (1 0 0))
                  ((.5d0 0d0 0d0) (1 0 0))))))
 
+  (:small-fuchsia-triangle
+   (:primitives
+    ;; just a small fuchsia triangle for now so I can see where it is placed.
+    ((:line-loop ((-.5d0 0d0 0d0) (1 0 1))
+                 ((0d0 .5d0 0d0) (1 0 1))
+                 ((.5d0 0d0 0d0) (1 0 1))))))
 
   )

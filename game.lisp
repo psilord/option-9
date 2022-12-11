@@ -96,7 +96,7 @@
            (:up
             (setf (dfvy p) (per-hz (forward-speed p))))
            (:down
-            (setf (dfvy p) (per-hz (backward-speed p))))
+            (setf (dfvy p) (per-hz (* 0.75 (backward-speed p)))))
            (:left
             (setf (dfvx p) (per-hz (strafe-left-speed p))))
            (:right

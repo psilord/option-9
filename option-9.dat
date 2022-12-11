@@ -86,6 +86,7 @@
    ((:player-1 ;; instance-name for a real instance in the game
      (;; Turrets
       (:generic-one-shot-turret  (:player-1-one-shot-turret))
+      (:generic-n-shot-turret    (:player-1-n-shot-turret))
       (:generic-shield-turret    (:player-1-shield-turret))
       ;; Muzzles
       (:generic-muzzle-simple-shot   (:generic-muzzle-simple-shot))
@@ -211,6 +212,11 @@
      (:initargs
       :geometry :small-yellow-triangle))
 
+    ((:instance :player-1-n-shot-turret)
+     (:class n-shot-turret)
+     (:initargs
+      :geometry :small-fuchsia-triangle :spread-angle ,(* pi 1/7) :num-sectors 7))
+
     ((:instance :player-1-shield-turret)
      (:class shield-turret)
      (:initargs
@@ -298,7 +304,8 @@
        ;; of :player-1
        (:shield-port :generic-shield-turret nil)
        (:passive-weapon-port :generic-one-shot-turret nil)
-       (:front-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot)
+       ;; (:front-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot)
+       (:front-weapon-port :generic-n-shot-turret :generic-muzzle-simple-shot)
        (:left-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot)
        (:center-weapon-port :generic-one-shot-turret :generic-muzzle-mine-dropper)
        (:right-weapon-port :generic-one-shot-turret :generic-muzzle-simple-shot)

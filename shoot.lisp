@@ -69,6 +69,79 @@
       (setf (chargingp muzzle) nil
             (charge-percentage muzzle) 0.0))))
 
+(defmethod fire ((ship ship) spawn-class context (muzzle muzzle)
+                 (turret n-shot-turret))
+  (let ((shot-name (shot-instance-name muzzle)))
+    (flet ((spawn-the-shot (loc/ent)
+
+             (let* ((spread-angle (spread-angle turret))
+                    (num-sectors (num-sectors turret))
+
+                    ;; Clean up the inputs to be always valid.
+                    (spread-angle (clamp (abs spread-angle) 0d0 (* pi 2d0)))
+                    (num-sectors (if (< num-sectors 1) 1 num-sectors))
+
+                    (half-spread-angle (/ spread-angle 2d0))
+
+                    (turret-world (matrix-copy loc/ent))
+                    (turret-rotation (mcri (mi) turret-world))
+                    (turret-translation (mtrg turret-world))
+                    (wiggle (* (/ pi 4d0) (sin (get-internal-real-time))))
+                    (half-spread-angle (+ half-spread-angle wiggle))            
+
+                    ;; get starting orientation of turret
+                    (start-turret-rotation
+                      (mlar turret-rotation (pvec 0d0 0d0 half-spread-angle)))
+
+                    ;; The temporary frame this stuff gets shoved into for
+                    ;; spawning purposes.
+                    (fire-turret-frame (make-instance 'frame)))
+
+               ;; Actually fire once for each sector.
+               (dotimes (sector num-sectors)
+
+                 ;; starting from the start-turret-rotation, rotate clockwise
+                 ;; and compute fire angle.
+                 (let* ((sector-start-angle
+                          (lerp 0d0 spread-angle (/ sector num-sectors)))
+                        (sector-end-angle
+                          (lerp 0d0 spread-angle (/ (+ sector 1) num-sectors)))
+                        (middle-sector-angle
+                          (/ (+ sector-start-angle sector-end-angle) 2d0)))
+
+                   ;; Take the start-orientation and rote it clockwise by the
+                   ;; requested amount.
+                   (mlari (world-basis fire-turret-frame)
+                          start-turret-rotation
+                          ;; - for clockwise rotation.
+                          (pvec 0d0 0d0 (- middle-sector-angle)))
+
+                   ;; don't forget to store the translation back into the frame
+                   (mtrsi (world-basis fire-turret-frame) turret-translation)
+
+                   (spawn spawn-class
+                          ;; Specialize the shot in the muzzle to be
+                          ;; appropriate for the ship firing it.
+                          (specialize-generic-instance-name
+                           (instance-name ship) shot-name)
+                          fire-turret-frame
+                          (game-context ship)
+                          ;; And transfer the muzzle's charge to the thing I'm
+                          ;; about to fire.
+                          :extra-init
+                          `(:charge-percentage ,(charge-percentage muzzle))))))
+             ))
+      (ecase context
+        (:now
+         (spawn-the-shot (world-basis turret)))
+        (:charged
+         (when (>= (charge-percentage muzzle) 1d0)
+           (spawn-the-shot (world-basis turret)))))
+
+      ;; Stop charging the muzzle and reset, because we've fired
+      (setf (chargingp muzzle) nil
+            (charge-percentage muzzle) 0.0))))
+
 (defmethod fire ((ship ship) spawn-class context (muzzle mine-muzzle) turret)
   (let ((shot-name (shot-instance-name muzzle)))
     ;; Actually fire

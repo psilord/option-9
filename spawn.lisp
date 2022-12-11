@@ -112,7 +112,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
 (defmethod resolve-spawn-location ((loc/ent simple-array))
   loc/ent)
 
-(defmethod resolve-spawn-location ((loc/ent entity))
+(defmethod resolve-spawn-location ((loc/ent frame))
   (matrix-translate-get (world-basis loc/ent)))
 
 ;; While this could be defined for each spawn-class, we just do the
@@ -269,6 +269,8 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spawning a Player Shot
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Remove below once specialization for player-shot is removed
 (defmethod spawn ((spawn-class (eql 'sp-player-shot)) ioi/e loc/ent game
                   &key
                     spawn-context
@@ -286,7 +288,6 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                            ;; turret.
                            :local-basis ,(matrix-copy (world-basis loc/ent))
                            ,@extra-init)))
-
         (add-spawnable
          (make-spawnable spawn-class
                          :ioi/e ioi/e
@@ -296,6 +297,7 @@ realized due to loss of parents are funneled to RECLAIM-FAILED-SPAWN for now."
                          :mutator mutator
                          :game game)
          game)))))
+
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spawning a Player Mine

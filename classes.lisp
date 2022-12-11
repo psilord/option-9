@@ -436,6 +436,12 @@ vector at that position"))
 (defclass one-shot-turret (weapon-turret) ())
 (defclass two-shot-turret (weapon-turret) ())
 (defclass three-shot-turret (weapon-turret) ())
+(defclass n-shot-turret (weapon-turret)
+  ((spread-angle :accessor spread-angle :initform 0 :initarg :spread-angle)
+   (aim-angle :accessor aim-angle :initform 0 :initarg :aim-angle)
+   ;; Note a shot happens in the *midpoint* of a sector arc
+   (num-sectors :accessor num-sectors :initform 1 :initarg :num-sectors)))
+
 
 ;; specific shield turrets
 (defclass shield-turret (turret) ())
